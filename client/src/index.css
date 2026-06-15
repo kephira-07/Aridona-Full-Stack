@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Alice&family=Averia+Gruesa+Libre&family=Caveat:wght@400..700&family=Parisienne&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import "tailwindcss";
+
+
+
+@theme {
+  /* On définit les classes personnalisées */
+  --font-alice: "Alice", serif;
+  --font-averia: "Averia Gruesa Libre", system-ui;
+  --font-caveat: "Caveat", cursive;
+  --font-parisienne: "Parisienne", cursive;
+  --font-roboto: "Roboto", sans-serif;
+  
+  /* Optionnel : Définir Roboto comme police par défaut du projet */
+  --font-sans: "Roboto", ui-sans-serif, system-ui;
+}
+::-webkit-scrollbar{
+  display: none;
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+@keyframes slideIn {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
