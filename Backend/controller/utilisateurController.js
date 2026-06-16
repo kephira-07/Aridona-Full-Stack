@@ -7,6 +7,40 @@ import validator from 'validator';
 const createToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
+// Récupérer le profil de l'utilisateur connecté
+const getProfilUtilisateur = async (req, res) => {
+    try {
+        const userId = req.userId; // Injecté par ton middleware authUser
+        const utilisateur = await utilisateurModel.findById(userId).select("-password");
+        
+        if (!utilisateur) {
+            return res.json({ success: false, message: "Utilisateur introuvable." });
+        }
+        res.json({ success: true, utilisateur });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// Mettre à jour le profil
+const updateProfilUtilisateur = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { name, telephone, adresse, ville } = req.body;
+
+        const utilisateurMisAJour = await utilisateurModel.findByIdAndUpdate(
+            userId,
+            { name, telephone, adresse, ville },
+            { new: true }
+        ).select("-password");
+
+        res.json({ success: true, message: "Profil mis à jour avec succès !", utilisateur: utilisateurMisAJour });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// N'oublie pas de les ajouter dans ton export final en bas du fichier :
 
 // Inscription
 const registerutilisateur = async (req, res) => {
@@ -79,4 +113,4 @@ const isMatch = (password === process.env.ADMIN_PASSWORD)
    }
 }
 
-export { registerutilisateur, loginutilisateur, adminLogin };
+export { registerutilisateur, loginutilisateur, adminLogin, getProfilUtilisateur, updateProfilUtilisateur };
