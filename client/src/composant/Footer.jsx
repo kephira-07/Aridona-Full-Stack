@@ -1,8 +1,7 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
-// 🌟 Remplacement des images SVG par des icônes Lucide robustes et élégantes
-import { Instagram, Facebook, Twitter } from 'lucide-react';
+
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -40,17 +39,17 @@ const Footer = () => {
             </div>
 
             {/* 🌟 Icônes Sociales avec Lucide (Stylisées Elite Pop sans filtres brisés) */}
-            <div className="flex gap-6 pt-2">
+            {/* <div className="flex gap-6 pt-2">
               <a href="#" aria-label="Instagram" className="text-gray-500 hover:text-amber-500 transition-all duration-300 hover:-translate-y-1 transform">
                 <Instagram size={20} strokeWidth={1.5} />
               </a>
-              <a href="#" aria-label="Facebook" className="text-gray-500 hover:text-amber-500 transition-all duration-300 hover:-translate-y-1 transform">
-                <Facebook size={20} strokeWidth={1.5} />
+              <a href="#" aria-label="🥲" className="text-gray-500 hover:text-amber-500 transition-all duration-300 hover:-translate-y-1 transform">
+                <🥲 size={20} strokeWidth={1.5} />
               </a>
-              <a href="#" aria-label="Twitter / X" className="text-gray-500 hover:text-amber-500 transition-all duration-300 hover:-translate-y-1 transform">
-                <Twitter size={20} strokeWidth={1.5} />
+              <a href="#" aria-label="😎/ X" className="text-gray-500 hover:text-amber-500 transition-all duration-300 hover:-translate-y-1 transform">
+                <😎size={20} strokeWidth={1.5} />
               </a>
-            </div>
+            </div> */}
           </div>
 
           {/* Colonne 2 : Collections Dynamiques */}
