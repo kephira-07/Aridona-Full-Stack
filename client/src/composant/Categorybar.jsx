@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'react-router-dom'; // Assure-toi que l'import d'axios vient bien de 'axios'
-import axiosInstance from 'axios'; // Correction de l'import d'axios si nécessaire
-import backendUrl from '../config'; // 🌟 FIX 1 : Importation par défaut (sans accolades)
+import axios from 'axios'; // 🌟 La correction est ici
+import backendUrl from '../config'; 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Categorybar({ selectedCategories = [], toggleCategorie, clearCategories }) {
@@ -20,7 +19,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axiosInstance.get(`${backendUrl}/api/categorie`);
+        const response = await axios.get(`${backendUrl}/api/categorie`);
         if (response.data.success) {
           // 🌟 FIX 2 : Alignement sur la structure de ton backend (categories ou data)
           const donneesCategories = response.data.categories || response.data.data || [];
