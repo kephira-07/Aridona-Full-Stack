@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios'; // 🌟 La correction est ici
+import axios from 'axios';
 import backendUrl from '../config'; 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -21,9 +21,19 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
       try {
         const response = await axios.get(`${backendUrl}/api/categorie`);
         if (response.data.success) {
-          // 🌟 FIX 2 : Alignement sur la structure de ton backend (categories ou data)
-          const donneesCategories = response.data.categories || response.data.data || [];
-          setCategories(donneesCategories);
+          const donneesRaw = response.data.data || response.data.categories || [];
+          
+          // 🔍 Dev outils : Inspecte ce log dans ton navigateur pour voir la structure de tes images en BDD
+          console.log("Catégories reçues de MongoDB :", donneesRaw);
+
+          // Ajustement défensif au cas où certains vieux documents utiliseraient d'anciennes clés
+          const donneesNettoyees = donneesRaw.map(cat => ({
+            ...cat,
+            // Si cat.image n'existe pas, on cherche dans d'autres variantes courantes
+            image: cat.image || cat.imageUrl || cat.imageCategory || cat.secure_url || ""
+          }));
+
+          setCategories(donneesNettoyees);
         }
       } catch (error) {
         console.error("Erreur chargement catégories barre:", error.message);
@@ -132,8 +142,9 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                     alt={cat.nom} 
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      // Si l'URL Cloudinary de la BDD renvoie une erreur 404, on met une image générique propre
                       e.target.onerror = null;
-                      e.target.src = "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?q=80&w=150";
+                      e.target.src = "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?q=80&w=300";
                     }}
                   />
                 </div>
