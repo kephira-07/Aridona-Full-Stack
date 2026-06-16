@@ -34,7 +34,7 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
         <div>
           <div className="flex items-center justify-between p-5 border-b border-stone-200/60 bg-white">
             <NavLink to="/" onClick={() => setVisible(false)} className="h-9 block"> 
-              <img src={logo2} alt="Aura Héritage" className="object-contain h-full w-auto" />
+              <img src={logo2} alt="Aridona Héritage" className="object-contain h-full w-auto" />
             </NavLink>
             <button 
               aria-label="Fermer menu mobile" 
@@ -81,7 +81,7 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
             className="flex items-center gap-3 w-full bg-stone-950 text-white p-4 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all duration-300 hover:bg-amber-700 justify-center shadow-md shadow-stone-950/10"
           >
             <User className="w-4 h-4 text-amber-400" strokeWidth={2} />
-            <span>Mon Espace Privé Aura</span>
+            <span>Mon Espace Privé Aridona</span>
           </NavLink>
         </div>
 
