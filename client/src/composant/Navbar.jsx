@@ -5,6 +5,7 @@ import { ShopContext } from '../context/ShopContext';
 import BarRecherche from './BarRecherche';
 
 import logo2 from '../assets/logo2.svg';
+import MenuMobile from './MenuMobile';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -159,33 +160,9 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* MENU TIROIR MOBILE */}
-      <div 
-        className={`fixed inset-0 z-[100] bg-black/50 transition-opacity duration-300 md:hidden ${visible ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
-        onClick={() => setVisible(false)}
-      >
-        <div 
-          className={`absolute top-0 left-0 w-4/5 max-w-sm h-full bg-white shadow-2xl transition-transform duration-300 ease-in-out flex flex-col ${visible ? 'translate-x-0' : '-translate-x-full'}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="h-10"> 
-              <img src={logo2} alt="Logo" className="object-contain h-full w-auto" />
-            </div>
-            <button aria-label="Fermer menu mobile" onClick={() => setVisible(false)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-          <div className="flex flex-col py-4 overflow-y-auto">
-            {['Nouveautés', 'Bagues', 'Colliers', 'Bracelets', 'Mariage', 'Mon Compte'].map((item) => (
-              <a key={item} href="#" className="flex items-center justify-between px-6 py-4 text-gray-800 border-b border-gray-50 hover:bg-gray-50 hover:text-amber-500 transition-colors">
-                <span className="font-medium">{item}</span>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* MENU MOBILE */}
+      <MenuMobile visible={visible} setVisible={setVisible} />
+     
     </div>
   );
 }
