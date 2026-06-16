@@ -3,11 +3,12 @@ import { toast } from 'react-toastify';
 import axios from 'axios'; 
 // 1. Données de secours (Mock Data) si le serveur est déconnecté
 import { produits as produitsMock } from '../assets/image';
+import backendUrl from '../config'; // Assure-toi d'avoir un fichier de config pour centraliser l'URL de ton backend
 
 export const ShopContext = createContext();
 
 const ShopContextProvider = (props) => {
-  const backendUrl = "http://localhost:4000"; 
+
 
   const monnaie = 'FCFA';
   const delivery_free = 500;
