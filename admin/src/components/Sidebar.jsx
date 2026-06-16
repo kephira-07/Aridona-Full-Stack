@@ -7,6 +7,13 @@ const Sidebar = () => {
       
       {/* Partie Haute : Liens de Navigation */}
       <div className="flex flex-col gap-2 px-4">
+        <NavLink to="/dashbord" className={({ isActive }) => `flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive ? 'bg-slate-950 text-white shadow-sm font-semibold' : 'text-gray-500 hover:text-slate-900 hover:bg-gray-50'}`}>
+          {/* Icône Tableau de Bord / Graphique */}
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+          <span className="tracking-wide">Tableau de Bord</span>
+        </NavLink>
         
         {/* Onglet : Ajouter un produit */}
         <NavLink 

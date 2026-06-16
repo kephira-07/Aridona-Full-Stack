@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Orders from './pages/Orders';
 import Edit from './pages/Edit';
 import Categories from './pages/Categories';
+import DashboardStats from './pages/DashboardStats';
 
 const App = () => {
   // Récupération du token sauvegardé dans le navigateur pour éviter de se reconnecter après un F5
@@ -43,6 +44,7 @@ const App = () => {
           <Routes>
             {/* Redirection automatique de la racine (/) vers la liste des produits */}
            <Route path="/" element={<Navigate to="/list" replace />} />
+                  <Route path='/dashbord'element={<DashboardStats token={token} />} /> 
                   <Route path="/add" element={<Add token={token} />} />
                   <Route path="/list" element={<List token={token} />} />
                   <Route path="/orders" element={<Orders token={token} />} />
