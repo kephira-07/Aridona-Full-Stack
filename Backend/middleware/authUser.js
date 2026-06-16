@@ -14,8 +14,15 @@ const authUser = async (req, res, next) => {
 
         const token_decode = jwt.verify(token, process.env.JWT_SECRET);
         
-        // 🛠️ SOLUTION : On stocke l'ID dans req.userId à la place de req.body
+        // 🛠️ LA DOUBLE SÉCURITÉ :
+        // 1. On le met dans req.userId pour les nouveaux contrôleurs épurés
         req.userId = token_decode.id; 
+        
+        // 2. On l'injecte AUSSI dans req.body.userId pour ne pas casser tes anciens contrôleurs (panier, etc.)
+        if (!req.body) {
+            req.body = {};
+        }
+        req.body.userId = token_decode.id; 
         
         next(); 
     } catch (error) {
