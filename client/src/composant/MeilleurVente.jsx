@@ -29,7 +29,7 @@ const MeilleurVente = () => {
           );
           
           // On ne garde que les 5 premiers bijoux pour le design de la page d'accueil
-          setMeilleurVente(topProduits.slice(0, 5));
+          setMeilleurVente(topProduits.slice(0, 8));
         }
       } catch (error) {
         console.error("Erreur lors de la récupération des meilleures ventes:", error.message);
@@ -49,7 +49,7 @@ const MeilleurVente = () => {
     <div className="bg-white py-12">
         {/* En-tête de section luxueux */}
         <div className='text-center text-3xl pb-8'>
-            <Titre text1='Découvrez notre' text2='meilleure vente' />
+            <Titre text1='Découvrez notre' text2='Meilleure vente' />
             <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-stone-500 font-light mt-2 italic'>
                 L'excellence signée Arilona : les créations les plus plébiscitées et convoitées de notre collection.
             </p>
