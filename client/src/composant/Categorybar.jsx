@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Categorybar({ selectedCategories = [], toggleCategorie, clearCategories }) {
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true); // 🌟 État de chargement
   const [isVisible, setIsVisible] = useState(true);
   const [isSticky, setIsSticky] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -16,16 +17,20 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
   const location = useLocation();
   const isHomePage = location.pathname === '/' || location.pathname === '/home';
 
-  // Déterminer si l'option "Tout" est active (aucune catégorie spécifique sélectionnée)
   const isAllSelected = selectedCategories.length === 0;
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(`${backendUrl}/api/categorie`);
-        if (response.data.success) setCategories(response.data.data);
+        if (response.data.success) {
+          setCategories(response.data.data);
+        }
       } catch (error) {
         console.error("Erreur chargement catégories barre:", error.message);
+      } finally {
+        setLoading(false); // 🌟 Fin du chargement quoi qu'il arrive
       }
     };
     fetchCategories();
@@ -117,14 +122,13 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
           className="flex items-center gap-5 overflow-x-auto scrollbar-hide snap-x py-1 scroll-smooth"
         >
           
-          {/* 🌟 AJOUT : Option "Tout" au début de la liste */}
+          {/* Option "Tout" */}
           <button
             onClick={handleViewAllClick}
             className={`flex flex-col items-center flex-shrink-0 snap-center focus:outline-none text-center transition-all duration-300 ${
               isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
             }`}
           >
-            {/* Bulle avec une icône ou un texte/style par défaut (ici un dégradé neutre ou ambré si sélectionné) */}
             <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
               isLarge 
                 ? 'w-30 h-30 md:w-45 md:h-45 hover:scale-105 text-sm font-semibold' 
@@ -134,11 +138,9 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                 ? 'ring-2 ring-amber-500 ring-offset-2 bg-amber-50 text-amber-600' 
                 : 'bg-stone-100 text-stone-600'
             }`}>
-              {/* Tu peux mettre une mini icône ou juste un mot. Ici, "ALL" ou "TOUT" */}
               <span className={isLarge ? "text-base tracking-wider" : "text-[10px]"}>ALL</span>
             </div>
 
-            {/* Texte sous la bulle */}
             <span className={`tracking-wide font-medium mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
               isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
             } ${(!isLarge && isAllSelected) ? 'text-amber-600 font-bold' : 'text-slate-700'}`}>
@@ -146,36 +148,52 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
             </span>
           </button>
 
-          {/* Liste dynamique des catégories */}
-          {categories.map((cat) => {
-            const isChecked = selectedCategories.includes(cat._id);
-            
-            return (
-              <button
-                key={cat._id}
-                onClick={() => handleCategoryClick(cat._id)}
-                className={`flex flex-col items-center flex-shrink-0 snap-center focus:outline-none text-center transition-all duration-300 ${
+          {/* 🌟 LISTE DYNAMIQUE OU SQUELETTES DE CHARGEMENT */}
+          {loading ? (
+            // Affiche 6 fausses bulles animées pendant le chargement
+            Array.from({ length: 6 }).map((_, index) => (
+              <div 
+                key={index} 
+                className={`flex flex-col items-center flex-shrink-0 animate-pulse ${
                   isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
                 }`}
               >
-                {/* Bulle d'image de la catégorie */}
-                <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 transition-all duration-300 ${
-                  isLarge 
-                    ? 'w-30 h-30 md:w-45 md:h-45 hover:scale-105' 
-                    : 'w-11 h-11 md:w-12 md:h-12'
-                } ${(!isLarge && isChecked) ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
-                  <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
-                </div>
+                <div className={`rounded-full bg-gray-200 aspect-square flex-shrink-0 ${
+                  isLarge ? 'w-30 h-30 md:w-45 md:h-45' : 'w-11 h-11 md:w-12 md:h-12'
+                }`} />
+                <div className="h-3 bg-gray-200 rounded-sm w-3/4 mt-3" />
+              </div>
+            ))
+          ) : (
+            // Une fois chargé, on affiche les vraies données
+            categories.map((cat) => {
+              const isChecked = selectedCategories.includes(cat._id);
+              
+              return (
+                <button
+                  key={cat._id}
+                  onClick={() => handleCategoryClick(cat._id)}
+                  className={`flex flex-col items-center flex-shrink-0 snap-center focus:outline-none text-center transition-all duration-300 ${
+                    isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
+                  }`}
+                >
+                  <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 transition-all duration-300 ${
+                    isLarge 
+                      ? 'w-30 h-30 md:w-45 md:h-45 hover:scale-105' 
+                      : 'w-11 h-11 md:w-12 md:h-12'
+                  } ${(!isLarge && isChecked) ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
+                    <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
+                  </div>
 
-                {/* Texte descriptif */}
-                <span className={`tracking-wide font-medium mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
-                  isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
-                } ${(!isLarge && isChecked) ? 'text-amber-600 font-bold' : 'text-slate-700'}`}>
-                  {cat.nom}
-                </span>
-              </button>
-            );
-          })}
+                  <span className={`tracking-wide font-medium mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
+                    isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
+                  } ${(!isLarge && isChecked) ? 'text-amber-600 font-bold' : 'text-slate-700'}`}>
+                    {cat.nom}
+                  </span>
+                </button>
+              );
+            })
+          )}
 
         </div>
 

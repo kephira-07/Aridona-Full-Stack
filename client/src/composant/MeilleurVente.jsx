@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../config'; 
 import Titre from './Titre';
-import { default as ProduitItem } from './ProduitItem'; // Changement ici si l'export est par défaut
+import { default as ProduitItem } from './ProduitItem'; 
 
 const MeilleurVente = () => {
   const [meilleurVente, setMeilleurVente] = useState([]);
@@ -12,15 +12,14 @@ const MeilleurVente = () => {
     const fetchMeilleuresVentes = async () => {
       try {
         setLoading(true);
-        // 🛰️ On appelle la liste complète des produits
+        
+        // 🛰️ IDÉAL : Remplacer par '${backendUrl}/api/produit/bestsellers' si tu modifies ton backend (voir étape 2)
         const response = await axios.get(`${backendUrl}/api/produit/list`);
         
         if (response.data.success) {
-          // On s'assure de récupérer le bon tableau (parfois nommé 'produits' ou 'products')
           const produitsBruts = response.data.produits || response.data.products || [];
           
-          // 🛠️ LA CORRECTION EST ICI :
-          // On teste 'bestseller' ET 'meilleurVente' sous forme de booléen OU de texte "true"
+          // Filtrage côté client (temporaire en attendant l'étape 2)
           const topProduits = produitsBruts.filter(p => 
             p.bestseller === true || 
             p.bestseller === "true" || 
@@ -28,7 +27,7 @@ const MeilleurVente = () => {
             p.meilleurVente === "true"
           );
           
-          // On ne garde que les 5 premiers bijoux pour le design de la page d'accueil
+          // On garde les 8 premiers produits
           setMeilleurVente(topProduits.slice(0, 8));
         }
       } catch (error) {
@@ -40,10 +39,6 @@ const MeilleurVente = () => {
 
     fetchMeilleuresVentes();
   }, []);
-
-  if (loading) {
-    return <div className="text-center py-20 text-stone-400 text-sm italic">Chargement de la sélection exclusive...</div>;
-  }
 
   return (
     <div className="bg-white py-12">
@@ -57,7 +52,16 @@ const MeilleurVente = () => {
         
         {/* Grille de produits */}
         <div className='max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 gap-y-8'>
-            {meilleurVente.length === 0 ? (
+            {loading ? (
+              // 🌟 SQUELETTES DE CHARGEMENT ANIMÉS : S'affichent instantanément pendant l'appel API
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="flex flex-col animate-pulse">
+                  <div className="bg-stone-200 aspect-square w-full rounded-md" />
+                  <div className="h-4 bg-stone-200 rounded-sm w-3/4 mt-3" />
+                  <div className="h-3 bg-stone-200 rounded-sm w-1/4 mt-2" />
+                </div>
+              ))
+            ) : meilleurVente.length === 0 ? (
               <p className="col-span-full text-center text-stone-400 text-xs py-10 border border-dashed border-stone-100 italic">
                 Aucune création n'est mise en avant pour le moment.
               </p>
@@ -68,8 +72,8 @@ const MeilleurVente = () => {
                   id={item._id}      
                   slug={item.slug}    
                   image={item.image}  
-                  nom={item.nom || item.name} // Sécurité si le nom est en anglais dans la BDD      
-                  prix={item.prix || item.price} // Sécurité pour le prix   
+                  nom={item.nom || item.name} 
+                  prix={item.prix || item.price}   
                 />
               ))
             )}
