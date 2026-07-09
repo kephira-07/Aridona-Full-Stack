@@ -17,16 +17,16 @@ const DerniereCollection = () => {
   }, [produits]); 
 
   return (
-    <div className='bg-white py-12'>
+    <div className='bg-white py-5'>
       <div className='text-center text-3xl pb-8'>
         <Titre text1='Découvrez notre' text2='Dernière collection' />
-        <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-stone-500 font-light mt-2 italic'>
+        <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base font-dmsans  text-stone-500  mt-2 italic'>
           Voici nos nouvelles créations exclusives, façonnées avec passion pour sublimer votre élégance.
         </p>
       </div>
 
       {/* Grille de produits : Changée à grid-cols-4 pour un alignement parfait de 8 articles (2x4) */}
-      <div className='max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 gap-y-8'>
+      <div className='max-w-7xl mx-auto px-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 gap-y-2'>
         {
           dernierProduit.map((item, index) => (
             <ProduitItem 

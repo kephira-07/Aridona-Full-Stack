@@ -51,7 +51,7 @@ const MeilleurVente = () => {
         </div>
         
         {/* Grille de produits */}
-        <div className='max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 gap-y-8'>
+        <div className='max-w-7xl mx-auto px-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 gap-y-2'>
             {loading ? (
               // 🌟 SQUELETTES DE CHARGEMENT ANIMÉS : S'affichent instantanément pendant l'appel API
               Array.from({ length: 4 }).map((_, index) => (

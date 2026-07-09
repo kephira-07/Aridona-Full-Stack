@@ -159,7 +159,7 @@ export default function BarRecherche({ isNavbar }) {
         
         <div 
           onClick={validerRechercheGlobale}
-          className="bg-amber-700 w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-amber-800 transition-colors rounded-r-full"
+          className="bg-amber-800 w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-amber-700 transition-colors rounded-r-full"
         >
           <Search className="text-white w-5 h-5" />
         </div>

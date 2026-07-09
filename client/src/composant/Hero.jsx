@@ -1,14 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Heroimg1 from '../assets/Heroimg1.jpg';
+import Heroimg2 from '../assets/Heroimg2.jpg';
+import Heroimg3 from '../assets/Heroimg3.jpg';
+import Heroimg4 from '../assets/Heroimg4.jpg';
+import Heroimg5 from '../assets/Heroimg5.jpg';
+import Heroimg6 from '../assets/Heroimg6.jpg';
+import Heroimg7 from '../assets/Heroimg7.jpg';
+import Heroimg8 from '../assets/Heroimg8.jpg';
+import Heroimg9 from '../assets/Heroimg9.jpg';
+import Heroimg10 from '../assets/Heroimg10.jpg';
 
-import im1 from '../assets/im1.jpg'; 
-import img2 from '../assets/img2.jpg';
-import img3 from '../assets/img3.jpg';
-import img5 from '../assets/img5.jpg';
-import img6 from '../assets/img6.jpg';
-import img7 from '../assets/img7.jpg';
-import img8 from '../assets/img8.jpg'; 
+import Heroimg12 from '../assets/Heroimg12.jpg';
+
+
+
+
 import Boutton from './Boutton';
 
 // --- SUB COMPOSANT : EFFET ÉCRITURE MACHINE (PC Pop-Box) ---
@@ -75,13 +83,13 @@ const Caroussel = ({ children, autoSlide = true, autoSlideInterval = 3500, onCha
       {totalSlides > 1 && (
         <div className="absolute inset-0 flex items-center justify-between p-4 pointer-events-none z-20">
           <button 
-            className="p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
+            className="p-2 rounded-1xl bg-white/10 backdrop-blur-md border  border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
             onClick={prev}
           >
             <ChevronLeft size={20} />
           </button>
           <button 
-            className="p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
+            className="p-2 rounded-1xl bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
             onClick={next}
           >
             <ChevronRight size={20} />
@@ -98,23 +106,30 @@ export default function Hero() {
   const [currentPcSlide, setCurrentPcSlide] = useState(0);
 
   const images = [
-    { id: 1, src: img2, title: 'Bague Éclat Éternel' },
-    { id: 2, src: img3, title: 'Alliance Or Pur' },
-    { id: 3, src: img5, title: 'Bijoux en acier inoxydable' }, // Image focus fixe (index 2)
-    { id: 4, src: img6, title: 'Bracelet Jonc Fin' },
-    { id: 5, src: img7, title: "Boucles d'Oreilles Élégance" },
-    { id: 6, src: img8, title: 'Parure Prestige' },
-    { id: 7, src: im1, title: 'Bague Éclat Éternel' },
+    { id: 1, src:Heroimg1, title: 'Bague Éclat Éternel' },
+    { id: 2, src: Heroimg2, title: 'Alliance Or Pur' },
+    { id: 3, src: Heroimg3, title: 'Bijoux en acier inoxydable' }, // Image focus fixe (index 2)
+    { id: 4, src: Heroimg4, title: 'Bracelet Jonc Fin' },
+    { id: 5, src: Heroimg5, title: "Boucles d'Oreilles Élégance" },
+    { id: 6, src: Heroimg6, title: 'Parure Prestige' },
+    { id: 7, src: Heroimg7, title: 'Bague Éclat Éternel' },
+    { id: 8, src: Heroimg8, title: 'Collier Étoile Argent' },
+    { id: 9, src: Heroimg9, title: 'Boucles d’Oreilles Perle' },
+    { id: 10, src: Heroimg10, title: 'Chaîne à Lunettes Dorée' },
+    { id: 11, src: Heroimg12, title: 'Bracelet Tressé Cuir' }
   ];
 
   // Images qui défilent à droite sur PC (on retire l'image principale index 2 pour éviter les doublons)
   const slidingPcImages = [
-    images[0],
+   
     images[1],
+    images[2],
     images[3],
     images[4],
     images[5],
-    images[6]
+    images[6],
+    images[7],
+    images[8]
   ];
 
   // Gestion du défilement automatique de la Pop-Box sur PC
@@ -134,9 +149,9 @@ export default function Hero() {
                         
               <div className="relative overflow-hidden group shadow-md border border-stone-200/40 bg-stone-900 flex items-center justify-center"> {/* AJOUT : flex, items-center, justify-center */}
                 <img 
-                  src={images[2].src} 
+                  src={images[0].src} 
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
-                  alt={images[2].title} 
+                  alt={images[0].title} 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent"></div>
                 
@@ -146,12 +161,12 @@ export default function Hero() {
                     Nouvelle Collection
                   </span>
                   <h2 className="text-2xl lg:text-5xl font-serif font-light text-white mb-8 md:mb-12 tracking-wide max-w-md leading-tight"> {/* AJOUT : mb-8 md:mb-12 pour espacer sur mobile */}
-                    {images[2].title}
+                    {images[0].title}
                   </h2>
                   
                   <Link to="/collection" className="relative group/btn inline-block transform transition-all duration-300 hover:scale-102 active:scale-98">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
-                    <div className="relative shadow-xl rounded-xl overflow-hidden">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
+                    <div className="relative shadow-xl  overflow-hidden">
                       <Boutton textb="Visiter la boutique" />
                     </div>
                   </Link>
@@ -192,9 +207,7 @@ export default function Hero() {
                   )}
                 </h3>
                 
-                <span className="text-[11px] font-sans font-light text-stone-400 tracking-widest uppercase mt-1">
-                  Découvrir la pièce →
-                </span>
+               
               </div>
 
                         {/* Indicateurs de lignes discrets en haut à droite */}
@@ -243,8 +256,8 @@ export default function Hero() {
               to="/collection" 
               className="relative w-full max-w-xs group active:scale-95 transform transition-transform"
             >
-              <div className="absolute -inset-0.5 bg-amber-500 rounded-xl blur opacity-60"></div>
-              <div className="relative shadow-[0_0_15px_rgba(217,119,6,0.5)] rounded-xl overflow-hidden">
+              <div className="absolute -inset-0.5 bg-amber-500 blur opacity-60"></div>
+              <div className="relative shadow-[0_0_15px_rgba(217,119,6,0.5)] overflow-hidden">
                 <Boutton textb="Visiter la boutique" />
               </div>
             </Link>

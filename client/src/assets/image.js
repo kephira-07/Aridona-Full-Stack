@@ -1,42 +1,29 @@
-import bijoux1 from'./bijoux1.jpg';
-import bijoux2 from'./bijoux2.jpg';
-import bijoux3 from'./bijoux3.jpg';
-import bijoux4 from'./bijoux4.jpg';
-import bijoux5 from'./bijoux5.jpg';
-import bijoux6 from'./bijoux6.jpg';
-import bijoux7 from'./bijoux7.jpg';
-import im1 from'./im1.jpg'; 
-import img2 from'./img2.jpg';
-import img3 from'./img3.jpg';
+import Heroimg1 from '../assets/Heroimg1.jpg';
+import Heroimg2 from '../assets/Heroimg2.jpg';
+import Heroimg3 from '../assets/Heroimg3.jpg';
+import Heroimg4 from '../assets/Heroimg4.jpg';
+import Heroimg5 from '../assets/Heroimg5.jpg';
+import Heroimg6 from '../assets/Heroimg6.jpg';
+import Heroimg7 from '../assets/Heroimg7.jpg';
+import Heroimg8 from '../assets/Heroimg8.jpg';
+import Heroimg9 from '../assets/Heroimg9.jpg';
+import Heroimg10 from '../assets/Heroimg10.jpg';
 
-import img5 from'./img5.jpg';
-import img6 from'./img6.jpg';
-import img7 from'./img7.jpg';
-import img8 from'./img8.jpg';
-import bij1 from './bij1.jpg';
-import bij2 from './bij2.jpg';
-import bij3 from './bij3.jpg';
-import bij4 from './bij4.jpg';
+import Heroimg12 from '../assets/Heroimg12.jpg';
 export const images = {
-    bijoux1,
-    bijoux2,
-    bijoux3,
-    bijoux4,
-    bijoux5,
-    bijoux6,
-    bijoux7,
-    im1,
-    img2,
-    img3,
-    img5,
-    img6,
-    img7,
-    img8,
-    bij1,
-    bij2,
-    bij3,
-    bij4
-  };
+  Heroimg1,
+  Heroimg2,
+  Heroimg3,
+  Heroimg4,
+  Heroimg5,
+  Heroimg6,
+  Heroimg7,
+  Heroimg8,
+  Heroimg9,
+  Heroimg10,
+  
+  Heroimg12
+};
  
 export const produits = [
   {
@@ -47,7 +34,7 @@ export const produits = [
     matiere: "Argenter",
     prix: 95,
     sizes: ["Unique"],
-    image: [bijoux1,bij1,bij2],
+    image: [images.Heroimg1, images.Heroimg2, images.Heroimg3],
     date:114564566525,
     meilleurVente: true
   },
@@ -60,7 +47,7 @@ export const produits = [
     prix: 60,
     sizes: ['152','154','156'],
     date:11456456652,
-    image: [bijoux4,bij3,bij4],
+    image: [images.Heroimg4, images.Heroimg3, images.Heroimg4],
     meilleurVente: false
   },
   {
@@ -71,7 +58,7 @@ export const produits = [
     matiere: "Dore",
     prix: 40,
     sizes: ["Unique"],
-    image: [img2],
+    image: [images.Heroimg2],
     date:114566652,
     meilleurVente: true
   },
@@ -83,7 +70,7 @@ export const produits = [
     matiere: "Dore",
     prix: 55,
     sizes: ["Ajustable"],
-    image: [bijoux3],
+    image: [images.Heroimg3],
     date:8866951233,
     meilleurVente: false
   },
@@ -95,7 +82,7 @@ export const produits = [
     matiere: "dore",
     prix: 220,
     sizes: ['52', '54', '56'],
-    image: [img7],
+    image: [images.Heroimg7],
     date:230044588,
     meilleurVente: true
   },
@@ -107,7 +94,7 @@ export const produits = [
     matiere: "perle",
     prix: 180,
     sizes: ["Unique"],
-    image: [img8],
+    image: [images.Heroimg8],
     date:11456456652,
     meilleurVente: false
   },
@@ -119,7 +106,7 @@ export const produits = [
     matiere: "Argenter",
     prix: 110,
     sizes: ["Unique"],
-    image: [img6],
+    image: [images.Heroimg6],
     date:452136985,
     meilleurVente: true
   },
@@ -131,7 +118,7 @@ export const produits = [
     matiere: "Dore",
     prix: 75,
     sizes: ["Unique"],
-    image: [bijoux5],
+    image: [images.Heroimg5],
     date:11456456652,
     meilleurVente: false
   },
@@ -143,7 +130,7 @@ export const produits = [
     matiere: "perle",
     prix: 45,
     sizes: ["Ajustable"],
-    image: [img3],
+    image: [images.Heroimg3],
     date:58623513987,
     meilleurVente: true
   },
@@ -155,7 +142,7 @@ export const produits = [
     matiere: "perle",
     prix: 300,
     sizes: [54, 56],
-    image: [bijoux6],
+    image: [images.Heroimg6],
     date:333366999,
     meilleurVente: true
   }

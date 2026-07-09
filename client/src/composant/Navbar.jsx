@@ -4,8 +4,9 @@ import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import BarRecherche from './BarRecherche';
 
-import logo2 from '../assets/logo2.svg';
+
 import MenuMobile from './MenuMobile';
+import logon from '../assets/logon.jpeg'
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,7 +38,7 @@ export default function Navbar() {
       <header className="fixed top-0 w-full z-50 transition-all duration-300">
         
         {/* --- BANDEAU ANNONCE --- */}
-        <div className="relative flex items-center bg-amber-950 text-white text-xs overflow-hidden h-6 w-full">
+        <div className="relative flex items-center bg-amber-950 text-white text-xs overflow-hidden h-8 w-full">
           <div 
             className="flex whitespace-nowrap"
             style={{
@@ -66,7 +67,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className={`transition-all duration-500 ${isScrolled ? 'scale-90' : 'scale-100'}`}>
             <Link to="/" className="flex items-center cursor-pointer h-34 w-40">
-              <img src={logo2} alt="Logo" className="object-contain w-full h-full" />
+              <img src={logon} alt="Logo" className="object-contain w-full h-full" />
             </Link>
           </div>
 
@@ -77,24 +78,24 @@ export default function Navbar() {
 
           {/* Icônes Actions */}
           <div className="flex items-center gap-6">
-            <Link to="/login"  className="text-gray-800 hover:text-amber-500 transition-colors relative p-1">
+            <Link to="/login"  className="text-gray-800 hover:text-gray-600 transition-colors relative p-1">
               <User className="w-6 h-6" />
             </Link>
 
-          <Link to="/favoris" className="relative p-2 text-stone-600 hover:text-red-500 transition-colors">
-                    <Heart className="w-5 h-5" />
+          <Link to="/favoris" className="relative p-2 text-gray-800 hover:text-gray-600 transition-colors">
+                    <Heart className="w-6 h-6" />
                     
                     {/* 🛠️ Le badge n'apparait que si le nombre de favoris est supérieur à 0 */}
                     {totalFavoris > 0 && (
-                        <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">
+                        <span className="absolute top-0 right-0 bg-amber-700 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">
                             {totalFavoris}
                         </span>
                     )}
                 </Link>
 
-            <Link to="/panier" aria-label="Panier" className="text-gray-800 hover:text-amber-500 transition-colors relative p-1">
+            <Link to="/panier" aria-label="Panier" className="text-gray-800  hover:text-gray-600 transition-colors relative p-1">
               <ShoppingCart className="w-6 h-6" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white text-[10px] flex items-center justify-center rounded-full font-bold">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-700 text-white text-[10px] flex items-center justify-center rounded-full font-bold">
                 {getPanierCount?.() || 0}
               </span>
             </Link>
@@ -103,7 +104,7 @@ export default function Navbar() {
 
         {/* VERSION MOBILE */}
         <div className="md:hidden">
-          <div className={`flex items-center h-16 justify-between px-6 border-b border-gray-100 ${
+          <div className={`flex items-center h-16 justify-between px-2 border-b border-gray-100 ${
             isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-white'
           }`}>
             <button aria-label="Ouvrir menu mobile" className="text-black p-1 rounded-full" onClick={() => setVisible(true)}>
@@ -112,7 +113,7 @@ export default function Navbar() {
 
             <div className="h-32 w-32">
               <Link to="/">
-                <img src={logo2} alt="Logo" className="h-full w-full object-contain" />
+                <img src={logon} alt="Logo" className="h-full w-full object-contain" />
               </Link>
             </div>
 
@@ -125,15 +126,15 @@ export default function Navbar() {
                 <Search className="w-5 h-5" />
               </button>
 
-              <Link to="/login" aria-label="Profil" className="text-black p-1 rounded-full px-4 py-3 text-sm text-gray-700 hover:bg-amber-50/50">
+              <Link to="/login" aria-label="Profil" className="text-black  rounded-full text-sm ">
                 <User className="w-5 h-5" />
               </Link>
-              <Link to="/favoris" className="relative p-2 text-stone-600 hover:text-red-500 transition-colors">
+              <Link to="/favoris" className="relative  text-black hover:text-amber-700 transition-colors">
                     <Heart className="w-5 h-5" />
                     
                     {/* 🛠️ Le badge n'apparait que si le nombre de favoris est supérieur à 0 */}
                     {totalFavoris > 0 && (
-                        <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">
+                        <span className="absolute top-0 right-0 bg-amber-700 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-scale-in">
                             {totalFavoris}
                         </span>
                     )}
@@ -141,7 +142,7 @@ export default function Navbar() {
 
               <Link to="/panier" aria-label="Panier" className="text-black relative p-1">
                 <ShoppingCart className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-white text-[10px] flex items-center justify-center rounded-full font-bold">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-700 text-white text-[10px] flex items-center justify-center rounded-full font-bold">
                   {getPanierCount?.() || 0}
                 </span>
               </Link>

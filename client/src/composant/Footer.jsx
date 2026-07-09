@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
+import logon from '../assets/logon.jpeg'
+
 
 
 const Footer = () => {
@@ -19,10 +21,11 @@ const Footer = () => {
           
           {/* Colonne 1 : Marque & Newsletter */}
           <div className="col-span-1 md:col-span-2 space-y-8">
-            {/* 🌟 Ajustement de la marque vers sa nouvelle identité */}
-            <h2 className="font-serif text-3xl tracking-[0.25em] text-amber-500 uppercase">
-              Aura Héritage
-            </h2>
+             <div className={`transition-all duration-500 `}>
+                        <Link to="/" className="flex items-center cursor-pointer h-34 w-40">
+                          <img src={logon} alt="Logo" className="object-contain w-full h-full" />
+                        </Link>
+                      </div>
             <p className="text-gray-400 font-light max-w-sm leading-relaxed text-sm">
               Inscrivez-vous pour recevoir les invitations à nos ventes privées et les nouvelles créations exclusives de la Maison.
             </p>

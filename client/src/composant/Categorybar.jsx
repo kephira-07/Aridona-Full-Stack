@@ -5,6 +5,10 @@ import { backendUrl } from '../config';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Titre from './Titre';
 
+// 1. 🌟 IMPORTATION DE TON IMAGE POUR "TOUT" 
+// Remplace le chemin ci-dessous par le vrai chemin de ton image (ex: png, webp ou svg)
+import imageTout from '../assets/Heroimg12.jpg'; // Remplace par le chemin correct de ton image "Tout"
+
 export default function Categorybar({ selectedCategories = [], toggleCategorie, clearCategories }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true); 
@@ -42,7 +46,8 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      setIsSticky(currentScrollY > 950);
+      // Déclenche le mode sticky un peu plus tôt ou plus tard selon tes besoins
+      setIsSticky(currentScrollY > 900); 
 
       if (currentScrollY > lastScrollY && currentScrollY > 150) {
         setIsVisible(false);
@@ -90,33 +95,33 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
 
   return (
     <div 
-      className={`w-full bg-white border-b border-gray-100 left-0 transition-all duration-300 ${
+      className={`w-full bg-white  left-0 transition-all duration-300 ${
         !isHomePage 
-          ? 'fixed shadow-xs z-30' 
+          ? 'fixed shadow-sm z-30' 
           : isSticky 
             ? 'fixed shadow-md animate-slide-in z-30' 
             : 'relative z-10' 
       } ${
         isHomePage && isSticky && !isVisible ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
       }`}
+      // 🛠️ AJUSTEMENT ICI : Modifie cette valeur si la barre passe encore sous ta Navbar principale
       style={{ 
         top: !isHomePage 
-          ? 'calc(20px + 4rem)' 
+          ? '6rem'  /* Équivaut à h-16 (hauteur standard d'une Navbar) */
           : isSticky 
-            ? 'calc(20px + 4rem)' 
+            ? '6rem' 
             : '0px'
       }}
     >
-      <div className={`w-full max-w-7xl mx-auto px-10 relative group/bar transition-all duration-300 ${isLarge ? 'py-6' : 'py-1'}`}>
+      <div className={`w-full max-w-7xl mx-auto px-10 relative group/bar transition-all duration-300 ${isLarge ? 'py-6' : 'py-2'}`}>
         
         {/* 🌟 TITRE DE LA SECTION */}
-<div className={isLarge ? 'block mb-6' : 'hidden'}>
-  <Titre 
-    text1="Découvrez notre" 
-    text2="Catégorie de Bijoux" 
-    className="font-serif tracking-wide text-stone-800 text-xl md:text-2xl font-semibold"
-  />
-</div>
+        <div className={isLarge ? 'block mb-4' : 'hidden'}>
+          <Titre 
+            text1="Découvrez notre" 
+            text2="Catégorie de Bijoux" 
+          />
+        </div>
 
         {/* CONTENEUR RELATIF POUR LES FLÈCHES ET LE SCROLL */}
         <div className="relative w-full">
@@ -133,28 +138,33 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
             ref={scrollContainerRef}
             className="flex items-center gap-5 overflow-x-auto scrollbar-hide snap-x py-1 scroll-smooth"
           >
-            {/* Option "Tout" */}
+            {/* Option "Tout" avec Image */}
             <button
               onClick={handleViewAllClick}
               className={`flex flex-col items-center flex-shrink-0 snap-center focus:outline-none text-center transition-all duration-300 ${
                 isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
               }`}
             >
+              {/* 🌟 Remplacement du texte par la balise img */}
               <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
                 isLarge 
-                  ? 'w-30 h-30 md:w-45 md:h-45 hover:scale-105 text-sm font-semibold' 
-                  : 'w-11 h-11 md:w-12 md:h-12 text-xs font-bold'
+                  ? 'w-30 h-30 md:w-40 md:h-40 hover:scale-105' 
+                  : 'w-12 h-12 md:w-14 md:h-14'
               } ${
-                (!isLarge && isAllSelected) 
-                  ? 'ring-2 ring-amber-500 ring-offset-2 bg-amber-50 text-amber-600' 
-                  : 'bg-stone-100 text-stone-600'
+                isAllSelected 
+                  ? 'ring-2 ring-amber-500 ring-offset-2' 
+                  : ''
               }`}>
-                <span className={isLarge ? "text-base tracking-wider" : "text-[10px]"}>ALL</span>
+                <img 
+                  src={imageTout} 
+                  alt="Toutes les catégories" 
+                  className="w-full h-full object-cover"
+                />
               </div>
 
-              <span className={`tracking-wide font-medium mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
-                isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
-              } ${(!isLarge && isAllSelected) ? 'text-amber-600 font-bold' : 'text-slate-700'}`}>
+              <span className={`tracking-wide font-dmsans mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
+                isLarge ? 'text-xs md:text-sm font-dmsans font-semibold' : 'text-[10px]'
+              } ${isAllSelected ? 'text-amber-600 font-dmsans' : 'text-slate-700'}`}>
                 Tout
               </span>
             </button>
@@ -169,7 +179,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   }`}
                 >
                   <div className={`rounded-full bg-gray-200 aspect-square flex-shrink-0 ${
-                    isLarge ? 'w-30 h-30 md:w-45 md:h-45' : 'w-11 h-11 md:w-12 md:h-12'
+                    isLarge ? 'w-24 h-24 md:w-28 md:h-28' : 'w-12 h-12 md:w-14 md:h-14'
                   }`} />
                   <div className="h-3 bg-gray-200 rounded-sm w-3/4 mt-3" />
                 </div>
@@ -188,15 +198,15 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   >
                     <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 transition-all duration-300 ${
                       isLarge 
-                        ? 'w-30 h-30 md:w-45 md:h-45 hover:scale-105' 
-                        : 'w-11 h-11 md:w-12 md:h-12'
-                    } ${(!isLarge && isChecked) ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
+                        ? 'w-30 h-30 md:w-40 md:h-40 hover:scale-105' 
+                        : 'w-12 h-12 md:w-14 md:h-14'
+                    } ${isChecked ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
                       <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
                     </div>
 
-                    <span className={`tracking-wide font-medium mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
+                    <span className={`tracking-wide font-dmsans mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
                       isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
-                    } ${(!isLarge && isChecked) ? 'text-amber-600 font-bold' : 'text-slate-700'}`}>
+                    } ${isChecked ? 'text-amber-600 font-bold' : 'text-slate-900'}`}>
                       {cat.nom}
                     </span>
                   </button>

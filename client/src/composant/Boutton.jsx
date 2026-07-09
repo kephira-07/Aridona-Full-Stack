@@ -5,7 +5,7 @@ const Boutton = ({ textb, onClick }) => {
   return (
     <button 
       onClick={onClick}
-      className='group relative flex items-center justify-center px-8 py-4 bg-amber-50 border border-amber-500/30 text-amber-900 transition-all duration-300 overflow-hidden cursor-pointer active:scale-98 rounded-xl w-full sm:w-auto'
+      className='group relative flex items-center justify-center px-8 py-4 bg-amber-50 border border-amber-500/30 text-amber-900 transition-all duration-300 overflow-hidden cursor-pointer active:scale-98 w-full sm:w-auto'
     >
       {/* 🌟 EFFET DE SHIMMER (Balayage lumineux argent/or au survol) */}
       <span className='absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent z-10'></span>
