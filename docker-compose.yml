@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # 1. Le Backend (Node.js API)
+  backend:
+    build: ./Backend
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      # - MONGODB_URI=... # À décommenter et remplir si nécessaire
+    restart: unless-stopped
+
+  # 2. Le Client (Vite + Nginx)
+  client:
+    build: ./client
+    ports:
+      - "4545:80" # On mappe le port 4545 de ta machine (comme demandé) vers le port 80 du Nginx
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # 3. L'Admin (Vite + Nginx)
+  admin:
+    build: ./admin
+    ports:
+      - "4546:80" # On mappe le port 4546 pour l'admin
+    depends_on:
+      - backend
+    restart: unless-stopped
