@@ -113,7 +113,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
             : '0px'
       }}
     >
-      <div className={`w-full max-w-7xl mx-auto px-10 relative group/bar transition-all duration-300 ${isLarge ? 'py-6' : 'py-2'}`}>
+      <div className={`w-full max-w-7xl mx-auto px-10 relative group/bar transition-all duration-300 ${isLarge ? 'py-4' : 'py-2'}`}>
         
         {/* 🌟 TITRE DE LA SECTION */}
         <div className={isLarge ? 'block mb-4' : 'hidden'}>
@@ -149,7 +149,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
               <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
                 isLarge 
                   ? 'w-30 h-30 md:w-40 md:h-40 hover:scale-105' 
-                  : 'w-12 h-12 md:w-14 md:h-14'
+                  : 'w-12 h-10 md:w-14 md:h-10'
               } ${
                 isAllSelected 
                   ? 'ring-2 ring-amber-500 ring-offset-2' 

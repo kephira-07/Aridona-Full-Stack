@@ -7,6 +7,7 @@ import BarRecherche from './BarRecherche';
 
 import MenuMobile from './MenuMobile';
 import logon from '../assets/logon.jpeg'
+import logo from '../assets/logo.png'
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -67,7 +68,7 @@ export default function Navbar() {
           {/* Logo */}
           <div className={`transition-all duration-500 ${isScrolled ? 'scale-90' : 'scale-100'}`}>
             <Link to="/" className="flex items-center cursor-pointer h-34 w-40">
-              <img src={logon} alt="Logo" className="object-contain w-full h-full" />
+              <img src={logo} alt="Logo" className="object-contain w-full h-full" />
             </Link>
           </div>
 
@@ -113,7 +114,7 @@ export default function Navbar() {
 
             <div className="h-32 w-32">
               <Link to="/">
-                <img src={logon} alt="Logo" className="h-full w-full object-contain" />
+                <img src={logo} alt="Logo" className="h-full w-full object-contain" />
               </Link>
             </div>
 
