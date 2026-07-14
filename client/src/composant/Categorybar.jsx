@@ -181,7 +181,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   <div className={`rounded-full bg-gray-200 aspect-square flex-shrink-0 ${
                     isLarge ? 'w-24 h-24 md:w-28 md:h-28' : 'w-12 h-12 md:w-14 md:h-14'
                   }`} />
-                  <div className="h-3 bg-gray-200 rounded-sm w-3/4 mt-3" />
+                
                 </div>
               ))
             ) : (
@@ -199,7 +199,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                     <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 transition-all duration-300 ${
                       isLarge 
                         ? 'w-30 h-30 md:w-40 md:h-40 hover:scale-105' 
-                        : 'w-12 h-12 md:w-14 md:h-14'
+                        : 'w-12 h-10 md:w-14 md:h-10'
                     } ${isChecked ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
                       <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
                     </div>
