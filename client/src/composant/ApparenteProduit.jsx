@@ -37,7 +37,7 @@ const ApparenteProduit = ({ categorie, matiere, actuelId }) => {
   if (apparente.length === 0) return null;
 
   return (
-    <div className='my-24 bg-stone-50/40 py-12 border-t border-b border-stone-100/60'>
+    <div className='my-10 bg-stone-50/40 py-6 border-t border-b border-stone-100/60'>
       <div className='max-w-7xl mx-auto px-4'>
         
         {/* En-tête épuré */}
@@ -49,7 +49,7 @@ const ApparenteProduit = ({ categorie, matiere, actuelId }) => {
         </div>
         
         {/* Grille de produits aux espacements professionnels */}
-        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-8'>
+        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 gap-y-1'>
           {apparente.map((item, index) => (
             <ProduitItem
               key={index}

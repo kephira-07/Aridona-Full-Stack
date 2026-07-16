@@ -228,7 +228,7 @@ const PageProduit = () => {
         </div>
       </div>
 
-      <div className='mt-1'>
+      <div className=''>
         <ApparenteProduit categorie={produitData.categorie} matiere={produitData.matiere} actuelId={produitData._id} />
       </div>
     </div> 
