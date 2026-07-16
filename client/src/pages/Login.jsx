@@ -135,15 +135,15 @@ const Login = () => {
   });
 
   return (
-    <div className="min-h-screen w-full bg-[#FAF9F6] flex items-center justify-center font-sans relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#FAF9F6] flex items-center mt-25 justify-center font-sans relative overflow-hidden">
       
       {/* Bouton Retour Flottant Épuré */}
-      <div className="absolute top-6 left-6 z-50">
+      <div className="absolute top-6 left-6 ">
         <BoutonRetour />
       </div>
 
       {/* Grand Container Split Screen */}
-      <div className="w-full min-h-screen lg:min-h-[85vh] lg:max-w-[1100px] lg:my-12 lg:rounded-3xl lg:shadow-[0_20px_50px_rgba(28,26,23,0.08)] bg-white flex flex-col lg:flex-row overflow-hidden border border-stone-100">
+      <div className="w-full min-h-screen lg:min-h-[70vh] lg:max-w-[1100px] lg:my-12 lg:rounded-3xl lg:shadow-[0_20px_50px_rgba(28,26,23,0.08)] bg-white flex flex-col lg:flex-row overflow-hidden border border-stone-100">
         
         {/* ================= PANNEAU DE GAUCHE : IDENTITÉ DE MAISON (Caché sur mobile) ================= */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#1C1A17] relative p-12 flex-col justify-between overflow-hidden">
@@ -175,7 +175,7 @@ const Login = () => {
 
 
         {/* ================= PANNEAU DE DROITE : FORMULAIRES & PROFIL ================= */}
-        <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
+        <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 mt-20 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
           
           {token && profil ? (
             /* ================= DESIGN PROFIL VIP ================= */
