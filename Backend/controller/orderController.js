@@ -1,40 +1,43 @@
 import orderModel from '../models/orderModel.js';
 import userModel from '../models/utilisateurModel.js';
+import jwt from 'jsonwebtoken';
 
-// Placer une commande classique (Espèces ou virement en attente)
+// Placer une commande (Authentifié OU Invité)
 const placeOrder = async (req, res) => {
     try {
-  
         let { userId, items, amount, address } = req.body;
 
-        // 🛡️ SÉCURITÉ ROBUSTE : Si le middleware a échoué à fournir le userId, 
-        // on tente de le récupérer nous-mêmes depuis l'en-tête de la requête
+        // Si l'utilisateur est connecté, on extrait son ID du token s'il existe
         if (!userId) {
             const token = req.headers.token || req.headers.authorization?.split(" ")[1];
-            if (token) {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                userId = decoded.id; // On extrait l'ID contenu dans ton jeton JWT
+            if (token && token !== "null" && token !== "undefined") {
+                try {
+                    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                    userId = decoded.id;
+                } catch (jwtErr) {
+                    // Si le token est invalide mais qu'on accepte les invités,
+                    // on ne bloque pas, on ignore juste le token corrompu
+                    console.log("Token invalide ignoré pour achat invité");
+                }
             }
         }
 
-        // Si après ça, il n'y a TOUJOURS pas de userId, on bloque proprement sans faire crasher le serveur
+        // Si TOUJOURS pas de userId (cas d'un invité non connecté)
+        // On lui attribue une étiquette "guest" ou "invite" en base de données
         if (!userId) {
-            return res.status(401).json({ success: false, message: "Session expirée ou utilisateur non authentifié." });
+            userId = "guest_order"; 
         }
 
-        // --- Reste de tes validations ---
         if (!items || !Array.isArray(items) || items.length === 0) {
             return res.status(400).json({ success: false, message: "Le panier est vide." });
         }
-        // ... (conserve le reste de ton code de sauvegarde identique)
 
-        // Préparation de l'objet de commande (les items contiennent déjà l'URL de l'image transmis par le front client)
         const orderData = {
-            userId,
-            items, // Contient [{ _id, nom, prix, size, quantity, image: [...] }]
+            userId, // Sera soit l'ID utilisateur réel, soit "guest_order"
+            items, 
             address,
             amount,
-            paymentMethod: "Manuel",
+            paymentMethod: req.body.paymentMethod || "Manuel",
             payment: false,
             status: "Commande passée",
             date: Date.now()
@@ -44,8 +47,10 @@ const placeOrder = async (req, res) => {
         const newOrder = new orderModel(orderData);
         await newOrder.save();
 
-        // Nettoyage sécurisé du panier de l'utilisateur après commande réussie
-        await userModel.findByIdAndUpdate(userId, { $set: { cartData: {} } });
+        // Si l'utilisateur était connecté, on nettoie son panier en BDD
+        if (userId !== "guest_order") {
+            await userModel.findByIdAndUpdate(userId, { $set: { cartData: {} } });
+        }
 
         return res.status(201).json({ success: true, message: "Commande enregistrée avec succès ! ✨" });
     } catch (error) {
@@ -53,7 +58,6 @@ const placeOrder = async (req, res) => {
         return res.status(500).json({ success: false, message: "Erreur interne lors de la création de la commande." });
     }
 };
-
 // Récupérer TOUTES les commandes (Pour le Panel Admin)
 const allOrders = async (req, res) => {
     try {

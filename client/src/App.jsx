@@ -20,7 +20,7 @@ import ScrollToTop from './composant/ScrollToTop'
 import Login from './pages/Login'
 import PageFavoris from './pages/PageFavoris'
 import PasserCommande from './pages/PasserCommande'
-
+import SidebarPanier from './composant/SidebarPanier'
 
 function App() {
   
@@ -30,6 +30,7 @@ function App() {
       <ScrollToTop/>
        <ToastContainer />
      <Navbar/>
+     <SidebarPanier/>
 
      <Routes> 
         <Route path='/' element={<Home />} />

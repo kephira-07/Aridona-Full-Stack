@@ -23,8 +23,11 @@ const ShopContextProvider = (props) => {
   const [panierProduits, setPanierProduits] = useState({});
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('token') || '');
-
-  const [favoris, setFavoris] = useState([]);
+   const [panierOuvert, setPanierOuvert] = useState(false);
+  const [favoris, setFavoris] = useState(() => {
+    const favorisSauvegardes = localStorage.getItem('favoris');
+    return favorisSauvegardes ? JSON.parse(favorisSauvegardes) : [];
+  });
 
   // 🛰️ APPEL API : Récupération des vrais bijoux depuis MongoDB
   const getProductsData = async () => {
@@ -64,15 +67,20 @@ const ShopContextProvider = (props) => {
     getCategoriesData(); // 🌟 Lancement du chargement des catégories au démarrage
   }, []);
 
-  // 🛠️ GESTION DES FAVORIS
-  const toggleFavori = (productId) => {
+  // 2. Sauvegarde automatique : s'exécute dès que la liste des favoris change
+  useEffect(() => {
+    localStorage.setItem('favoris', JSON.stringify(favoris));
+  }, [favoris]);
+
+  // 3. Fonction pour ajouter/retirer un produit des favoris (Toggle)
+  const toggleFavori = (produitId) => {
     setFavoris((prevFavoris) => {
-      if (prevFavoris.includes(productId)) {
-        toast.info('Retiré de vos coups de cœur');
-        return prevFavoris.filter(id => id !== productId);
+      if (prevFavoris.includes(produitId)) {
+        // Si le produit y est déjà, on le retire
+        return prevFavoris.filter(id => id !== produitId);
       } else {
-        toast.success('Ajouté à vos coups de cœur ! ✨');
-        return [...prevFavoris, productId];
+        // Sinon, on l'ajoute
+        return [...prevFavoris, produitId];
       }
     });
   };
@@ -98,12 +106,10 @@ const ShopContextProvider = (props) => {
   }, [recherche]);
 
   // --- GESTION DU PANIER ---
+
   const ajouterPanier = async (produitId, sizes) => {
-    if (!sizes) {
-      toast.error('Veuillez sélectionner une taille');
-      return;
-    }
-    
+   
+   // ... reste de ton code (panierData, setPanierProduits, etc.)
     let panierData = structuredClone(panierProduits);
     
     if (panierData[produitId]) {
@@ -118,16 +124,11 @@ const ShopContextProvider = (props) => {
     }
     
     setPanierProduits(panierData);
+
+    // 2. 🌟 AJOUTE CETTE LIGNE : Ouvre automatiquement le panier au clic
+    setPanierOuvert(true); 
     
-    toast.success('Article ajouté au panier !', {
-      position: "top-right",
-      autoClose: 2000,
-      hideProgressBar: true,
-      closeOnClick: true,
-      pauseOnHover: false,
-      draggable: true,
-      theme: "dark",
-    });
+   
   };
 
   const getPanierCount = () => {
@@ -177,7 +178,7 @@ const ShopContextProvider = (props) => {
     produits, categories, monnaie, delivery_free, recherche, setRecherche, montreRecherche, 
     setMontreRecherche, panierProduits, ajouterPanier, getPanierCount, 
     updateQuantity, getPanierMontant, showSuggestions, setShowSuggestions,
-    suggestions, backendUrl, token, setToken, favoris, setFavoris, toggleFavori
+    suggestions, backendUrl, token, setToken, favoris, setFavoris, toggleFavori, panierOuvert, setPanierOuvert
   };
 
   return (

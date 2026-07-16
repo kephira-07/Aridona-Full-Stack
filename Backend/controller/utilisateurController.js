@@ -2,6 +2,7 @@ import utilisateurModel from '../models/utilisateurModel.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
+import { OAuth2Client } from 'google-auth-library';
 
 
 const createToken = (id) => {
@@ -113,4 +114,52 @@ const isMatch = (password === process.env.ADMIN_PASSWORD)
    }
 }
 
-export { registerutilisateur, loginutilisateur, adminLogin, getProfilUtilisateur, updateProfilUtilisateur };
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleLogin = async (req, res) => {
+    try {
+        const { access_token } = req.body;
+
+        if (!access_token) {
+            return res.json({ success: false, message: "Token Google manquant." });
+        }
+
+        // 1. Récupérer les infos de l'utilisateur directement depuis l'API Google grâce à l'access_token
+        const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`);
+        const googleUser = await response.json();
+
+        if (!googleUser.email) {
+            return res.json({ success: false, message: "Impossible de récupérer les informations Google." });
+        }
+
+        const { email, name } = googleUser;
+
+        // 2. Vérifier si l'utilisateur existe déjà dans ta base de données
+        let user = await userModel.findOne({ email });
+
+        if (!user) {
+            // S'il n'existe pas, on lui crée un compte automatiquement
+            // On lui génère un mot de passe aléatoire hautement sécurisé puisqu'il passe par Google
+            const randomPassword = Math.random().toString(36).slice(-16) + 'Aa1!';
+            
+            user = new userModel({
+                name,
+                email,
+                password: randomPassword, // Il sera hashé si tu as un middleware "pre-save" ou fais-le ici
+                ville: 'Lomé' // Ville par défaut
+            });
+            await user.save();
+        }
+
+        // 3. Générer le token JWT de ton application (comme pour ton login classique)
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        res.json({ success: true, token });
+
+    } catch (error) {
+        console.error("Erreur lors de la connexion Google:", error);
+        res.status(500).json({ success: false, message: "Erreur interne du serveur." });
+    }
+};
+
+export { registerutilisateur, loginutilisateur, adminLogin, googleLogin, getProfilUtilisateur, updateProfilUtilisateur };

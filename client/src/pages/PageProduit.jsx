@@ -15,10 +15,17 @@ const PageProduit = () => {
   const [image, setImage] = useState('');
   const [nomCategorie, setNomCategorie] = useState('');
  
-  const [size, setSize] = useState('');
+ const [selectedSizes, setSelectedSizes] = useState([]);
   const [estAjoute, setEstAjoute] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
+   
+  const handleSizeToggle = (item) => {
+  setSelectedSizes((prevSelected) =>
+    prevSelected.includes(item)
+      ? prevSelected.filter((s) => s !== item) // Décocher (retirer du tableau)
+      : [...prevSelected, item]                // Cocher (ajouter au tableau)
+  );
+};
   // --- RECHERCHE PAR SLUG ---
   const fetchProduitData = async () => {
     const listeProduits = produits || [];
@@ -32,13 +39,12 @@ const PageProduit = () => {
       }
 
       // 🎯 LOGIQUE D'AUTO-SÉLECTION :
-      // Si le tableau contient EXACTEMENT une seule taille (ex: ["Unique"])
-      // On la sélectionne automatiquement d'office !
-      if (produitTrouve.sizes && produitTrouve.sizes.length === 1) {
-        setSize(produitTrouve.sizes[0]);
-      } else {
-        setSize(''); // S'il y en a plusieurs, on laisse vide pour forcer le choix conscient
-      }
+      
+        if (produitTrouve.sizes && produitTrouve.sizes.length === 1) {
+          setSelectedSizes([produitTrouve.sizes[0]]); // On stocke dans un tableau
+        } else {
+          setSelectedSizes([]); // Tableau vide par défaut
+        }
 
       // Trouver le nom de la catégorie
       const listeCategories = categories || [];
@@ -117,39 +123,43 @@ const PageProduit = () => {
             </p>
           )}
 
-          <h1 className='font-serif text-3xl md:text-4xl text-stone-800 tracking-tight'>{produitData.nom}</h1>
+          <h1 className='font-ebgaramond text-3xl md:text-4xl text-stone-800 tracking-tight'>{produitData.nom}</h1>
 
           <p className='mt-4 text-3xl font-light text-amber-900'>
             {produitData.prix ? produitData.prix.toLocaleString() : 0} {monnaie}
           </p>
           
-          <p className='mt-6 text-stone-600 leading-relaxed font-alice text-lg md:w-11/12'>
+          <p className='mt-6 text-stone-600 leading-relaxed font-dmsans text-lg md:w-11/12'>
             {produitData.description}
           </p>
 
-          {/* 🌟 ZONE DES TAILLES (S'affiche TOUJOURS si le tableau contient au moins une taille) */}
-          {produitData.sizes && produitData.sizes.length > 0 && (
-            <div className='flex flex-col gap-4 my-10'>
-                <p className='font-medium text-stone-800'>
-                  {produitData.sizes.length === 1 ? 'Taille disponible :' : 'Sélectionner une taille :'}
-                </p>
-                <div className='flex flex-wrap gap-3'>
-                  {produitData.sizes.map((item, index) => (
-                    <button 
-                      key={index} 
-                      type="button"
-                      onClick={() => setSize(item)}
-                      className={`min-w-[3rem] h-12 px-4 flex items-center justify-center border-2 transition-all duration-200 font-medium rounded-lg text-sm
-                        ${item === size 
-                          ? 'border-amber-800 bg-amber-900 text-white shadow-md' 
-                          : 'border-stone-200 bg-white text-stone-600 hover:border-amber-400'}`}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-            </div>
-          )}
+         {/* 🌟 ZONE DES TAILLES (Multi-sélection active) */}
+{produitData.sizes && produitData.sizes.length > 0 && (
+  <div className='flex flex-col gap-4 my-10'>
+      <p className='font-medium text-stone-800'>
+        {produitData.sizes.length === 1 ? 'Taille disponible :' : 'Sélectionner vos tailles :'}
+      </p>
+      <div className='flex flex-wrap gap-3'>
+        {produitData.sizes.map((item, index) => {
+          const isSelected = selectedSizes.includes(item); // Vérification
+          
+          return (
+            <button 
+              key={index} 
+              type="button"
+              onClick={() => handleSizeToggle(item)} // Toggle cocher/décocher
+              className={`min-w-[3rem] h-12 px-4 flex items-center justify-center border-2 transition-all duration-200 font-medium rounded-lg text-sm
+                ${isSelected 
+                  ? 'border-black bg-black text-white shadow-md' 
+                  : 'border-stone-200 bg-white text-stone-600 hover:border-black'}`}
+            >
+              {item}
+            </button>
+          );
+        })}
+      </div>
+  </div>
+)}
 
           {/* Bouton d'action */}
           <div className="md:w-11/12 mt-6">
@@ -157,24 +167,42 @@ const PageProduit = () => {
               type="button"
               onClick={() => {
                 // 🛑 SÉCURITÉ : Bloque strictement s'il y a des tailles et qu'aucune n'est cliquée
-                if (!size && produitData.sizes && produitData.sizes.length > 0) {
-                  toast.error(`Veuillez sélectionner une taille pour le produit "${produitData.nom}" avant de l'ajouter au panier.`, {
-                    position: "top-right",
-                    autoClose: 4000,
-                    theme: "dark"
-                  });
+                if (selectedSizes.length === 0 && produitData.sizes && produitData.sizes.length > 0) {
+                  toast.error('Veuillez sélectionner une taille', {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: true,
+      
+      // 🎨 CLASSES TAILWIND POUR UN IMPACT FORT ET DESIGN
+  className: "  text-stone-100 border-l-4 border-amber-600 rounded-r-xl shadow-2xl p-4 font-sans",
+  bodyClassName: "bg-amber-500 text-sm font-medium flex items-center gap-3",
+  
+  // Une icône dorée stylisée qui brille sur le fond sombre
+  icon: (
+    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-800 text-white text-xs font-bold font-serif animate-pulse">
+      !
+    </span>
+  ),
+    });
+   
                   return; // 👈 ICI : Empêche radicalement l'exécution de la suite
                 }
                 
                 // Si la taille est bien choisie ou s'il n'y a pas de déclinaisons nécessaires, on continue
-                ajouterPanier(produitData._id, size);
-                setEstAjoute(true);
-                setTimeout(() => setEstAjoute(false), 2000);
+              selectedSizes.forEach((sizeSelected) => {
+                ajouterPanier(produitData._id, sizeSelected);
+              });
+              
+              setEstAjoute(true);
+              setTimeout(() => setEstAjoute(false), 2000);
               }} 
-              className={`w-full flex items-center justify-center gap-3 text-xs font-semibold tracking-widest py-4 px-6 rounded-xl transition-all duration-300 uppercase ease-in-out active:scale-[0.98] shadow-sm
+              className={`w-full flex items-center justify-center gap-3 text-xs font-semibold tracking-widest py-4 px-4 transition-all duration-300 uppercase ease-in-out active:scale-[0.98] shadow-sm
                 ${estAjoute 
                   ? 'bg-emerald-700 text-white shadow-emerald-100' 
-                  : 'bg-stone-950 text-white hover:bg-stone-900'
+                  : 'bg-amber-900 text-white'
                 }`}
             >
               <ShoppingBag size={16} strokeWidth={2} className={estAjoute ? 'scale-110 animate-bounce' : ''} />
@@ -186,19 +214,16 @@ const PageProduit = () => {
 
           <hr className='mt-10 border-stone-200 md:w-11/12'/>
           
-          <div className='text-xs sm:text-sm text-stone-500 mt-6 flex flex-col gap-2 font-medium'>
+          <div className='text-xs sm:text-lg text-stone-500 mt-6 font-caveat flex flex-col gap-2 font-medium'>
             <div className='flex items-center gap-2 italic'>
               <span className='w-1 h-1 bg-amber-600 rounded-full'></span>
               <p>100% Satisfaction Garantie</p>
             </div>
             <div className='flex items-center gap-2 italic'>
               <span className='w-1 h-1 bg-amber-600 rounded-full'></span>
-              <p>Livraison Gratuite à partir de 150 000 FCFA</p>
+              <p>Livraison Gratuite à partir de 50 000 FCFA</p>
             </div>
-            <div className='flex items-center gap-2 italic'>
-              <span className='w-1 h-1 bg-amber-600 rounded-full'></span>
-              <p>Échange et retour sous 30 jours</p>
-            </div>
+           
           </div>
         </div>
       </div>

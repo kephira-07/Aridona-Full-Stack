@@ -2,10 +2,10 @@ import React from 'react'
 
 const Titre = ({ text1, text2 }) => {
   return (
-    <div className='max-w-max mx-auto text-center my-8 px-4 select-none'>
+    <div className='max-w-max mx-auto text-center my-4 px-4 select-none'>
       {/* Surtitre discret et aéré */}
       {text1 && (
-        <span className='block text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] text-amber-600 font-caveat mb-2 transition-all duration-300'>
+        <span className='block text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] text-amber-600 font-caveat transition-all duration-300'>
           {text1}
         </span>
       )}

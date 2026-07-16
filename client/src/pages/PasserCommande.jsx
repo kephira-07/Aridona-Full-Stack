@@ -48,18 +48,18 @@ const PasserCommande = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // 🛠️ Fonction utilitaire pour décoder l'ID du Token JWT directement côté client
+    // 🛠️ Décode le token de manière sécurisée (renvoie null si pas de token ou invalide)
     const extraireUserIdDuToken = (jwtToken) => {
         try {
-            if (!jwtToken) return null;
+            if (!jwtToken || jwtToken === "null" || jwtToken === "undefined") return null;
             const base64Url = jwtToken.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
             const jsonPayload = decodeURIComponent(window.atob(base64).split('').map((c) => {
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
-            return JSON.parse(jsonPayload).id;
+            return JSON.parse(jsonPayload).id || null;
         } catch (error) {
-            console.error("Erreur de décodage du token :", error);
+            console.warn("Échec du décodage du token (Achat invité activé) :", error.message);
             return null;
         }
     };
@@ -71,7 +71,7 @@ const PasserCommande = () => {
             setLoading(true);
             let orderItems = [];
 
-            // 1. Extraction et mise en conformité stricte avec orderSchema
+            // 1. Extraction des articles du panier
             for (const itemsId in panierProduits) {
                 for (const size in panierProduits[itemsId]) {
                     if (panierProduits[itemsId][size] > 0) {
@@ -103,12 +103,12 @@ const PasserCommande = () => {
             const firstName = nameParts[0] || '';
             const lastName = nameParts.slice(1).join(' ') || 'Client';
 
-            // 🔍 Récupération forcée de l'ID utilisateur pour combler le manque du backend
+            // 🔍 Récupère l'ID si connecté, sinon null pour mode invité
             const clientUserId = extraireUserIdDuToken(token);
 
-            // 2. Construction de l'objet attendu au millimètre près par le modèle
+            // 2. Construction de la charge utile de commande adaptative
             const commandeBackendData = {
-                userId: clientUserId, // 🎯 Injecté ici en direct pour contrer le "Path userId is required"
+                userId: clientUserId, 
                 address: {
                     firstName: firstName,
                     lastName: lastName,
@@ -123,17 +123,18 @@ const PasserCommande = () => {
                 paymentMethod: methode === 'cod' ? 'COD' : 'Mobile Money'
             };
 
-            // 3. Envoi de la requête HTTP POST avec formats d'en-tête cumulés
+            // 3. Préparation des en-têtes réseau (vide si aucun token n'est actif)
+            const headers = {};
+            if (token && token !== "null" && token !== "undefined") {
+                headers['token'] = token;
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const urlDestination = `${backendUrl}/api/order/place`;
-            const response = await axios.post(urlDestination, commandeBackendData, { 
-                headers: { 
-                    token: token,
-                    Authorization: `Bearer ${token}`
-                } 
-            });
+            const response = await axios.post(urlDestination, commandeBackendData, { headers });
 
             if (response.data.success) {
-                // 4. Préparation du message pour l'envoi WhatsApp
+                // 4. Préparation et envoi du message récapitulatif WhatsApp
                 let message = `✨ *NOUVELLE COMMANDE - ARILONA BIJOUX* ✨\n\n`;
                 message += `👤 *Client :* ${formData.fullName}\n`;
                 message += `📞 *Téléphone :* ${formData.phone}\n`;

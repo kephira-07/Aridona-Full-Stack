@@ -4,7 +4,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
-import { Bell, LogOut, CheckCircle, Sparkles, User, MapPin, Phone, Mail, ShieldCheck, Edit3 } from 'lucide-react';
+import { LogOut, Sparkles, User, MapPin, Phone, Mail, ShieldCheck, Edit3, ArrowRight } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [etatactuel, setEtatactuel] = useState('Inscription'); 
@@ -16,14 +17,12 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // 🌟 NOUVEAUX ÉTATS POUR LA GESTION DU COMPTE BENTO
   const [profil, setProfil] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formProfil, setFormProfil] = useState({ name: '', telephone: '', adresse: '', ville: 'Lomé' });
 
   const navigate = useNavigate(); 
 
-  // Charger le profil si le token est présent
   const chargerProfil = async () => {
     try {
       const response = await axios.post(`${backendUrl}/api/utilisateur/profil`, {}, { headers: { token } });
@@ -47,7 +46,6 @@ const Login = () => {
     }
   }, [token]);
 
-  // Sauvegarder les modifications du profil
   const handleUpdateProfil = async (e) => {
     e.preventDefault();
     try {
@@ -56,7 +54,7 @@ const Login = () => {
       if (response.data.success) {
         setProfil(response.data.utilisateur);
         setIsEditing(false);
-        toast.success("Votre profil de conciergerie a été mis à jour. ✨", { theme: "dark" });
+        toast.success("Votre profil a été mis à jour avec soin. ✨", { theme: "dark" });
       } else {
         toast.error(response.data.message, { theme: "dark" });
       }
@@ -71,7 +69,7 @@ const Login = () => {
     setToken('');
     setProfil(null);
     localStorage.removeItem('token');
-    toast.info("Vous avez été déconnecté de votre espace Aura Héritage. ✨", { theme: "dark" });
+    toast.info("À bientôt chez Arilona Bijoux. ✨", { theme: "dark" });
     setEtatactuel('Connexion'); 
   };
 
@@ -84,7 +82,7 @@ const Login = () => {
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-          toast.success("Bienvenue au Club Aura Héritage ! ✨", { theme: "dark" });
+          toast.success("Bienvenue dans notre univers ! ✨", { theme: "dark" });
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
@@ -93,7 +91,7 @@ const Login = () => {
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-          toast.success("Heureux de vous revoir parmi nous ! ✨", { theme: "dark" });
+          toast.success("Ravis de vous revoir. ✨", { theme: "dark" });
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
@@ -109,261 +107,302 @@ const Login = () => {
     }
   };
 
+  const loginAvecGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setLoading(true);
+        const response = await axios.post(`${backendUrl}/api/utilisateur/google-login`, {
+          access_token: tokenResponse.access_token
+        });
+
+        if (response.data.success) {
+          setToken(response.data.token);
+          localStorage.setItem('token', response.data.token);
+          toast.success("Connexion réussie ! ✨", { theme: "dark" });
+        } else {
+          toast.error(response.data.message || "La connexion Google a échoué.", { theme: "dark" });
+        }
+      } catch (error) {
+        console.error("Erreur Google Auth:", error);
+        toast.error("Impossible de finaliser l'authentification avec Google.", { theme: "dark" });
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      toast.error("La connexion Google a été annulée.", { theme: "dark" });
+    }
+  });
+
   return (
-    <div className="min-h-[90vh] flex flex-col pt-28 pb-12 bg-[#FAF9F6] px-4">
+    <div className="min-h-screen w-full bg-[#FAF9F6] flex items-center justify-center font-sans relative overflow-hidden">
       
-      <div className="max-w-[450px] w-full mx-auto mb-4">
+      {/* Bouton Retour Flottant Épuré */}
+      <div className="absolute top-6 left-6 z-50">
         <BoutonRetour />
       </div>
 
-      {/* Ajustement dynamique de la largeur : Plus large (max-w-4xl) si connecté pour le Bento Grid */}
-      <div className={`w-full mx-auto bg-white shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-stone-100 rounded-3xl p-6 md:p-10 transition-all duration-500 ${token ? 'max-w-4xl' : 'max-w-[450px]'}`}>
+      {/* Grand Container Split Screen */}
+      <div className="w-full min-h-screen lg:min-h-[85vh] lg:max-w-[1100px] lg:my-12 lg:rounded-3xl lg:shadow-[0_20px_50px_rgba(28,26,23,0.08)] bg-white flex flex-col lg:flex-row overflow-hidden border border-stone-100">
         
-        {token && profil ? (
-          /* ================= ÉTAT CONNECTÉ : DASHBOARD BENTO PREMIUM ================= */
-          <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-            
-            {/* Header du Dashboard */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-stone-100">
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-amber-600 flex items-center gap-1">
-                  <Sparkles size={12} /> Votre Écrin Personnel
-                </span>
-                <h1 className="font-serif text-2xl text-stone-900 mt-1">Maison Aura Héritage</h1>
-              </div>
-              <button 
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 border border-stone-200 rounded-xl text-xs font-medium text-stone-600 bg-stone-50 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
-              >
-                <LogOut size={13} />
-                <span>Quitter l'espace</span>
-              </button>
-            </div>
+        {/* ================= PANNEAU DE GAUCHE : IDENTITÉ DE MAISON (Caché sur mobile) ================= */}
+        <div className="hidden lg:flex lg:w-1/2 bg-[#1C1A17] relative p-12 flex-col justify-between overflow-hidden">
+          {/* Effet lumineux doré en arrière-plan */}
+          <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-amber-500/10 blur-[120px] pointer-events-none"></div>
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-amber-600/15 blur-[120px] pointer-events-none"></div>
+          
+          <div className="relative z-10">
+            <span className="font-caveat text-2xl text-amber-400 tracking-wide block">Maison</span>
+            <h2 className="font-serif text-4xl text-white tracking-widest font-alice mt-1">ARILONA</h2>
+            <p className="text-[10px] text-amber-500/80 tracking-[0.25em] uppercase font-semibold mt-2">BIJOUX & HÉRITAGE</p>
+          </div>
 
-            {/* GRILLE STYLE BENTO (Architecture Asymétrique) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              {/* BLOC BENTO 1 : Carte d'identité Privilège (Noir profond) */}
-              <div className="bg-stone-950 text-white p-6 rounded-2xl flex flex-col justify-between shadow-sm border border-stone-900">
-                <div className="space-y-4">
-                  <div className="w-10 h-10 bg-stone-900 border border-stone-800 rounded-xl flex items-center justify-center text-amber-400">
-                    <User size={18} strokeWidth={1.5} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase font-bold tracking-widest text-stone-400">Statut Client</p>
-                    <h3 className="font-serif text-base text-amber-400 mt-0.5">Membre Club Privé</h3>
-                    <p className="text-xl font-light tracking-wide mt-2">{profil.name}</p>
-                  </div>
-                  <div className="space-y-2 text-[11px] text-stone-300 font-light pt-2 border-t border-stone-900">
-                    <div className="flex items-center gap-2"><Mail size={12} className="text-stone-500" /> {profil.email}</div>
-                    <div className="flex items-center gap-2"><Phone size={12} className="text-stone-500" /> {profil.telephone || "Aucun contact WhatsApp"}</div>
-                    <div className="flex items-center gap-2"><MapPin size={12} className="text-stone-500" /> {profil.adresse ? `${profil.adresse}, ${profil.ville}` : "Aucune adresse enregistrée"}</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-1.5 text-[8px] uppercase tracking-widest text-stone-500 pt-6 mt-4">
-                  <ShieldCheck size={12} className="text-amber-500" />
-                  <span>Données de conciergerie protégées</span>
-                </div>
+          <div className="relative z-10 my-auto space-y-6 max-w-[340px]">
+            <p className="font-serif text-3xl text-stone-100 leading-relaxed font-alice font-light">
+              "Des lignes pures nées de l’éclat de l’or, façonnées pour votre peau."
+            </p>
+            <div className="h-[1px] w-20 bg-amber-400"></div>
+            <p className="text-xs text-stone-400 font-light leading-relaxed">
+              Chaque écrin ouvert raconte une histoire de patience, de beauté et d'éternité. Rejoignez le club pour accéder à vos sélections privées.
+            </p>
+          </div>
+
+          <div className="relative z-10 flex items-center gap-2 text-[10px] text-amber-500/60 uppercase tracking-widest font-medium">
+            <Sparkles size={12} className="text-amber-500" />
+            <span>Créations intemporelles faites main</span>
+          </div>
+        </div>
+
+
+        {/* ================= PANNEAU DE DROITE : FORMULAIRES & PROFIL ================= */}
+        <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
+          
+          {token && profil ? (
+            /* ================= DESIGN PROFIL VIP ================= */
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-2">
+                <span className="font-caveat text-2xl text-amber-800">Mon doux espace secret</span>
+                <h1 className="font-serif text-4xl text-stone-900 tracking-wide font-alice">Bonjour, {profil.name}</h1>
+                <div className="h-[2px] w-12 bg-amber-800 mt-2"></div>
               </div>
 
-              {/* BLOC BENTO 2 & 3 COMBINÉS : Formulaire dynamique de profil */}
-              <div className="bg-stone-50/60 border border-stone-100 p-6 rounded-2xl md:col-span-2 flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-serif text-base text-stone-900 tracking-wide">Coordonnées de Livraison Privée</h3>
-                    <button 
-                      onClick={() => setIsEditing(!isEditing)}
-                      className="text-[10px] uppercase font-bold tracking-wider text-amber-700 hover:text-stone-950 transition-colors flex items-center gap-1"
-                    >
-                      <Edit3 size={12} />
-                      {isEditing ? "Annuler" : "Modifier mes fiches"}
-                    </button>
-                  </div>
-
-                  {!isEditing ? (
-                    <div className="space-y-3 pt-1">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="bg-white p-3.5 border border-stone-100 rounded-xl">
-                          <span className="text-[9px] uppercase font-semibold text-stone-400">Nom de Réception</span>
-                          <p className="text-xs font-medium text-stone-800 mt-0.5">{profil.name}</p>
-                        </div>
-                        <div className="bg-white p-3.5 border border-stone-100 rounded-xl">
-                          <span className="text-[9px] uppercase font-semibold text-stone-400">Contact d'Expédition (WhatsApp)</span>
-                          <p className="text-xs font-medium text-stone-800 mt-0.5">{profil.telephone || "Non renseigné"}</p>
-                        </div>
+              {/* Contenu Profil Raffiné */}
+              <div className="space-y-6">
+                {!isEditing ? (
+                  <div className="space-y-4">
+                    <div className="p-5 rounded-2xl bg-stone-50 border border-stone-100/80 space-y-3">
+                      <div className="flex items-center gap-3 text-stone-600 text-sm">
+                        <Mail size={16} className="text-amber-800" />
+                        <span>{profil.email}</span>
                       </div>
-                      <div className="bg-white p-3.5 border border-stone-100 rounded-xl">
-                        <span className="text-[9px] uppercase font-semibold text-stone-400">Adresse Résidentielle pour vos Colis</span>
-                        <p className="text-xs font-medium text-stone-800 mt-0.5">
-                          {profil.adresse ? `${profil.adresse}, ${profil.ville}` : "Veuillez configurer une adresse pour faciliter vos futurs emballages et livraisons sur Lomé ou à l'intérieur."}
-                        </p>
+                      <div className="flex items-center gap-3 text-stone-600 text-sm">
+                        <Phone size={16} className="text-amber-800" />
+                        <span>{profil.telephone || "Aucun numéro WhatsApp lié"}</span>
+                      </div>
+                      <div className="flex items-start gap-3 text-stone-600 text-sm">
+                        <MapPin size={16} className="text-amber-800 shrink-0 mt-0.5" />
+                        <span>{profil.adresse ? `${profil.adresse}, ${profil.ville}` : "Aucune adresse enregistrée"}</span>
                       </div>
                     </div>
-                  ) : (
-                    <form onSubmit={handleUpdateProfil} className="space-y-3.5 pt-1">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[9px] uppercase font-semibold text-stone-400 mb-1">Nom Complet</label>
-                          <input 
-                            type="text" 
-                            value={formProfil.name} 
-                            onChange={(e) => setFormProfil({...formProfil, name: e.target.value})}
-                            className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-stone-900"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[9px] uppercase font-semibold text-stone-400 mb-1">Téléphone / WhatsApp</label>
-                          <input 
-                            type="text" 
-                            value={formProfil.telephone} 
-                            onChange={(e) => setFormProfil({...formProfil, telephone: e.target.value})}
-                            placeholder="Ex: +228 90 00 00 00"
-                            className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-stone-900"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className="block text-[9px] uppercase font-semibold text-stone-400 mb-1">Adresse (Quartier, Rue, Maison)</label>
-                          <input 
-                            type="text" 
-                            value={formProfil.adresse} 
-                            onChange={(e) => setFormProfil({...formProfil, adresse: e.target.value})}
-                            placeholder="Ex: Adidogomé, Face Cité"
-                            className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-stone-900"
-                          />
-                        </div>
-                      </div>
+
+                    <button 
+                      onClick={() => setIsEditing(true)}
+                      className="w-full py-3.5 bg-transparent border border-stone-900 text-stone-900 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-stone-950 hover:text-white transition-all duration-300"
+                    >
+                      Mettre à jour mes coordonnées
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleUpdateProfil} className="space-y-4 animate-in fade-in duration-300">
+                    <div className="space-y-3">
+                      <input 
+                        type="text" 
+                        placeholder="Votre Nom Complet"
+                        value={formProfil.name} 
+                        onChange={(e) => setFormProfil({...formProfil, name: e.target.value})}
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all"
+                        required
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Téléphone / WhatsApp (ex: +228 90 00 00 00)"
+                        value={formProfil.telephone} 
+                        onChange={(e) => setFormProfil({...formProfil, telephone: e.target.value})}
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Adresse (Quartier, Rue, Maison)"
+                        value={formProfil.adresse} 
+                        onChange={(e) => setFormProfil({...formProfil, adresse: e.target.value})}
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all"
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button 
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="flex-1 py-3 bg-stone-100 text-stone-700 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-200 transition-all"
+                      >
+                        Annuler
+                      </button>
                       <button 
                         type="submit" 
                         disabled={loading}
-                        className="bg-stone-950 text-white text-[9px] uppercase tracking-widest font-bold px-4 py-2.5 rounded-xl hover:bg-stone-900 transition-colors"
+                        className="flex-1 py-3 bg-[#1C1A17] text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-all"
                       >
-                        {loading ? 'Sauvegarde...' : 'Enregistrer le profil'}
+                        {loading ? 'Enregistrement...' : 'Confirmer'}
                       </button>
-                    </form>
-                  )}
-                </div>
+                    </div>
+                  </form>
+                )}
 
-                {/* Bloc Alerte Privilège d'origine intégré proprement en bas de colonne */}
-                <div className="mt-4 pt-3 border-t border-stone-200/60 flex items-start gap-2.5 text-[11px] text-stone-500 leading-relaxed font-light">
-                  <CheckCircle size={14} className="text-green-600 shrink-0 mt-0.5" />
-                  <p>
-                    Abonnement actif aux alertes joaillères. Vous avez la priorité sur nos prochaines collections capsules éphémères.
-                  </p>
-                </div>
-
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-stone-50 border border-stone-200 rounded-full text-[11px] font-semibold uppercase tracking-wider text-stone-500 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all duration-300"
+                >
+                  <LogOut size={13} />
+                  <span>Se déconnecter</span>
+                </button>
               </div>
             </div>
+          ) : (
+            /* ================= FORMULAIRE SÉDUISANT (CONNEXION/INSCRIPTION) ================= */
+            <div className="animate-in fade-in duration-500 space-y-8">
+              
+              <div className="space-y-3">
+                <span className="font-caveat text-2xl text-amber-800 block">Bienvenue chez vous</span>
+                <h1 className="font-serif text-4xl text-stone-900 tracking-wide font-alice">
+                  {etatactuel === 'Connexion' ? 'Connexion' : etatactuel === 'Inscription' ? 'Devenir Membre' : 'Récupération'}
+                </h1>
+                <p className="text-xs text-stone-400 font-light leading-relaxed">
+                  {etatactuel === 'Inscription' 
+                    ? 'Inscrivez-vous pour composer votre collection et commander par WhatsApp.' 
+                    : 'Accédez à votre espace pour finaliser vos réservations précieuses.'}
+                </p>
+              </div>
 
-          </div>
-        ) : (
-          /* ================= ÉTAT DÉCONNECTÉ : FORMULAIRES DE CONNEXION / INSCRIPTION ================= */
-          <div>
-            <div className="mx-auto flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-100 px-3 py-1 w-fit rounded-full font-medium tracking-wider mb-4 uppercase">
-              <Bell size={10} /> Alerte Nouveautés Aura
-            </div>
+              <form onSubmit={onSubmitHandler} className="space-y-5">
+                {etatactuel === 'Inscription' && (
+                  <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+                    <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400 ml-1">Nom Complet</label>
+                    <input 
+                      type="text" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full bg-white lg:bg-stone-50/50 border border-stone-200/80 rounded-xl px-5 py-3.5 text-xs outline-none focus:border-stone-950 focus:bg-white transition-all text-stone-800"
+                      placeholder="Sophie Aura"
+                      required
+                    />
+                  </div>
+                )}
 
-            <div className="text-center mb-8">
-              <h1 className="font-serif text-2xl text-stone-800 tracking-wide transition-all">
-                {etatactuel === 'Connexion' ? 'Se connecter' : etatactuel === 'Inscription' ? 'Créer un compte club' : 'Récupération'}
-              </h1>
-              <p className="text-xs text-stone-400 mt-2 px-4 leading-relaxed">
-                {etatactuel === 'Inscription' 
-                  ? 'Inscrivez-vous pour être informé(e) en exclusivité du lancement de nos prochains bijoux.' 
-                  : 'Accédez à votre espace membre Aura Héritage.'}
-              </p>
-            </div>
-
-            <form className="space-y-5" onSubmit={onSubmitHandler}>
-              {etatactuel === 'Inscription' && (
-                <div className="animate-in slide-in-from-top-2 duration-300">
-                  <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400 ml-1">Nom Complet</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400 ml-1">Adresse Email</label>
                   <input 
-                    type="text" 
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full border-b border-stone-200 py-3 outline-none focus:border-stone-900 text-stone-700 transition-colors bg-transparent text-sm"
-                    placeholder="Ex: Sophie Aura"
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-white lg:bg-stone-50/50 border border-stone-200/80 rounded-xl px-5 py-3.5 text-xs outline-none focus:border-stone-950 focus:bg-white transition-all text-stone-800"
+                    placeholder="sophie@example.com"
                     required
                   />
                 </div>
-              )}
 
-              <div>
-                <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400 ml-1">Adresse Email</label>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border-b border-stone-200 py-3 outline-none focus:border-stone-900 text-stone-700 transition-colors bg-transparent text-sm"
-                  placeholder="votre@email.com"
-                  required
-                />
-              </div>
+                {etatactuel !== 'Oubli' && (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between items-center px-1">
+                      <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400">Mot de passe</label>
+                      {etatactuel === 'Connexion' && (
+                        <button 
+                          type="button"
+                          onClick={() => setEtatactuel('Oubli')}
+                          className="text-[10px] uppercase tracking-widest font-semibold text-amber-800 hover:text-stone-900 transition-all"
+                        >
+                          Oublié ?
+                        </button>
+                      )}
+                    </div>
+                    <input 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-white lg:bg-stone-50/50 border border-stone-200/80 rounded-xl px-5 py-3.5 text-xs outline-none focus:border-stone-950 focus:bg-white transition-all text-stone-800"
+                      placeholder="••••••••"
+                      required
+                    />
+                  </div>
+                )}
 
+                <button 
+                  disabled={loading}
+                  type="submit"
+                  className="w-full bg-[#1C1A17] hover:bg-stone-800 text-stone-100 py-4 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-stone-950/5 active:scale-[0.98] disabled:bg-stone-200 disabled:text-stone-400"
+                >
+                  <span>{loading ? 'Traitement...' : etatactuel === 'Connexion' ? 'Se Connecter' : etatactuel === 'Inscription' ? 'Rejoindre le Club' : 'Recevoir le lien'}</span>
+                  {!loading && <ArrowRight size={13} className="text-amber-400" />}
+                </button>
+              </form>
+
+              {/* Séparateur pour Google */}
               {etatactuel !== 'Oubli' && (
-                <div>
-                  <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400 ml-1">Mot de passe</label>
-                  <input 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border-b border-stone-200 py-3 outline-none focus:border-stone-900 text-stone-700 transition-colors bg-transparent text-sm"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
-              )}
+                <div className="space-y-5">
+                  <div className="flex items-center">
+                    <div className="flex-1 border-t border-stone-200/60"></div>
+                    <span className="px-3 text-[10px] text-stone-400 uppercase tracking-widest font-medium">ou</span>
+                    <div className="flex-1 border-t border-stone-200/60"></div>
+                  </div>
 
-              {etatactuel === 'Connexion' && (
-                <div className="text-right">
-                  <button 
+                  {/* Bouton Google Version Joaillerie d'Arilona */}
+                  <button
                     type="button"
-                    onClick={() => setEtatactuel('Oubli')}
-                    className="text-[10px] uppercase tracking-widest font-medium text-stone-400 hover:text-stone-900 transition-colors"
+                    onClick={() => loginAvecGoogle()}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 bg-white border border-stone-200 text-stone-700 py-3.5 px-6 rounded-full text-[10px] font-bold tracking-widest uppercase hover:bg-stone-50 hover:border-amber-800/30 transition-all duration-300 active:scale-[0.98]"
                   >
-                    Mot de passe oublié ?
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.51 15 0 12 0 7.35 0 3.37 2.67 1.48 6.56l3.87 3a7.18 7.18 0 0 1 6.65-4.52z" />
+                      <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46a5.54 5.54 0 0 1-2.4 3.64l3.73 2.9c2.18-2.01 3.7-4.97 3.7-8.69z" />
+                      <path fill="#FBBC05" d="M5.35 14.56a7.12 7.12 0 0 1 0-4.12l-3.87-3A11.95 11.95 0 0 0 0 12c0 1.9.44 3.7 1.23 5.32l4.12-3.12l-.01-.64z" />
+                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.73-2.9a7.14 7.14 0 0 1-11.02-3.84l-3.95 3.06C3.17 21.31 7.21 24 12 24z" />
+                    </svg>
+                    <span>Continuer avec Google</span>
                   </button>
                 </div>
               )}
 
-              <button 
-                disabled={loading}
-                type="submit"
-                className="w-full bg-stone-950 text-white py-4 mt-6 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all duration-300 active:scale-[0.99] hover:bg-stone-900 hover:shadow-md disabled:bg-stone-200 disabled:text-stone-400"
-              >
-                {loading ? 'Traitement...' : etatactuel === 'Connexion' ? 'Se Connecter' : etatactuel === 'Inscription' ? 'S\'abonner aux nouveautés' : 'Envoyer le lien'}
-              </button>
-            </form>
+              {/* Navigation alternative */}
+              <div className="text-center pt-2">
+                {etatactuel === 'Connexion' ? (
+                  <p className="text-xs text-stone-500 font-light">
+                    Nouveau chez Arilona ?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setEtatactuel('Inscription')}
+                      className="text-amber-800 font-bold uppercase tracking-wider ml-1 hover:text-stone-900 transition-colors"
+                    >
+                      Créer un compte
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-xs text-stone-500 font-light">
+                    Déjà membre ?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setEtatactuel('Connexion')}
+                      className="text-amber-800 font-bold uppercase tracking-wider ml-1 hover:text-stone-900 transition-colors"
+                    >
+                      Se connecter
+                    </button>
+                  </p>
+                )}
+              </div>
 
-            <div className="mt-8 text-center border-t border-stone-100 pt-6">
-              {etatactuel === 'Connexion' ? (
-                <p className="text-xs text-stone-500 italic">
-                  Pas encore inscrit(e) ?{' '}
-                  <button 
-                    type="button"
-                    onClick={() => { setEtatactuel('Inscription'); }}
-                    className="text-amber-800 not-italic font-semibold uppercase tracking-widest ml-1 hover:text-amber-900 transition-colors"
-                  >
-                    Créer un compte
-                  </button>
-                </p>
-              ) : (
-                <p className="text-xs text-stone-500 italic">
-                  Déjà membre ?{' '}
-                  <button 
-                    type="button"
-                    onClick={() => { setEtatactuel('Connexion'); }}
-                    className="text-amber-800 not-italic font-semibold uppercase tracking-widest ml-1 hover:text-amber-900 transition-colors"
-                  >
-                    Se connecter
-                  </button>
-                </p>
-              )}
             </div>
-          </div>
-        )}
+          )}
+
+        </div>
 
       </div>
     </div>
