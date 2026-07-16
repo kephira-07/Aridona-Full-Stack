@@ -128,7 +128,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
           {/* FLÈCHE GAUCHE */}
           <button 
             onClick={() => scroll('left')}
-            className="absolute left-[-25px] top-1/2 -translate-y-1/2 z-40 bg-white/90 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-stone-700 hover:text-amber-600 hover:border-amber-500 md:opacity-0 md:group-hover/bar:opacity-100 transition-all duration-200 hidden md:flex items-center justify-center"
+            className="absolute left-[-25px] top-1/2 -translate-y-1/2 z-40 bg-amber-700 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-white group/bar:opacity-100   flex items-center justify-center"
           >
             <ChevronLeft size={18} strokeWidth={2} />
           </button>
@@ -219,7 +219,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
           {/* FLÈCHE DROITE */}
           <button 
             onClick={() => scroll('right')}
-            className="absolute right-[-25px] top-1/2 -translate-y-1/2 z-40 bg-white/90 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-stone-700 hover:text-amber-600 hover:border-amber-500 md:opacity-0 md:group-hover/bar:opacity-100 transition-all duration-200 hidden md:flex items-center justify-center"
+            className="absolute right-[-25px] top-1/2 -translate-y-1/2 z-40 bg-amber-700 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-white group/bar:opacity-100 transition-all duration-200  flex items-center justify-center"
           >
             <ChevronRight size={18} strokeWidth={2} />
           </button>

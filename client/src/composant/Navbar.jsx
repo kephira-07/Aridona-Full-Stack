@@ -105,7 +105,7 @@ export default function Navbar() {
 
         {/* VERSION MOBILE */}
         <div className="md:hidden">
-          <div className={`flex items-center h-16 justify-between px-2 border-b border-gray-100 ${
+          <div className={`flex items-center h-16 justify-between p-2 border-b border-gray-100 ${
             isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-white'
           }`}>
             <button aria-label="Ouvrir menu mobile" className="text-black p-1 rounded-full" onClick={() => setVisible(true)}>
@@ -130,7 +130,7 @@ export default function Navbar() {
               <Link to="/login" aria-label="Profil" className="text-black  rounded-full text-sm ">
                 <User className="w-5 h-5" />
               </Link>
-              <Link to="/favoris" className="relative  text-black hover:text-amber-700 transition-colors">
+              <Link to="/favoris" className="relative p-2 text-black hover:text-amber-700 transition-colors">
                     <Heart className="w-5 h-5" />
                     
                     {/* 🛠️ Le badge n'apparait que si le nombre de favoris est supérieur à 0 */}
