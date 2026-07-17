@@ -46,7 +46,7 @@ function App() {
         <Route path='/login' element={<Login />} />
          <Route path='/favoris' element={<PageFavoris />} />
         <Route path='/reset-password/:token' element={<ResetPassword />} />
->
+
         <Route path='/home' element={<Home />} />
          <Route path='*' element={<Erreur404 />} />
       </Routes>
