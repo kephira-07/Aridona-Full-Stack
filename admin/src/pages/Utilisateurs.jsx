@@ -98,10 +98,20 @@ const Utilisateurs = () => {
                       )}
                     </td>
                     {/* Date d'inscription */}
-                    <td className="py-4 px-6 text-stone-500">
-                      <div className="flex items-center gap-1.5">
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2 text-stone-600">
                         <Calendar size={13} className="text-stone-400" />
-                        <span>{new Date(user.createdAt).toLocaleDateString('fr-FR')}</span>
+                        {user.createdAt && !isNaN(Date.parse(user.createdAt)) ? (
+                          <span>
+                            {new Date(user.createdAt).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        ) : (
+                          <span className="text-stone-400 italic text-[11px]">Récemment</span>
+                        )}
                       </div>
                     </td>
                   </tr>

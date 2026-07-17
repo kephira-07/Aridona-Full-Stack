@@ -12,7 +12,9 @@ const utilisateurSchema = new mongoose.Schema({
     // Sécurité pour le mot de passe oublié
     resetPasswordToken: { type: String, default: "" },
     resetPasswordExpires: { type: Date, default: null }
-}, { minimize: false });
+}, { minimize: false ,
+    timestamps: true
+});
 
 const utilisateurModel = mongoose.models.utilisateur || mongoose.model("utilisateur", utilisateurSchema);
 export default utilisateurModel;
