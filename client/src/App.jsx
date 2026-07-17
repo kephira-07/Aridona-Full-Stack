@@ -20,6 +20,7 @@ import ScrollToTop from './composant/ScrollToTop'
 import Login from './pages/Login'
 import PageFavoris from './pages/PageFavoris'
 import PasserCommande from './pages/PasserCommande'
+import ResetPassword from './pages/ResetPassword'
 import SidebarPanier from './composant/SidebarPanier'
 
 function App() {
@@ -44,6 +45,9 @@ function App() {
         
         <Route path='/login' element={<Login />} />
          <Route path='/favoris' element={<PageFavoris />} />
+        <Route path='/reset-password/:token' element={<ResetPassword />} />
+>
+        <Route path='/home' element={<Home />} />
          <Route path='*' element={<Erreur404 />} />
       </Routes>
       <Footer/>

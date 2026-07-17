@@ -4,9 +4,9 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
-import { LogOut, Sparkles,  MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
+import { LogOut, MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.png';
 
 const Login = () => {
   const [etatactuel, setEtatactuel] = useState('Inscription'); 
@@ -24,9 +24,19 @@ const Login = () => {
 
   const navigate = useNavigate(); 
 
+  // ================= CHARGEMENT DU PROFIL AVEC DOUBLE HEADER (Anti-401) =================
   const chargerProfil = async () => {
     try {
-      const response = await axios.post(`${backendUrl}/api/utilisateur/profil`, {}, { headers: { token } });
+      const response = await axios.post(
+        `${backendUrl}/api/utilisateur/profil`, 
+        {}, 
+        { 
+          headers: { 
+            token: token,
+            Authorization: `Bearer ${token}` 
+          } 
+        }
+      );
       if (response.data.success) {
         setProfil(response.data.utilisateur);
         setFormProfil({
@@ -51,10 +61,15 @@ const Login = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await axios.post(`${backendUrl}/api/utilisateur/modifier-profil`, formProfil, { headers: { token } });
+      const response = await axios.post(
+        `${backendUrl}/api/utilisateur/modifier-profil`, 
+        formProfil, 
+        { headers: { token, Authorization: `Bearer ${token}` } }
+      );
       if (response.data.success) {
         setProfil(response.data.utilisateur);
         setIsEditing(false);
+        toast.success("Coordonnées mises à jour.", { theme: "dark" });
       } else {
         toast.error(response.data.message, { theme: "dark" });
       }
@@ -69,10 +84,35 @@ const Login = () => {
     setToken('');
     setProfil(null);
     localStorage.removeItem('token');
-    
     setEtatactuel('Connexion'); 
   };
 
+  // ================= CONNEXION AVEC GOOGLE =================
+  const loginAvecGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setLoading(true);
+        const res = await axios.post(`${backendUrl}/api/utilisateur/google-login`, {
+          access_token: tokenResponse.access_token,
+        });
+        if (res.data.success) {
+          setToken(res.data.token);
+          localStorage.setItem('token', res.data.token);
+          toast.success("Connexion Google réussie ! ✨", { theme: "dark" });
+        } else {
+          toast.error(res.data.message, { theme: "dark" });
+        }
+      } catch (error) {
+        console.error("Erreur Google Login:", error);
+        toast.error("Échec de l'authentification Google.", { theme: "dark" });
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => toast.error("La connexion Google a échoué.", { theme: "dark" }),
+  });
+
+  // ================= SOUMISSION DES FORMULAIRES (INSCRIPTION / CONNEXION / OUBLI) =================
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     try {
@@ -83,7 +123,7 @@ const Login = () => {
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-         
+          toast.success("Bienvenue dans l'univers d'Arilona ! ✨", { theme: "dark" });
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
@@ -93,17 +133,16 @@ const Login = () => {
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-         
+          toast.success("Ravis de vous revoir. ✨", { theme: "dark" });
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
       } 
-      else {
-        // ================= ÉTAT : RÉCUPÉRATION DE MOT DE PASSE REAL =================
+      else if (etatactuel === 'Oubli') {
         const response = await axios.post(`${backendUrl}/api/utilisateur/mot-de-passe-oublie`, { email });
         
         if (response.data.success) {
-          toast.success("Un lien de récupération a été envoyé sur votre boîte mail avec soin.", { theme: "dark" });
+          toast.success("Un lien de récupération a été envoyé sur votre boîte mail avec soin. ✨", { theme: "dark" });
           setEtatactuel('Connexion');
         } else {
           toast.error(response.data.message || "Une erreur est survenue.", { theme: "dark" });
@@ -117,11 +156,12 @@ const Login = () => {
       setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen w-full bg-[#FAF9F6] flex items-center mt-25 justify-center font-sans relative overflow-hidden">
       
       {/* Bouton Retour Flottant Épuré */}
-      <div className="absolute top-6 left-6 ">
+      <div className="absolute top-6 left-6 z-20">
         <BoutonRetour />
       </div>
 
@@ -137,9 +177,9 @@ const Login = () => {
           <div className="relative z-10">
             <span className="font-caveat text-2xl text-amber-400 tracking-wide block">Maison</span>
             <div className="flex items-center cursor-pointer h-15 w-35">
-                         <img src={logo} alt="Logo" className="object-contain w-full h-full" />
-                       </div>
-        </div>
+              <img src={logo} alt="Logo" className="object-contain w-full h-full" />
+            </div>
+          </div>
 
           <div className="relative z-10 my-auto space-y-6 max-w-[340px]">
             <p className="font-serif text-3xl text-stone-100 leading-relaxed font-alice font-light">
@@ -150,10 +190,7 @@ const Login = () => {
               Chaque écrin ouvert raconte une histoire de patience, de beauté et d'éternité. Rejoignez le club pour accéder à vos sélections privées.
             </p>
           </div>
-
-          
         </div>
-
 
         {/* ================= PANNEAU DE DROITE : FORMULAIRES & PROFIL ================= */}
         <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-12 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
@@ -171,7 +208,7 @@ const Login = () => {
               <div className="space-y-6 font-dmsans">
                 {!isEditing ? (
                   <div className="space-y-2">
-                    <div className="p-2 rounded-2xl bg-stone-50 border border-stone-100/80 space-y-3">
+                    <div className="p-4 rounded-2xl bg-stone-50 border border-stone-100/80 space-y-3">
                       <div className="flex items-center gap-3 text-stone-700 text-sm">
                         <Mail size={16} className="text-amber-800" />
                         <span>{profil.email}</span>
@@ -194,14 +231,14 @@ const Login = () => {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleUpdateProfil} className="space-y-2 animate-in fade-in duration-300">
-                    <div className="space-y-2 font-dmsans ">
+                  <form onSubmit={handleUpdateProfil} className="space-y-3 animate-in fade-in duration-300">
+                    <div className="space-y-2 font-dmsans">
                       <input 
                         type="text" 
                         placeholder="Votre Nom Complet"
                         value={formProfil.name} 
                         onChange={(e) => setFormProfil({...formProfil, name: e.target.value})}
-                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-2 text-xs outline-none focus:border-amber-800 transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3 text-xs outline-none focus:border-amber-800 transition-all"
                         required
                       />
                       <input 
@@ -249,7 +286,7 @@ const Login = () => {
               </div>
             </div>
           ) : (
-            /* ================= FORMULAIRE SÉDUISANT (CONNEXION/INSCRIPTION) ================= */
+            /* ================= FORMULAIRE SÉDUISANT (CONNEXION/INSCRIPTION/OUBLI) ================= */
             <div className="animate-in fade-in duration-500 space-y-8">
               
               <div className="space-y-3">
@@ -260,7 +297,9 @@ const Login = () => {
                 <p className="text-xs text-stone-500 font-dmsans leading-relaxed">
                   {etatactuel === 'Inscription' 
                     ? 'Inscrivez-vous pour composer votre collection et commander par WhatsApp.' 
-                    : 'Accédez à votre espace pour finaliser vos réservations précieuses.'}
+                    : etatactuel === 'Connexion' 
+                    ? 'Accédez à votre espace pour finaliser vos réservations précieuses.'
+                    : 'Un e-mail vous sera transmis pour créer un nouveau mot de passe.'}
                 </p>
               </div>
 
@@ -329,13 +368,13 @@ const Login = () => {
               {/* Séparateur pour Google */}
               {etatactuel !== 'Oubli' && (
                 <div className="space-y-2 -mt-5">
-                  <div className="flex items-center ">
+                  <div className="flex items-center">
                     <div className="flex-1 border-t border-stone-200/60"></div>
                     <span className="px-3 text-[10px] text-stone-500 uppercase tracking-widest font-medium">ou</span>
                     <div className="flex-1 border-t border-stone-200/60"></div>
                   </div>
 
-                  {/* Bouton Google Version Joaillerie d'Arilona */}
+                  {/* Bouton Google */}
                   <button
                     type="button"
                     onClick={() => loginAvecGoogle()}
