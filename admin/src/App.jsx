@@ -9,10 +9,14 @@ import Orders from './pages/Orders';
 import Edit from './pages/Edit';
 import Categories from './pages/Categories';
 import DashboardStats from './pages/DashboardStats';
+import Utilisateurs from './pages/Utilisateurs';
 
 const App = () => {
   // Récupération du token sauvegardé dans le navigateur pour éviter de se reconnecter après un F5
   const [token, setToken] = useState(localStorage.getItem('token') || '');
+
+  // Définition de l'URL du backend (ajuste-la si tu utilises un fichier .env ou une variable globale)
+  const backendUrl = import.meta.env.VITE_BACKEND_URL 
 
   // Dès que le token change, on met à jour le localStorage
   useEffect(() => {
@@ -43,14 +47,18 @@ const App = () => {
         <main className="w-[82%] p-6 md:p-10 max-h-[calc(100vh-80px)] overflow-y-auto">
           <Routes>
             {/* Redirection automatique de la racine (/) vers la liste des produits */}
-           <Route path="/" element={<Navigate to="/list" replace />} />
-                  <Route path='/dashbord'element={<DashboardStats token={token} />} /> 
-                  <Route path="/add" element={<Add token={token} />} />
-                  <Route path="/list" element={<List token={token} />} />
-                  <Route path="/orders" element={<Orders token={token} />} />
-                  <Route path="/edit/:id" element={<Edit token={token} />} />
-                  <Route path="/categories" element={<Categories token={token} />} />
-                  <Route path="*" element={<Navigate to="/list" replace />} />
+            <Route path="/" element={<Navigate to="/list" replace />} />
+            <Route path='/dashbord' element={<DashboardStats token={token} />} /> 
+            <Route path="/add" element={<Add token={token} />} />
+            <Route path="/list" element={<List token={token} />} />
+            <Route path="/orders" element={<Orders token={token} />} />
+            <Route path="/edit/:id" element={<Edit token={token} />} />
+            <Route path="/categories" element={<Categories token={token} />} />
+            
+            {/* 🌟 PASSAGE DU TOKEN ET DU BACKENDURL POUR CHARGER LES EMAILS SANS ERREUR */}
+            <Route path="/utilisateurs" element={<Utilisateurs token={token} backendUrl={backendUrl} />} />
+            
+            <Route path="*" element={<Navigate to="/list" replace />} />
           </Routes>
         </main>
 

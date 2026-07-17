@@ -2,11 +2,11 @@ import React, { useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { ShopContext } from '../context/ShopContext';
+import backendUrl from '../config';
 
 const ResetPassword = () => {
   const { token } = useParams(); // Récupère le token depuis l'URL de la route
-  const { backendUrl } = useContext(ShopContext);
+  
   const navigate = useNavigate();
   
   const [nouveauPassword, setNouveauPassword] = useState('');

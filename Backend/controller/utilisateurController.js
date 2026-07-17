@@ -24,6 +24,26 @@ const getProfilUtilisateur = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
+// Fonction pour lister tous les utilisateurs (pour l'Admin)
+const listerUtilisateurs = async (req, res) => {
+  try {
+    // Récupère tous les utilisateurs en excluant le mot de passe pour des raisons de sécurité
+    const utilisateurs = await userModel.find({}).select("-password"); 
+    
+    res.json({ 
+      success: true, 
+      utilisateurs 
+    });
+  } catch (error) {
+    console.error("Erreur liste utilisateurs:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Impossible de récupérer les utilisateurs." 
+    });
+  }
+};
+
+
 
 // Mettre à jour le profil
 const updateProfilUtilisateur = async (req, res) => {
@@ -185,7 +205,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
         await user.save();
 
         // Lien qui renvoie vers ton site en production ou local
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendUrl = process.env.FRONTEND_URL ;
         const resetLink = `${frontendUrl}/reinitialiser-mot-de-passe/${token}`;
 
         // Envoi de l'e-mail premium via Resend
@@ -269,4 +289,4 @@ const resend = new Resend(process.env.RESEND_API_KEY);
     }
 };
 
-export { registerutilisateur, loginutilisateur, adminLogin, googleLogin, getProfilUtilisateur, updateProfilUtilisateur, motDePasseOublie, reinitialiserMotDePasse };
+export { registerutilisateur, loginutilisateur, adminLogin, googleLogin, getProfilUtilisateur, updateProfilUtilisateur, motDePasseOublie, reinitialiserMotDePasse ,listerUtilisateurs};
