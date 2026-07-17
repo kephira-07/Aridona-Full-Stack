@@ -5,6 +5,7 @@ import validator from 'validator';
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { Resend } from 'resend';
+import utilisateurModel from '../models/utilisateurModel.js';
 
 
 
