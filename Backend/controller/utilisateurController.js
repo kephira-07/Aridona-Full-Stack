@@ -1,19 +1,21 @@
-import utilisateurModel from '../models/utilisateurModel.js';
+import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
 import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
-import{ Resend }from 'resend';
+import { Resend } from 'resend';
+
 
 
 const createToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
+
 // Récupérer le profil de l'utilisateur connecté
 const getProfilUtilisateur = async (req, res) => {
     try {
-        const userId = req.userId; // Injecté par ton middleware authUser
+        const userId = req.userId; // Injecté par le middleware authUser
         const utilisateur = await utilisateurModel.findById(userId).select("-password");
         
         if (!utilisateur) {
@@ -24,26 +26,25 @@ const getProfilUtilisateur = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 };
-// Fonction pour lister tous les utilisateurs (pour l'Admin)
+
+// Fonction pour lister tous les utilisateurs (Admin)
 const listerUtilisateurs = async (req, res) => {
-  try {
-    // Récupère tous les utilisateurs en excluant le mot de passe pour des raisons de sécurité
-    const utilisateurs = await userModel.find({}).select("-password"); 
-    
-    res.json({ 
-      success: true, 
-      utilisateurs 
-    });
-  } catch (error) {
-    console.error("Erreur liste utilisateurs:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: "Impossible de récupérer les utilisateurs." 
-    });
-  }
+    try {
+        // Correction : Utilisation d'utilisateurModel au lieu de userModel
+        const utilisateurs = await utilisateurModel.find({}).select("-password"); 
+        
+        res.json({ 
+            success: true, 
+            utilisateurs 
+        });
+    } catch (error) {
+        console.error("Erreur liste utilisateurs:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Impossible de récupérer les utilisateurs." 
+        });
+    }
 };
-
-
 
 // Mettre à jour le profil
 const updateProfilUtilisateur = async (req, res) => {
@@ -63,9 +64,7 @@ const updateProfilUtilisateur = async (req, res) => {
     }
 };
 
-// N'oublie pas de les ajouter dans ton export final en bas du fichier :
-
-// Inscription
+// Inscription classique
 const registerutilisateur = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -87,7 +86,7 @@ const registerutilisateur = async (req, res) => {
     }
 };
 
-// Connexion
+// Connexion classique
 const loginutilisateur = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -106,36 +105,35 @@ const loginutilisateur = async (req, res) => {
     }
 };
 
+// Connexion de l'administrateur
 const adminLogin = async (req, res) => {
-   try {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    // 1. Vérification stricte de l'email admin
-    if (email !== process.env.ADMIN_EMAIL) {
-        return res.json({ success: false, message: "Email ou mot de passe incorrect." });
+        if (email !== process.env.ADMIN_EMAIL) {
+            return res.json({ success: false, message: "Email ou mot de passe incorrect." });
+        }
+
+        const isMatch = (password === process.env.ADMIN_PASSWORD);
+        
+        if (isMatch) {
+            const token = jwt.sign(
+                { email: process.env.ADMIN_EMAIL, role: 'admin' }, 
+                process.env.JWT_SECRET, 
+                { expiresIn: '7d' } 
+            );
+            return res.json({ success: true, token });
+        } else {
+            return res.json({ success: false, message: "Email ou mot de passe incorrect." });
+        }
+
+    } catch (error) {
+        console.error("Erreur adminLogin:", error);
+        return res.status(500).json({ success: false, message: "Une erreur interne est survenue." });
     }
+};
 
-const isMatch = (password === process.env.ADMIN_PASSWORD)
-    
-
-    if (isMatch) {
-        // 🌟 CORRECTION : On intègre l'email et le rôle dans le token, et on met '7d' pour être tranquille
-        const token = jwt.sign(
-            { email: process.env.ADMIN_EMAIL, role: 'admin' }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '7d' } 
-        );
-        return res.json({ success: true, token });
-    } else {
-        return res.json({ success: false, message: "Email ou mot de passe incorrect." });
-    }
-
-   } catch (error) {
-    console.error("Erreur adminLogin:", error);
-    return res.status(500).json({ success: false, message: "Une erreur interne est survenue." });
-   }
-}
-
+// Connexion via Google OAuth
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleLogin = async (req, res) => {
@@ -146,7 +144,7 @@ const googleLogin = async (req, res) => {
             return res.json({ success: false, message: "Token Google manquant." });
         }
 
-        // 1. Récupérer les infos de l'utilisateur directement depuis l'API Google grâce à l'access_token
+        // 1. Récupérer les infos de l'utilisateur directement depuis l'API Google
         const response = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${access_token}`);
         const googleUser = await response.json();
 
@@ -156,25 +154,28 @@ const googleLogin = async (req, res) => {
 
         const { email, name } = googleUser;
 
-        // 2. Vérifier si l'utilisateur existe déjà dans ta base de données
-        let user = await userModel.findOne({ email });
+        // 2. Vérifier si l'utilisateur existe déjà (Correction : utilisateurModel au lieu de userModel)
+        let user = await utilisateurModel.findOne({ email });
 
         if (!user) {
             // S'il n'existe pas, on lui crée un compte automatiquement
-            // On lui génère un mot de passe aléatoire hautement sécurisé puisqu'il passe par Google
             const randomPassword = Math.random().toString(36).slice(-16) + 'Aa1!';
             
-            user = new userModel({
+            // Sécurité : Il faut hacher ce mot de passe temporaire généré aléatoirement !
+            const salt = await bcrypt.genSalt(10);
+            const hashedRandomPassword = await bcrypt.hash(randomPassword, salt);
+            
+            user = new utilisateurModel({
                 name,
                 email,
-                password: randomPassword, // Il sera hashé si tu as un middleware "pre-save" ou fais-le ici
-                ville: 'Lomé' // Ville par défaut
+                password: hashedRandomPassword, 
+                ville: 'Lomé'
             });
             await user.save();
         }
 
-        // 3. Générer le token JWT de ton application (comme pour ton login classique)
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        // 3. Générer le token JWT de ton application
+        const token = createToken(user._id);
 
         res.json({ success: true, token });
 
@@ -184,10 +185,11 @@ const googleLogin = async (req, res) => {
     }
 };
 
+// Initialisation de Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// ================= 1. DEMANDE DE RÉINITIALISATION =================
- const motDePasseOublie = async (req, res) => {
+// Demande de réinitialisation de mot de passe
+const motDePasseOublie = async (req, res) => {
     try {
         const { email } = req.body;
         const user = await utilisateurModel.findOne({ email });
@@ -196,21 +198,18 @@ const resend = new Resend(process.env.RESEND_API_KEY);
             return res.json({ success: false, message: "Aucun compte n'est associé à cette adresse e-mail." });
         }
 
-        // Génération d'un token sécurisé de 32 octets convertis en hexadécimal
         const token = crypto.randomBytes(32).toString('hex');
 
-        // Enregistrement du token et de sa validité (expire dans 1 heure)
         user.resetPasswordToken = token;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 heure en millisecondes
+        user.resetPasswordExpires = Date.now() + 3600000; // Valable 1 heure
         await user.save();
 
-        // Lien qui renvoie vers ton site en production ou local
-        const frontendUrl = process.env.FRONTEND_URL ;
+        const frontendUrl = process.env.FRONTEND_URL;
         const resetLink = `${frontendUrl}/reinitialiser-mot-de-passe/${token}`;
 
         // Envoi de l'e-mail premium via Resend
-        const { data, error } = await resend.emails.send({
-            from: 'Maison Arilona <onboarding@resend.dev>', // Tu changeras par contact@arilonabijoux.com une fois ton domaine configuré
+        const { error } = await resend.emails.send({
+            from: 'Maison Arilona <onboarding@resend.dev>', // À modifier après configuration de ton domaine
             to: [email],
             subject: 'Réinitialisation de votre mot de passe — Arilona Héritage',
             html: `
@@ -257,26 +256,29 @@ const resend = new Resend(process.env.RESEND_API_KEY);
     }
 };
 
-// ================= 2. ENREGISTREMENT DU NOUVEAU MOT DE PASSE =================
- const reinitialiserMotDePasse = async (req, res) => {
+// Enregistrement du nouveau mot de passe après réinitialisation
+const reinitialiserMotDePasse = async (req, res) => {
     try {
         const { token, nouveauPassword } = req.body;
 
-        // On cherche l'utilisateur possédant le token ET dont l'heure de validité n'est pas passée ($gt = greater than Now)
         const user = await utilisateurModel.findOne({
             resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
+            resetPasswordExpires: { $gt: Date.now() } // $gt = Greater Than
         });
 
         if (!user) {
             return res.json({ success: false, message: "Le lien de réinitialisation est invalide ou a expiré." });
         }
 
+        if (nouveauPassword.length < 8) {
+            return res.json({ success: false, message: "Le mot de passe doit faire au moins 8 caractères." });
+        }
+
         // Hachage du nouveau mot de passe
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(nouveauPassword, salt);
 
-        // On nettoie les champs de réinitialisation pour que le token ne serve plus
+        // Nettoyage des champs temporaires de réinitialisation
         user.resetPasswordToken = "";
         user.resetPasswordExpires = null;
         await user.save();
@@ -289,4 +291,15 @@ const resend = new Resend(process.env.RESEND_API_KEY);
     }
 };
 
-export { registerutilisateur, loginutilisateur, adminLogin, googleLogin, getProfilUtilisateur, updateProfilUtilisateur, motDePasseOublie, reinitialiserMotDePasse ,listerUtilisateurs};
+
+export { 
+    registerutilisateur, 
+    loginutilisateur, 
+    adminLogin, 
+    googleLogin, 
+    getProfilUtilisateur, 
+    updateProfilUtilisateur, 
+    motDePasseOublie, 
+    reinitialiserMotDePasse,
+    listerUtilisateurs
+};

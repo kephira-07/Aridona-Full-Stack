@@ -9,7 +9,7 @@ const utilisateurSchema = new mongoose.Schema({
     adresse: { type: String, default: "" },
     ville: { type: String, default: "Lomé" },
     
-    // 🌟 AJOUT DE SÉCURITÉ POUR LE MOT DE PASSE OUBLIÉ
+    // Sécurité pour le mot de passe oublié
     resetPasswordToken: { type: String, default: "" },
     resetPasswordExpires: { type: Date, default: null }
 }, { minimize: false });
