@@ -30,7 +30,7 @@ app.use('/api/order', orderRouter);
 app.use('/api/categorie', categorieRouter); // route pour les catégories
 
 app.get('/', (req, res) => {
-    res.send("L'API d'Arilona Shop fonctionne parfaitement ! 🚀");
+    res.send("L'API d'Arilona Shop fonctionne parfaitement !");
 });
 
 app.listen(PORT, () => {

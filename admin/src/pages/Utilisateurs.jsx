@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Mail, User, Phone, Calendar } from 'lucide-react';
+import { backendUrl } from '../config';
 
-const Utilisateurs = ({ backendUrl }) => {
+const Utilisateurs = () => {
   const [utilisateurs, setUtilisateurs] = useState([]);
   const [loading, setLoading] = useState(true);
 

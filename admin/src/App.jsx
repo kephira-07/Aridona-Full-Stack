@@ -15,9 +15,6 @@ const App = () => {
   // Récupération du token sauvegardé dans le navigateur pour éviter de se reconnecter après un F5
   const [token, setToken] = useState(localStorage.getItem('token') || '');
 
-  // Définition de l'URL du backend (ajuste-la si tu utilises un fichier .env ou une variable globale)
-  const backendUrl = import.meta.env.VITE_BACKEND_URL 
-
   // Dès que le token change, on met à jour le localStorage
   useEffect(() => {
     if (token) {
@@ -56,7 +53,7 @@ const App = () => {
             <Route path="/categories" element={<Categories token={token} />} />
             
             {/* 🌟 PASSAGE DU TOKEN ET DU BACKENDURL POUR CHARGER LES EMAILS SANS ERREUR */}
-            <Route path="/utilisateurs" element={<Utilisateurs token={token} backendUrl={backendUrl} />} />
+            <Route path="/utilisateurs" element={<Utilisateurs token={token}  />} />
             
             <Route path="*" element={<Navigate to="/list" replace />} />
           </Routes>
