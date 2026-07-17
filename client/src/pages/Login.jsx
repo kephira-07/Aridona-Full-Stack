@@ -4,8 +4,9 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
-import { LogOut, Sparkles, User, MapPin, Phone, Mail, ShieldCheck, Edit3, ArrowRight } from 'lucide-react';
+import { LogOut, Sparkles,  MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
+import logo from '../assets/logo.png'
 
 const Login = () => {
   const [etatactuel, setEtatactuel] = useState('Inscription'); 
@@ -54,7 +55,6 @@ const Login = () => {
       if (response.data.success) {
         setProfil(response.data.utilisateur);
         setIsEditing(false);
-        toast.success("Votre profil a été mis à jour avec soin. ✨", { theme: "dark" });
       } else {
         toast.error(response.data.message, { theme: "dark" });
       }
@@ -69,7 +69,7 @@ const Login = () => {
     setToken('');
     setProfil(null);
     localStorage.removeItem('token');
-    toast.info("À bientôt chez Arilona Bijoux. ✨", { theme: "dark" });
+    
     setEtatactuel('Connexion'); 
   };
 
@@ -77,28 +77,39 @@ const Login = () => {
     e.preventDefault();
     try {
       setLoading(true);
+
       if (etatactuel === 'Inscription') {
         const response = await axios.post(`${backendUrl}/api/utilisateur/register`, { name, email, password });
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-          toast.success("Bienvenue dans notre univers ! ✨", { theme: "dark" });
+         
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
-      } else if (etatactuel === 'Connexion') {
+      } 
+      else if (etatactuel === 'Connexion') {
         const response = await axios.post(`${backendUrl}/api/utilisateur/login`, { email, password });
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-          toast.success("Ravis de vous revoir. ✨", { theme: "dark" });
+         
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
-      } else {
-        toast.info("Un lien de récupération a été envoyé sur votre boîte mail.", { theme: "dark" });
-        setEtatactuel('Connexion');
+      } 
+      else {
+        // ================= ÉTAT : RÉCUPÉRATION DE MOT DE PASSE REAL =================
+        const response = await axios.post(`${backendUrl}/api/utilisateur/mot-de-passe-oublie`, { email });
+        
+        if (response.data.success) {
+          toast.success("Un lien de récupération a été envoyé sur votre boîte mail avec soin.", { theme: "dark" });
+          setEtatactuel('Connexion');
+        } else {
+          toast.error(response.data.message || "Une erreur est survenue.", { theme: "dark" });
+        }
       }
+
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Une erreur réseau est survenue.", { theme: "dark" });
@@ -106,34 +117,6 @@ const Login = () => {
       setLoading(false);
     }
   };
-
-  const loginAvecGoogle = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      try {
-        setLoading(true);
-        const response = await axios.post(`${backendUrl}/api/utilisateur/google-login`, {
-          access_token: tokenResponse.access_token
-        });
-
-        if (response.data.success) {
-          setToken(response.data.token);
-          localStorage.setItem('token', response.data.token);
-          toast.success("Connexion réussie ! ✨", { theme: "dark" });
-        } else {
-          toast.error(response.data.message || "La connexion Google a échoué.", { theme: "dark" });
-        }
-      } catch (error) {
-        console.error("Erreur Google Auth:", error);
-        toast.error("Impossible de finaliser l'authentification avec Google.", { theme: "dark" });
-      } finally {
-        setLoading(false);
-      }
-    },
-    onError: () => {
-      toast.error("La connexion Google a été annulée.", { theme: "dark" });
-    }
-  });
-
   return (
     <div className="min-h-screen w-full bg-[#FAF9F6] flex items-center mt-25 justify-center font-sans relative overflow-hidden">
       
@@ -143,19 +126,20 @@ const Login = () => {
       </div>
 
       {/* Grand Container Split Screen */}
-      <div className="w-full min-h-screen lg:min-h-[70vh] lg:max-w-[1100px] lg:my-12 lg:rounded-3xl lg:shadow-[0_20px_50px_rgba(28,26,23,0.08)] bg-white flex flex-col lg:flex-row overflow-hidden border border-stone-100">
+      <div className="w-full min-h-screen lg:min-h-[50vh] lg:max-w-[1100px] lg:my-12 lg:rounded-3xl lg:shadow-[0_20px_50px_rgba(28,26,23,0.08)] bg-white flex flex-col lg:flex-row overflow-hidden border border-stone-100">
         
         {/* ================= PANNEAU DE GAUCHE : IDENTITÉ DE MAISON (Caché sur mobile) ================= */}
-        <div className="hidden lg:flex lg:w-1/2 bg-[#1C1A17] relative p-12 flex-col justify-between overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 bg-[#301c0cee] relative p-12 flex-col justify-between overflow-hidden">
           {/* Effet lumineux doré en arrière-plan */}
           <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-amber-500/10 blur-[120px] pointer-events-none"></div>
-          <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-amber-600/15 blur-[120px] pointer-events-none"></div>
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-amber-600/55 blur-[120px] pointer-events-none"></div>
           
           <div className="relative z-10">
             <span className="font-caveat text-2xl text-amber-400 tracking-wide block">Maison</span>
-            <h2 className="font-serif text-4xl text-white tracking-widest font-alice mt-1">ARILONA</h2>
-            <p className="text-[10px] text-amber-500/80 tracking-[0.25em] uppercase font-semibold mt-2">BIJOUX & HÉRITAGE</p>
-          </div>
+            <div className="flex items-center cursor-pointer h-15 w-35">
+                         <img src={logo} alt="Logo" className="object-contain w-full h-full" />
+                       </div>
+        </div>
 
           <div className="relative z-10 my-auto space-y-6 max-w-[340px]">
             <p className="font-serif text-3xl text-stone-100 leading-relaxed font-alice font-light">
@@ -167,15 +151,12 @@ const Login = () => {
             </p>
           </div>
 
-          <div className="relative z-10 flex items-center gap-2 text-[10px] text-amber-500/60 uppercase tracking-widest font-medium">
-            <Sparkles size={12} className="text-amber-500" />
-            <span>Créations intemporelles faites main</span>
-          </div>
+          
         </div>
 
 
         {/* ================= PANNEAU DE DROITE : FORMULAIRES & PROFIL ================= */}
-        <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 mt-20 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
+        <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-12 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
           
           {token && profil ? (
             /* ================= DESIGN PROFIL VIP ================= */
@@ -187,19 +168,19 @@ const Login = () => {
               </div>
 
               {/* Contenu Profil Raffiné */}
-              <div className="space-y-6">
+              <div className="space-y-6 font-dmsans">
                 {!isEditing ? (
-                  <div className="space-y-4">
-                    <div className="p-5 rounded-2xl bg-stone-50 border border-stone-100/80 space-y-3">
-                      <div className="flex items-center gap-3 text-stone-600 text-sm">
+                  <div className="space-y-2">
+                    <div className="p-2 rounded-2xl bg-stone-50 border border-stone-100/80 space-y-3">
+                      <div className="flex items-center gap-3 text-stone-700 text-sm">
                         <Mail size={16} className="text-amber-800" />
                         <span>{profil.email}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-stone-600 text-sm">
+                      <div className="flex items-center gap-3 text-stone-700 text-sm">
                         <Phone size={16} className="text-amber-800" />
                         <span>{profil.telephone || "Aucun numéro WhatsApp lié"}</span>
                       </div>
-                      <div className="flex items-start gap-3 text-stone-600 text-sm">
+                      <div className="flex items-start gap-3 text-stone-700 text-sm">
                         <MapPin size={16} className="text-amber-800 shrink-0 mt-0.5" />
                         <span>{profil.adresse ? `${profil.adresse}, ${profil.ville}` : "Aucune adresse enregistrée"}</span>
                       </div>
@@ -213,14 +194,14 @@ const Login = () => {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleUpdateProfil} className="space-y-4 animate-in fade-in duration-300">
-                    <div className="space-y-3">
+                  <form onSubmit={handleUpdateProfil} className="space-y-2 animate-in fade-in duration-300">
+                    <div className="space-y-2 font-dmsans ">
                       <input 
                         type="text" 
                         placeholder="Votre Nom Complet"
                         value={formProfil.name} 
                         onChange={(e) => setFormProfil({...formProfil, name: e.target.value})}
-                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-2 text-xs outline-none focus:border-amber-800 transition-all"
                         required
                       />
                       <input 
@@ -276,17 +257,17 @@ const Login = () => {
                 <h1 className="font-serif text-4xl text-stone-900 tracking-wide font-alice">
                   {etatactuel === 'Connexion' ? 'Connexion' : etatactuel === 'Inscription' ? 'Devenir Membre' : 'Récupération'}
                 </h1>
-                <p className="text-xs text-stone-400 font-light leading-relaxed">
+                <p className="text-xs text-stone-500 font-dmsans leading-relaxed">
                   {etatactuel === 'Inscription' 
                     ? 'Inscrivez-vous pour composer votre collection et commander par WhatsApp.' 
                     : 'Accédez à votre espace pour finaliser vos réservations précieuses.'}
                 </p>
               </div>
 
-              <form onSubmit={onSubmitHandler} className="space-y-5">
+              <form onSubmit={onSubmitHandler} className="space-y-2">
                 {etatactuel === 'Inscription' && (
                   <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
-                    <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400 ml-1">Nom Complet</label>
+                    <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-700 ml-1">Nom Complet</label>
                     <input 
                       type="text" 
                       value={name}
@@ -299,7 +280,7 @@ const Login = () => {
                 )}
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400 ml-1">Adresse Email</label>
+                  <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-700 ml-1">Adresse Email</label>
                   <input 
                     type="email" 
                     value={email}
@@ -313,7 +294,7 @@ const Login = () => {
                 {etatactuel !== 'Oubli' && (
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center px-1">
-                      <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-400">Mot de passe</label>
+                      <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-700">Mot de passe</label>
                       {etatactuel === 'Connexion' && (
                         <button 
                           type="button"
@@ -328,7 +309,7 @@ const Login = () => {
                       type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-white lg:bg-stone-50/50 border border-stone-200/80 rounded-xl px-5 py-3.5 text-xs outline-none focus:border-stone-950 focus:bg-white transition-all text-stone-800"
+                      className="w-full bg-white lg:bg-stone-50/50 border border-stone-200/80 rounded-xl px-5 py-3 text-xs outline-none focus:border-stone-950 focus:bg-white transition-all text-stone-800"
                       placeholder="••••••••"
                       required
                     />
@@ -347,10 +328,10 @@ const Login = () => {
 
               {/* Séparateur pour Google */}
               {etatactuel !== 'Oubli' && (
-                <div className="space-y-5">
-                  <div className="flex items-center">
+                <div className="space-y-2 -mt-5">
+                  <div className="flex items-center ">
                     <div className="flex-1 border-t border-stone-200/60"></div>
-                    <span className="px-3 text-[10px] text-stone-400 uppercase tracking-widest font-medium">ou</span>
+                    <span className="px-3 text-[10px] text-stone-500 uppercase tracking-widest font-medium">ou</span>
                     <div className="flex-1 border-t border-stone-200/60"></div>
                   </div>
 
@@ -359,7 +340,7 @@ const Login = () => {
                     type="button"
                     onClick={() => loginAvecGoogle()}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-3 bg-white border border-stone-200 text-stone-700 py-3.5 px-6 rounded-full text-[10px] font-bold tracking-widest uppercase hover:bg-stone-50 hover:border-amber-800/30 transition-all duration-300 active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-1 bg-white border border-stone-400 text-stone-700 py-2 px-6 rounded-full text-[10px] font-bold tracking-widest uppercase hover:bg-stone-50 hover:border-amber-800/30 transition-all duration-300 active:scale-[0.98]"
                   >
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                       <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.51 15 0 12 0 7.35 0 3.37 2.67 1.48 6.56l3.87 3a7.18 7.18 0 0 1 6.65-4.52z" />

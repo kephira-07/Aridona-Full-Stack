@@ -161,5 +161,49 @@ const googleLogin = async (req, res) => {
         res.status(500).json({ success: false, message: "Erreur interne du serveur." });
     }
 };
+import crypto from 'crypto';
+// Importe ton service d'envoi d'e-mail (ex: nodemailer)
 
-export { registerutilisateur, loginutilisateur, adminLogin, googleLogin, getProfilUtilisateur, updateProfilUtilisateur };
+const motDePasseOublie = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const user = await userModel.findOne({ email });
+
+        if (!user) {
+            return res.json({ success: false, message: "Aucun compte n'est associé à cette adresse e-mail." });
+        }
+
+        // 1. Générer un jeton de réinitialisation unique et temporaire (expire dans 1 heure)
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 heure
+        await user.save();
+
+        // 2. Créer le lien de réinitialisation vers ton frontend
+        // Exemple : https://ton-site-arilona.vercel.app/reinitialiser-mot-de-passe/un_jeton_unique
+        const resetUrl = `${process.env.FRONTEND_URL}/reinitialiser-mot-de-passe/${resetToken}`;
+
+        // 3. Envoyer l'e-mail (Logique d'envoi avec Nodemailer, Resend ou Brevo)
+        // Exemple rapide d'envoi :
+        /* 
+        await envoyerEmail({
+            to: user.email,
+            subject: "Maison Arilona - Réinitialisation de votre mot de passe",
+            text: `Bonjour, veuillez utiliser ce lien pour réinitialiser votre mot de passe : ${resetUrl}`
+        });
+        */
+
+        // Pour l'instant, on simule l'envoi réussi ou on l'affiche en console en dev
+        console.log(`Lien de réinitialisation envoyé à ${email} : ${resetUrl}`);
+
+        res.json({ success: true, message: "Lien envoyé avec succès." });
+
+    } catch (error) {
+        console.error("Erreur mot de passe oublié:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de la génération du lien." });
+    }
+};
+
+
+
+export { registerutilisateur, loginutilisateur, adminLogin, googleLogin, getProfilUtilisateur, updateProfilUtilisateur, motDePasseOublie };
