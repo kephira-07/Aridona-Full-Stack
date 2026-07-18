@@ -9,7 +9,7 @@ const utilisateurRouter = express.Router();
 
 utilisateurRouter.post('/register', registerutilisateur);
 utilisateurRouter.post('/login', loginutilisateur);
-utilisateurRouter.post('/admin', adminLogin);
+utilisateurRouter.post('/admin',adminAuth, adminLogin);
 
 // 🌟 CORRECTION : On passe en .post pour correspondre au axios.post du Frontend
 utilisateurRouter.post('/profil', authUser, getProfilUtilisateur);

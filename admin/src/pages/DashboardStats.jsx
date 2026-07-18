@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../config';
-import { Package, FolderHeart, ShieldAlert, Coins, RefreshCw } from 'lucide-react';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Doughnut } from 'react-chartjs-2';
+import { Package, Heart, Trophy, MapPin, RefreshCw, TrendingUp } from 'lucide-react';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Doughnut, Bar } from 'react-chartjs-2';
 
 // Enregistrement des composants requis pour Chart.js
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 export default function DashboardStats() {
   const [stats, setStats] = useState(null);
@@ -15,7 +15,7 @@ export default function DashboardStats() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${backendUrl}/api/produit/stats-dashboard`); // Ajuste la route si nécessaire
+      const response = await axios.get(`${backendUrl}/api/produit/stats-dashboard`);
       if (response.data.success) {
         setStats(response.data.stats);
       }
@@ -32,171 +32,190 @@ export default function DashboardStats() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <RefreshCw className="animate-spin text-amber-500 w-10 h-10" />
+      <div className="flex justify-center items-center h-screen bg-slate-950">
+        <RefreshCw className="animate-spin text-amber-500 w-12 h-12" />
       </div>
     );
   }
 
-  if (!stats) return <p className="text-gray-500">Impossible de charger les statistiques.</p>;
+  if (!stats) return <p className="text-gray-400 p-8 text-center bg-slate-950 h-screen">Impossible de charger les statistiques.</p>;
 
-  // Configuration des données du graphique en anneau (Doughnut)
-  const doughnutData = {
-    labels: stats.chartDataCategories.labels,
+  // Configuration du graphique géographique (Barres horizontales)
+  const geoChartData = {
+    labels: stats.zonesPlusDemandees.map(z => z.zone),
     datasets: [
       {
-        data: stats.chartDataCategories.series,
-        backgroundColor: [
-          '#b45309', // Amber-700 (Luxe)
-          '#d97706', // Amber-600
-          '#f59e0b', // Amber-500
-          '#1e293b', // Slate-800
-          '#475569', // Slate-600
-          '#94a3b8', // Slate-400
-        ],
+        label: 'Demandes / Commandes',
+        data: stats.zonesPlusDemandees.map(z => z.total),
+        backgroundColor: 'rgba(217, 119, 6, 0.8)', // Amber-600 avec opacité
+        borderColor: '#d97706',
         borderWidth: 1,
-        borderColor: '#ffffff',
+        borderRadius: 6,
       },
     ],
   };
 
-  const doughnutOptions = {
+  const geoChartOptions = {
+    indexAxis: 'y', // Mode horizontal
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          font: { family: 'serif', size: 12 },
-          boxWidth: 12,
-          padding: 15
-        }
-      }
+      legend: { display: false },
     },
-    cutout: '70%', // Rapproche du style épuré et fin
+    scales: {
+      x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+      y: { grid: { display: false }, ticks: { color: '#e2e8f0' } }
+    },
     maintainAspectRatio: false,
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto bg-stone-50/50 min-h-screen">
+    <div className="p-6 space-y-8 max-w-7xl mx-auto bg-slate-950 min-h-screen text-slate-100 selection:bg-amber-500 selection:text-slate-950">
       
-      {/* En-tête avec bouton d'actualisation */}
-      <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+      {/* EN-TÊTE PREMIUM */}
+      <div className="flex justify-between items-center border-b border-slate-800 pb-6">
         <div>
-          <h1 className="font-serif text-2xl tracking-wide text-slate-900">Vue d'ensemble</h1>
-          <p className="text-xs text-gray-400 mt-1">Analyse des stocks et valorisation en temps réel de votre catalogue Aura Héritage.</p>
+          <h1 className="font-serif text-3xl tracking-widest bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent uppercase font-bold">
+            Aridona Héritage
+          </h1>
+          <p className="text-xs text-slate-400 mt-1 tracking-wide">Analyses des performances, tendances de la collection et cartographie des demandes.</p>
         </div>
         <button 
           onClick={fetchStats}
-          className="p-2 border border-stone-200 rounded-full hover:border-amber-500 hover:text-amber-600 bg-white transition-all shadow-xs"
+          className="p-3 border border-slate-800 rounded-xl hover:border-amber-500 hover:text-amber-400 bg-slate-900 transition-all shadow-lg hover:shadow-amber-500/10 group"
         >
-          <RefreshCw size={16} />
+          <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
         </button>
       </div>
 
-      {/* GRILLE BENTO : Les Indicateurs Clés */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* BENTO GRIDS : Les Métriques Clés de Performance */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* Carte 1 : Valeur du Stock */}
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">Valeur Estimateur Stock</span>
-            <h3 className="text-xl font-bold font-serif text-slate-900">
-              {stats.valeurTotaleStock.toLocaleString('fr-FR')} <span className="text-xs text-amber-600">FCFA</span>
+        {/* Métrique 1 : Chiffre d'Affaires Global */}
+        <div className="bg-slate-900 border border-slate-800/60 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-amber-500/30 transition-all">
+          <div className="space-y-2 z-10">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-amber-500/80">Volume des Ventes</span>
+            <h3 className="text-2xl font-bold font-serif text-white tracking-tight">
+              {stats.chiffreAffairesTotal.toLocaleString('fr-FR')} <span className="text-xs text-amber-400 font-sans">FCFA</span>
             </h3>
           </div>
-          <div className="p-3 bg-amber-50 rounded-xl text-amber-600">
-            <Coins size={22} strokeWidth={1.5} />
+          <div className="p-4 bg-amber-500/10 text-amber-400 rounded-xl z-10">
+            <TrendingUp size={24} strokeWidth={1.5} />
           </div>
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/5 rounded-full blur-xl group-hover:bg-amber-500/10 transition-all" />
         </div>
 
-        {/* Carte 2 : Total Modèles */}
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">Bijoux Référencés</span>
-            <h3 className="text-xl font-bold font-serif text-slate-900">{stats.totalProduits} modèles</h3>
-          </div>
-          <div className="p-3 bg-slate-50 rounded-xl text-slate-700">
-            <Package size={22} strokeWidth={1.5} />
-          </div>
-        </div>
-
-        {/* Carte 3 : Catégories actives */}
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">Familles de Collections</span>
-            <h3 className="text-xl font-bold font-serif text-slate-900">{stats.totalCategories} catégories</h3>
-          </div>
-          <div className="p-3 bg-slate-50 rounded-xl text-slate-700">
-            <FolderHeart size={22} strokeWidth={1.5} />
-          </div>
-        </div>
-
-        {/* Carte 4 : Alertes de rupture */}
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">Ruptures Imminentes</span>
-            <h3 className={`text-xl font-bold font-serif ${stats.alertesStockCritique > 0 ? 'text-red-600' : 'text-slate-900'}`}>
-              {stats.alertesStockCritique} {stats.alertesStockCritique > 1 ? 'alertes' : 'alerte'}
+        {/* Métrique 2 : Total Favoris cumulés */}
+        <div className="bg-slate-900 border border-slate-800/60 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-rose-500/30 transition-all">
+          <div className="space-y-2 z-10">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-rose-400/80">Intérêt Client</span>
+            <h3 className="text-2xl font-bold font-serif text-white tracking-tight">
+              {stats.totalCoupsDeCoeur} <span className="text-xs text-rose-400 font-sans">Ajouts coups de cœur</span>
             </h3>
           </div>
-          <div className={`p-3 rounded-xl ${stats.alertesStockCritique > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
-            <ShieldAlert size={22} strokeWidth={1.5} />
+          <div className="p-4 bg-rose-500/10 text-rose-400 rounded-xl z-10">
+            <Heart size={24} strokeWidth={1.5} />
           </div>
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-rose-500/5 rounded-full blur-xl group-hover:bg-rose-500/10 transition-all" />
+        </div>
+
+        {/* Métrique 3 : Total Commandes Validées */}
+        <div className="bg-slate-900 border border-slate-800/60 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+          <div className="space-y-2 z-10">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400/80">Commandes Traitées</span>
+            <h3 className="text-2xl font-bold font-serif text-white tracking-tight">
+              {stats.totalCommandes} <span className="text-xs text-emerald-400 font-sans">expédiées</span>
+            </h3>
+          </div>
+          <div className="p-4 bg-emerald-500/10 text-emerald-400 rounded-xl z-10">
+            <Package size={24} strokeWidth={1.5} />
+          </div>
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all" />
+        </div>
+
+        {/* Métrique 4 : Top Zone Actuelle */}
+        <div className="bg-slate-900 border border-slate-800/60 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-sky-500/30 transition-all">
+          <div className="space-y-2 z-10">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-sky-400/80">Foyer Principal</span>
+            <h3 className="text-xl font-bold font-serif text-white tracking-tight truncate max-w-[180px]">
+              {stats.zoneTop || "Non définie"}
+            </h3>
+          </div>
+          <div className="p-4 bg-sky-500/10 text-sky-400 rounded-xl z-10">
+            <MapPin size={24} strokeWidth={1.5} />
+          </div>
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-sky-500/5 rounded-full blur-xl group-hover:bg-sky-500/10 transition-all" />
         </div>
 
       </div>
 
-      {/* DEUXIÈME LIGNE BENTO : Graphique & Détail des Stocks bas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* BLOCS DE GRAPHIQUES & CLASSEMENTS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Module de répartition par catégories (Graphique) */}
-        <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-xs lg:col-span-1 flex flex-col justify-between">
+        {/* Colonne 1 & 2 : Les Produits Tendances (Ventes & Favoris) */}
+        <div className="bg-slate-900 border border-slate-800/60 p-6 rounded-2xl shadow-xl lg:col-span-2 space-y-6">
+          
+          {/* Section: Les plus vendus */}
           <div>
-            <h2 className="text-xs uppercase font-bold tracking-wider text-gray-400 mb-1">Parts des Collections</h2>
-            <p className="text-[11px] text-gray-400">Nombre de modèles créés par catégorie.</p>
+            <div className="flex items-center space-x-2 mb-2">
+              <Trophy size={16} className="text-amber-400" />
+              <h2 className="text-xs uppercase font-bold tracking-widest text-slate-400">Les Joyaux les Plus Vendus</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {stats.produitsPlusVendus.map((bijou, idx) => (
+                <div key={idx} className="flex items-center space-x-4 bg-slate-950 p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 transition-all">
+                  <span className="font-serif text-lg font-bold text-amber-500/50 w-6">#{idx + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-200 truncate">{bijou.nom}</p>
+                    <p className="text-xs text-slate-500">{bijou.ventes} unités vendues</p>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-300 bg-slate-900 px-2 py-1 rounded border border-slate-800">
+                    {bijou.totalGenere.toLocaleString('fr-FR')} F
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="h-56 relative my-4">
-            <Doughnut data={doughnutData} options={doughnutOptions} />
+
+          {/* Section: Les plus mis en favoris */}
+          <div className="pt-4 border-t border-slate-800/60">
+            <div className="flex items-center space-x-2 mb-2">
+              <Heart size={16} className="text-rose-400" />
+              <h2 className="text-xs uppercase font-bold tracking-widest text-slate-400">Coups de Cœur & Listes d'envies</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {stats.produitsPlusFavoris.map((bijou, idx) => (
+                <div key={idx} className="flex items-center space-x-4 bg-slate-950 p-3 rounded-xl border border-slate-800 hover:border-rose-500/40 transition-all">
+                  <span className="font-serif text-lg font-bold text-rose-500/40 w-6">#{idx + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-200 truncate">{bijou.nom}</p>
+                    <p className="text-xs text-slate-500">{bijou.categorie}</p>
+                  </div>
+                  <div className="flex items-center space-x-1 text-rose-400 bg-rose-500/5 px-2.5 py-1 rounded-full text-xs font-bold border border-rose-500/20">
+                    <span>{bijou.favorisCount}</span>
+                    <Heart size={12} fill="currentColor" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
         </div>
 
-        {/* Module d'alerte et gestion des stocks bas */}
-        <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-xs lg:col-span-2">
+        {/* Colonne 3 : Analyse Géographique (Zones les plus demandées) */}
+        <div className="bg-slate-900 border border-slate-800/60 p-6 rounded-2xl shadow-xl lg:col-span-1 flex flex-col justify-between">
           <div>
-            <h2 className="text-xs uppercase font-bold tracking-wider text-gray-400 mb-1">Contrôle des Stocks Sensibles</h2>
-            <p className="text-[11px] text-gray-400 mb-4">Les 5 articles nécessitant un réapprovisionnement prioritaire.</p>
+            <div className="flex items-center space-x-2 mb-1">
+              <MapPin size={16} className="text-sky-400" />
+              <h2 className="text-xs uppercase font-bold tracking-widest text-slate-400">Zones à Forte Demande</h2>
+            </div>
+            <p className="text-[11px] text-slate-500">Classement des régions ou villes générant le plus de flux.</p>
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-gray-100 text-gray-400 uppercase tracking-wider font-semibold">
-                  <th className="py-3 font-normal">Nom du bijou</th>
-                  <th className="py-3 font-normal text-right">Prix Unitaire</th>
-                  <th className="py-3 font-normal text-right">Quantité restante</th>
-                  <th className="py-3 font-normal text-right">Statut</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {stats.produitsStockBas.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3 font-medium text-slate-800">{item.nom}</td>
-                    <td className="py-3 text-right text-gray-500">{item.prix.toLocaleString('fr-FR')} F</td>
-                    <td className="py-3 text-right font-semibold text-slate-900 pr-4">{item.stock}</td>
-                    <td className="py-3 text-right">
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                        item.stock === 0 
-                          ? 'bg-red-50 text-red-600' 
-                          : item.stock <= 2 
-                            ? 'bg-amber-50 text-amber-600' 
-                            : 'bg-blue-50 text-blue-600'
-                      }`}>
-                        {item.stock === 0 ? 'Épuisé' : item.stock <= 2 ? 'Critique' : 'À surveiller'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="h-64 relative my-6">
+            <Bar data={geoChartData} options={geoChartOptions} />
+          </div>
+
+          <div className="text-[11px] text-slate-400 bg-slate-950 p-3 rounded-xl border border-slate-800 text-center italic">
+            💡 Utilisez ces données pour cibler vos prochaines campagnes de livraison ou publicités.
           </div>
         </div>
 
