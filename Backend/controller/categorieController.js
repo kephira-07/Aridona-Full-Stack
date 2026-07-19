@@ -129,7 +129,7 @@ export const deleteCategorie = async (req, res) => {
         // 3. Suppression de l'entrée dans MongoDB
         await categorieModel.findByIdAndDelete(id);
         
-        res.status(200).json({ success: true, message: "Catégorie et son image supprimées avec succès ! ✨" });
+        res.status(200).json({ success: true, message: "Catégorie et son image supprimées avec succès !" });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur lors de la suppression", error: error.message });
     }

@@ -11,15 +11,19 @@ const Login = ({ setToken }) => {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(false);
+    setLoading(true);
     
     try {
-      setLoading(true);
-      // Remplace l'endpoint par ta vraie route de login admin (ex: /api/user/admin ou /api/admin/login)
       const response = await axios.post(`${backendUrl}/api/utilisateur/admin`, { email, password });
       
       if (response.data.success) {
-        setToken(response.data.token);
+        const tokenRecu = response.data.token;
+        
+        // 💡 CRUCIAL : On stocke le token dans le localStorage pour éviter de le perdre au rafraîchissement
+        localStorage.setItem('admin_token', tokenRecu); 
+        
+        // Mise à jour du state global
+        setToken(tokenRecu);
       } else {
         setError(response.data.message);
       }
@@ -31,40 +35,52 @@ const Login = ({ setToken }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-serif tracking-[0.2em] text-slate-900">ARILONA</h1>
-          <p className="text-xs tracking-wider text-amber-600 uppercase mt-1">Espace Privé Admin</p>
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4 text-slate-100 selection:bg-amber-500 selection:text-slate-950">
+      <div className="bg-slate-900 p-8 rounded-2xl shadow-2xl border border-slate-800/60 w-full max-w-md relative overflow-hidden group">
+        
+        {/* Lueur dorée subtile en arrière-plan */}
+        <div className="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all duration-700" />
+        
+        <div className="text-center mb-8 relative z-10">
+          <h1 className="font-serif text-3xl tracking-[0.25em] bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent uppercase font-bold">
+            ARIDONA
+          </h1>
+          <p className="text-[10px] tracking-widest text-amber-500/80 uppercase mt-1.5 font-semibold">
+            Espace Privé Admin
+          </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-100 text-red-600 text-sm p-3 rounded-xl mb-4 text-center font-medium">
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs p-3.5 rounded-xl mb-6 text-center font-medium shadow-inner">
             {error}
           </div>
         )}
 
-        <form onSubmit={onSubmitHandler} className="space-y-4">
+        <form onSubmit={onSubmitHandler} className="space-y-5 relative z-10">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Adresse Email</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+              Adresse Email
+            </label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@arilona.com" 
-              className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:border-slate-900 transition-colors text-sm"
+              className="w-full bg-slate-950 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-amber-500/60 transition-colors text-sm text-slate-100 placeholder:text-slate-600"
               required 
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">Mot de passe</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+              Mot de passe
+            </label>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••" 
-              className="w-full border border-gray-200 p-3 rounded-xl outline-none focus:border-slate-900 transition-colors text-sm"
+              className="w-full bg-slate-950 border border-slate-800 p-3.5 rounded-xl outline-none focus:border-amber-500/60 transition-colors text-sm text-slate-100 placeholder:text-slate-600"
               required 
             />
           </div>
@@ -72,9 +88,9 @@ const Login = ({ setToken }) => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-slate-950 text-white p-3 rounded-xl font-medium text-sm tracking-wide hover:bg-slate-800 transition-all active:scale-[0.99] disabled:bg-slate-400"
+            className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-3.5 rounded-xl font-bold text-sm tracking-wide hover:from-amber-400 hover:to-amber-500 transition-all active:scale-[0.99] disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-500 shadow-lg shadow-amber-500/10 mt-2"
           >
-            {loading ? 'Connexion en cours...' : 'Se connecter'}
+            {loading ? 'Vérification...' : 'Accéder au Panel'}
           </button>
         </form>
       </div>
