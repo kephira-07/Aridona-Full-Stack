@@ -6,14 +6,14 @@ const produitSchema = new mongoose.Schema({
     prix: { type: Number, required: true },
     image: { type: Array, required: true },
     categorie: { type: String, required: true },
-    matiere: { type: String }, // Ex: Or, Argent, Diamant
+    matiere: { type: String }, // Ex: Or, Argent
     sizes: { type: Array, required: true },
     slug: { type: String, required: true, unique: true },
-    meilleurVente: { type: Boolean, default: false }
+    meilleurVente: { type: Boolean, default: false },
+    enStock: { type: Boolean, default: true } // 👈 NOUVEAU : Par défaut le produit est en stock
 },{ timestamps: true });
 
-// ✨ LA MAGIE EST ICI : On crée l'index textuel sur les champs textuels.
-// Les poids (weights) disent à MongoDB que le "nom" est plus important que la description.
+// Index textuel pour la recherche
 produitSchema.index(
     { nom: "text", description: "text", matiere: "text" },
     { weights: { nom: 10, matiere: 5, description: 1 } }

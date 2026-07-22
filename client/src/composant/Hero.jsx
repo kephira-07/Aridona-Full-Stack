@@ -11,11 +11,7 @@ import Heroimg7 from '../assets/Heroimg7.jpg';
 import Heroimg8 from '../assets/Heroimg8.jpg';
 import Heroimg9 from '../assets/Heroimg9.jpg';
 import Heroimg10 from '../assets/Heroimg10.jpg';
-
 import Heroimg12 from '../assets/Heroimg12.jpg';
-
-
-
 
 import Boutton from './Boutton';
 
@@ -33,7 +29,7 @@ const TypewriterText = ({ text }) => {
       } else {
         clearInterval(interval);
       }
-    }, 45); // Vitesse d'écriture fluide
+    }, 45);
 
     return () => clearInterval(interval);
   }, [text]);
@@ -83,12 +79,14 @@ const Caroussel = ({ children, autoSlide = true, autoSlideInterval = 3500, onCha
       {totalSlides > 1 && (
         <div className="absolute inset-0 flex items-center justify-between p-4 pointer-events-none z-20">
           <button 
-            className="p-2 rounded-1xl bg-white/10 backdrop-blur-md border  border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
+            aria-label="Image précédente"
+            className="p-2 rounded-1xl bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
             onClick={prev}
           >
             <ChevronLeft size={20} />
           </button>
           <button 
+            aria-label="Image suivante"
             className="p-2 rounded-1xl bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
             onClick={next}
           >
@@ -105,23 +103,22 @@ export default function Hero() {
   const [activeMobileIndex, setActiveMobileIndex] = useState(0);
   const [currentPcSlide, setCurrentPcSlide] = useState(0);
 
+  // Mots-clés SEO ciblés dans les titres et attributs ALT des visuels
   const images = [
-    { id: 1, src:Heroimg1, title: 'Bague Éclat Éternel' },
-    { id: 2, src: Heroimg2, title: 'Alliance Or Pur' },
-    { id: 3, src: Heroimg3, title: 'Bijoux en acier inoxydable' }, // Image focus fixe (index 2)
-    { id: 4, src: Heroimg4, title: 'Bracelet Jonc Fin' },
-    { id: 5, src: Heroimg5, title: "Boucles d'Oreilles Élégance" },
-    { id: 6, src: Heroimg6, title: 'Parure Prestige' },
-    { id: 7, src: Heroimg7, title: 'Bague Éclat Éternel' },
-    { id: 8, src: Heroimg8, title: 'Collier Étoile Argent' },
-    { id: 9, src: Heroimg9, title: 'Boucles d’Oreilles Perle' },
-    { id: 10, src: Heroimg10, title: 'Chaîne à Lunettes Dorée' },
-    { id: 11, src: Heroimg12, title: 'Bracelet Tressé Cuir' }
+    { id: 1, src: Heroimg1, title: 'Bijoux en Acier Inoxydable', alt: 'Collection de bijoux en acier inoxydable ARIDONA Bijoux' },
+    { id: 2, src: Heroimg2, title: 'Bague Ajustable Dorée', alt: 'Bague en acier inoxydable doré résistante à eau' },
+    { id: 3, src: Heroimg3, title: 'Collier Résistant à l\'Eau', alt: 'Collier maille en acier inoxydable qui ne rouille pas' },
+    { id: 4, src: Heroimg4, title: 'Bracelet Jonc Hypoallergénique', alt: 'Bracelet jonc en acier chirurgical pour peau sensible' },
+    { id: 5, src: Heroimg5, title: 'Créoles Dorées Tendance', alt: 'Boucles d oreilles créoles en acier inoxydable doré' },
+    { id: 6, src: Heroimg6, title: 'Parure Waterproof Prestige', alt: 'Parure de bijoux en acier inoxydable haute qualité' },
+    { id: 7, src: Heroimg7, title: 'Bague Éclat Éternel', alt: 'Bague solitaire en acier inoxydable argenté' },
+    { id: 8, src: Heroimg8, title: 'Collier Étoile Argenté', alt: 'Collier pendentif étoile en acier inoxydable' },
+    { id: 9, src: Heroimg9, title: 'Boucles d’Oreilles Perle', alt: 'Puces d oreilles perle et acier inoxydable' },
+    { id: 10, src: Heroimg10, title: 'Chaîne à Lunettes Dorée', alt: 'Chaîne à lunettes tendance en acier inoxydable' },
+    { id: 11, src: Heroimg12, title: 'Bracelet Tressé & Acier', alt: 'Bracelet tressé avec fermoir en acier inoxydable' }
   ];
 
-  // Images qui défilent à droite sur PC (on retire l'image principale index 2 pour éviter les doublons)
   const slidingPcImages = [
-   
     images[1],
     images[2],
     images[3],
@@ -132,7 +129,6 @@ export default function Hero() {
     images[8]
   ];
 
-  // Gestion du défilement automatique de la Pop-Box sur PC
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentPcSlide((prev) => (prev === slidingPcImages.length - 1 ? 0 : prev + 1));
@@ -141,42 +137,42 @@ export default function Hero() {
   }, [slidingPcImages.length]);
 
   return (  
-    <main className="w-full bg-[#fffaf5] pt-16 md:pt-24 overflow-hidden ">
+    <main className="w-full bg-[#fffaf5] pt-16 md:pt-24 overflow-hidden">
       <div className="max-w-10xl mx-auto">
     
-        {/* ================= DESIGN PC ÉPURÉ & PRESTIGE ================= */}
+        {/* ================= DESIGN PC ================= */}
         <div className="hidden md:grid grid-cols-2 w-full md:aspect-[18/5.5] lg:aspect-[18/8.5]">
                         
-              <div className="relative overflow-hidden group shadow-md border border-stone-200/40 bg-stone-900 flex items-center justify-center"> {/* AJOUT : flex, items-center, justify-center */}
-                <img 
-                  src={images[0].src} 
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
-                  alt={images[0].title} 
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent"></div>
-                
-                {/* MODIFICATION : Changement de bottom-90 à flex flex-col items-center */}
-                <div className="absolute inset-x-0 p-5 flex flex-col items-center text-center z-10"> {/* SUPPRESSION : bottom-90 */}
-                  <span className="text-[10px] uppercase tracking-[0.3em] text-amber-400 font-semibold mb-2 animate-pulse">
-                    Nouvelle Collection
-                  </span>
-                  <h2 className="text-2xl lg:text-5xl font-serif font-light text-white mb-8 md:mb-12 tracking-wide max-w-md leading-tight"> {/* AJOUT : mb-8 md:mb-12 pour espacer sur mobile */}
-                    {images[0].title}
-                  </h2>
-                  
-                  <Link to="/collection" className="relative group/btn inline-block transform transition-all duration-300 hover:scale-102 active:scale-98">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
-                    <div className="relative shadow-xl  overflow-hidden">
-                      <Boutton textb="Visiter la boutique" />
-                    </div>
-                  </Link>
+          <div className="relative overflow-hidden group shadow-md border border-stone-200/40 bg-stone-900 flex items-center justify-center">
+            <img 
+              src={images[0].src} 
+              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
+              alt={images[0].alt} 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent"></div>
+            
+            <div className="absolute inset-x-0 p-5 flex flex-col items-center text-center z-10">
+              <span className="text-[10px] uppercase tracking-[0.3em] text-amber-400 font-semibold mb-2 animate-pulse">
+                Nouvelle Collection
+              </span>
+              
+              {/* BALISE H1 STRUCTURANTE POUR LE SEO GOOGLE */}
+              <h1 className="text-2xl lg:text-5xl font-serif font-light text-white mb-8 md:mb-12 tracking-wide max-w-md leading-tight">
+                {images[0].title}
+              </h1>
+              
+              <Link to="/collection" className="relative group/btn inline-block transform transition-all duration-300 hover:scale-102 active:scale-98">
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
+                <div className="relative shadow-xl overflow-hidden">
+                  <Boutton textb="Visiter la boutique" />
                 </div>
-                </div>
+              </Link>
+            </div>
+          </div>
 
-          {/* 2. LA POP-BOX DYNAMIQUE (DROITE) */}
+          {/* 2. POP-BOX DYNAMIQUE (DROITE) */}
           <div className="relative overflow-hidden shadow-md border border-stone-200/40 bg-stone-950 group">
             
-            {/* Diapositives en fondu croisé */}
             {slidingPcImages.map((img, index) => (
               <div
                 key={img.id}
@@ -187,30 +183,26 @@ export default function Hero() {
                 <img 
                   src={img.src} 
                   className="w-full h-full object-cover transition-transform duration-[4500ms] ease-out scale-100 group-hover:scale-105" 
-                  alt={img.title} 
+                  alt={img.alt} 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
               </div>
             ))}
 
-            {/* Contenu textuel avec effet machine à écrire */}
-           <div className="absolute inset-x-0 p-10 flex flex-col items-start text-left z-20 pointer-events-none"> {/* SUPPRESSION : bottom-150 */}
-                <span className="text-[9px] uppercase tracking-[0.25em] text-amber-400 font-medium mb-2">
-                  Focus Création
-                </span>
-                
-                <h3 className="text-xl lg:text-5xl font-serif font-light text-stone-100 tracking-wide min-h-[3.5rem] leading-snug">
-                  {slidingPcImages.map((img, index) => 
-                    index === currentPcSlide && (
-                      <TypewriterText key={img.id} text={img.title} />
-                    )
-                  )}
-                </h3>
-                
-               
-              </div>
+            <div className="absolute inset-x-0 p-10 flex flex-col items-start text-left z-20 pointer-events-none">
+              <span className="text-[9px] uppercase tracking-[0.25em] text-amber-400 font-medium mb-2">
+                Focus Création
+              </span>
+              
+              <h2 className="text-xl lg:text-5xl font-serif font-light text-stone-100 tracking-wide min-h-[3.5rem] leading-snug">
+                {slidingPcImages.map((img, index) => 
+                  index === currentPcSlide && (
+                    <TypewriterText key={img.id} text={img.title} />
+                  )
+                )}
+              </h2>
+            </div>
 
-                        {/* Indicateurs de lignes discrets en haut à droite */}
             <div className="absolute top-6 right-6 flex gap-1.5 z-20">
               {slidingPcImages.map((_, index) => (
                 <span 
@@ -225,14 +217,14 @@ export default function Hero() {
 
         </div>
 
-        {/* ================= APPAREILS MOBILES (Conservé) ================= */}
-        <div className="md:hidden w-full relative  overflow-hidden shadow-xl aspect-[4/5] mt-4 border border-stone-200/50">
+        {/* ================= APPAREILS MOBILES ================= */}
+        <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5] mt-4 border border-stone-200/50">
           <Caroussel autoSlide={true} autoSlideInterval={4000} onChange={setActiveMobileIndex}>
             {images.map((image) => (
               <img 
                 key={image.id} 
                 src={image.src} 
-                alt={image.title} 
+                alt={image.alt} 
                 className="min-w-full h-full object-cover flex-shrink-0" 
               />
             ))}
@@ -241,16 +233,13 @@ export default function Hero() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent pointer-events-none"></div>
 
           <div className="absolute inset-x-0 bottom-0 p-8 flex flex-col items-center text-center z-10">
-            <span className="text-[10px] uppercase tracking-[0.25em] text-amber-400 font-bold mb-2">
-              Aura Héritage
-            </span>
-            
-            <h2 
+            {/* BALISE H1 POUR MOBILE */}
+            <h1 
               key={activeMobileIndex} 
               className="text-2xl font-serif text-white mb-6 tracking-wide leading-tight min-h-[3rem] animate-[fadeInUp_0.5s_ease-out]"
             >
               {images[activeMobileIndex].title}
-            </h2>
+            </h1>
             
             <Link 
               to="/collection" 

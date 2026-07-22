@@ -258,4 +258,21 @@ const searchProduits = async (req, res) => {
     }
 };
 
+export const changerStatutStock = async (req, res) => {
+  try {
+    const { id, enStock } = req.body;
+
+    // Mise à jour du produit
+    await produitModel.findByIdAndUpdate(id, { enStock });
+
+    res.json({ 
+      success: true, 
+      message: enStock ? "Produit marqué en stock" : "Produit marqué en rupture" 
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export { addproduit, listproduits, removeproduit, singleproduit, updateproduit, searchProduits };

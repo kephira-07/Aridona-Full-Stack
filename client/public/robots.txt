@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Interdire l'indexation du panier et de l'espace d'administration
+Disallow: /panier
+Disallow: /commander
+Disallow: /admin
+
+# Indiquer l'emplacement du Sitemap
+Sitemap: https://aridona.store/sitemap.xml

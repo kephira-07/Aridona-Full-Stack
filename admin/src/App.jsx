@@ -10,6 +10,7 @@ import Edit from './pages/Edit';
 import Categories from './pages/Categories';
 import DashboardStats from './pages/DashboardStats';
 import Utilisateurs from './pages/Utilisateurs';
+import ListeProduits from './pages/ListeProduits';
 
 const App = () => {
   // Récupération du token sauvegardé dans le navigateur pour éviter de se reconnecter après un F5
@@ -51,6 +52,7 @@ const App = () => {
             <Route path="/orders" element={<Orders token={token} />} />
             <Route path="/edit/:id" element={<Edit token={token} />} />
             <Route path="/categories" element={<Categories token={token} />} />
+            <Route path="/listeProduits" element={<ListeProduits token={token} />} />
             
             {/* 🌟 PASSAGE DU TOKEN ET DU BACKENDURL POUR CHARGER LES EMAILS SANS ERREUR */}
             <Route path="/utilisateurs" element={<Utilisateurs token={token}  />} />

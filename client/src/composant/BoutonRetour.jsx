@@ -7,12 +7,13 @@ const BoutonRetour = () => {
 
   return (
     <button
-      onClick={() => navigate(-1)} // -1 permet de revenir exactement à la page précédente
-     className='inline-flex items-center justify-center gap-2 px-6 py-3 ml-7 border border-stone-900 hover:text-stone-900 hover:bg-white bg-stone-900 text-white font-semibold text-[11px] tracking-widest uppercase transition-all duration-300 rounded-lg shadow-sm hover:shadow active:scale-[0.98] select-none touch-manipulation group font-sans'
+      onClick={() => navigate(-1)}
+      className="inline-flex items-center gap-1.5 ml-4 sm:ml-8 py-2 text-amber-800 hover:text-amber-900 text-xs font-medium tracking-wide transition-colors duration-200 group select-none touch-manipulation"
+      aria-label="Revenir à la page précédente"
     >
       <ArrowLeft 
-        size={16} 
-        className='transition-transform duration-200 group-hover:-translate-x-1' 
+        size={15} 
+        className="transition-transform duration-200 group-hover:-translate-x-1 text-amber-800 group-hover:text-amber-900" 
       />
       <span>Retour</span>
     </button>

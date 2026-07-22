@@ -89,6 +89,12 @@ const Sidebar = () => {
   </svg>
   <span>Utilisateurs</span>
 </NavLink>
+<NavLink to="listeProduits" className={({ isActive }) => `flex items-center gap-3 p-3 rounded-xl transition-colors ${isActive ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'}`}>
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M16 3h-1a4 4 0 0 0-8 0H7a2 2 0 0 0-2 2v1h14V5a2 2 0 0 0-2-2Z" />
+  </svg>
+  <span>Liste Produits</span>
+</NavLink>
 
       </div>
 

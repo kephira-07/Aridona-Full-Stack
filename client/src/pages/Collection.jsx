@@ -8,12 +8,50 @@ import Categorybar from "../composant/Categorybar";
 import axios from "axios";
 import { backendUrl } from "../config";
 import BoutonRetour from "../composant/BoutonRetour";
+import { Helmet } from 'react-helmet-async';
+
+
+
+// --- DICTIONNAIRE TEXTES OPTIMISÉS SEO PAR CATÉGORIE ---
+const SEO_TEXTS = {
+    default: {
+        title: "Bijoux en Acier Inoxydable",
+        description: "Découvrez notre collection complète de bijoux en acier inoxydable pour femme. Des créations waterproof, hypoallergéniques et conçues pour résister au temps sans perdre leur éclat."
+    },
+    bague: {
+        title: "Bagues en Acier Inoxydable",
+        description: "Explorez nos bagues en acier inoxydable dorées et argentées. Des modèles ajustables, résistants à l'eau et hypoallergéniques à porter seuls ou en accumulation."
+    },
+    collier: {
+        title: "Colliers & Ras de Cou en Acier Inoxydable",
+        description: "Sublimez votre décolleté avec nos colliers en acier inoxydable. Ras de cou, chaînes et pendentifs waterproof qui ne noircissent pas au contact de l'eau."
+    },
+    bracelet: {
+        title: "Bracelets & Joncs en Acier Inoxydable",
+        description: "Trouvez le bracelet en acier inoxydable parfait : joncs rigides, chaînettes dorées et maillons tendance conçus pour résister à votre quotidien."
+    },
+    boucle: {
+        title: "Boucles d'Oreilles en Acier Inoxydable",
+        description: "Parcourez notre sélection de créoles, puces et pendantes en acier inoxydable. Des bijoux légers et doux pour les peaux sensibles."
+    },
+    Armlet:{
+        title: "Bracelets de Bras en Acier Inoxydable",
+        description: "Découvrez nos bracelets de bras en acier inoxydable, parfaits pour un look audacieux et élégant. Conçus pour durer et résister à l'eau."
+    },
+    chainedelunnette:{
+        title: "Chaînes de Lunettes en Acier Inoxydable",
+        description: "Ajoutez une touche de style à vos lunettes avec nos chaînes en acier inoxydable. Élégantes, durables et résistantes à l'eau."
+    },
+    parure: {
+    title: "Parures & Ensembles de Bijoux en Acier Inoxydable",
+    description: "Découvrez nos parures et ensembles de bijoux 2, 3 ou 4 pièces en acier inoxydable. Colliers, bagues, bracelets et boucles d'oreilles assortis, waterproof et résistant à l'eau."
+}
+};
 
 const Collection = () => {
     const { produits, recherche } = useContext(ShopContext);
     const location = useLocation();
     
-    // Ajout de categoriesList pour alimenter le tiroir de filtres
     const [categoriesList, setCategoriesList] = useState([]); 
     const [showFilter, setShowFilter] = useState(false);
     const [filtreProduits, setFiltreProduits] = useState([]);
@@ -40,20 +78,17 @@ const Collection = () => {
     useEffect(() => {
         if (location.state && location.state.initialCategory) {
             setSelectedCategories([location.state.initialCategory]);
-            // Nettoie l'état pour éviter les conflits au rechargement ou retour arrière
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
 
-   const toggleCategorie = (id) => {
-  // Si la catégorie cliquée est déjà active, on la désactive (on repasse à "Tout voir")
-  if (selectedCategories.includes(id)) {
-    setSelectedCategories([]); // Vide le filtre
-  } else {
-    // Sinon, on remplace le tableau par un tableau contenant UNIQUEMENT le nouvel ID
-    setSelectedCategories([id]); 
-  }
-};
+    const toggleCategorie = (id) => {
+        if (selectedCategories.includes(id)) {
+            setSelectedCategories([]); 
+        } else {
+            setSelectedCategories([id]); 
+        }
+    };
 
     const toggleMatiere = (val) => {
         setSelectedMatieres(prev => 
@@ -90,8 +125,42 @@ const Collection = () => {
         setFiltreProduits(copie);
     }, [selectedCategories, selectedMatieres, recherche, sortType, produits]);
 
+    // --- FONCTION DE RÉCUPÉRATION DU TEXTE SEO DYNAMIQUE ---
+    const getSeoContent = () => {
+        if (selectedCategories.length === 1) {
+            const currentCatObj = categoriesList.find(c => c._id === selectedCategories[0]);
+            const catName = (currentCatObj?.nom || "").toLowerCase();
+
+            if (catName.includes("bague")) return SEO_TEXTS.bague;
+            if (catName.includes("collier")) return SEO_TEXTS.collier;
+            if (catName.includes("bracelet")) return SEO_TEXTS.bracelet;
+            if (catName.includes("boucle") || catName.includes("oreille")) return SEO_TEXTS.boucle;
+            if (catName.includes("armlet")) return SEO_TEXTS.Armlet;
+            if (catName.includes("chaine") && catName.includes("lunette")) return SEO_TEXTS.chainedelunnette;
+            if (catName.includes("parure") || catName.includes("ensemble")) return SEO_TEXTS.parure;
+
+            if (currentCatObj?.nom) {
+                return {
+                    title: `${currentCatObj.nom} en Acier Inoxydable`,
+                    description: `Découvrez notre gamme de ${currentCatObj.nom.toLowerCase()} en acier inoxydable. Des bijoux waterproof, résistants et hypoallergéniques pensés pour durer.`
+                };
+            }
+        }
+        return SEO_TEXTS.default;
+    };
+
+    const currentSeo = getSeoContent();
+
     return (
         <div className="min-h-screen bg-white mt-50">
+            <Helmet>
+    <title>{`${currentSeo.title} | ARIDONA Bijoux`}</title>
+    <meta name="description" content={currentSeo.description} />
+    {/* Balises Open Graph pour le partage sur WhatsApp / réseaux sociaux */}
+    <meta property="og:title" content={currentSeo.title} />
+    <meta property="og:description" content={currentSeo.description} />
+    <meta property="og:type" content="website" />
+</Helmet>
             
             {/* BARRE DE CATÉGORIES INTELLIGENTE */}
             <Categorybar 
@@ -103,9 +172,19 @@ const Collection = () => {
 
             <div className="max-w-7xl mx-auto px-4 mt-3">
                 
+                {/* BLOC TEXTE DYNAMIQUE OPTIMISÉ POUR LE SEO */}
+                <div className="mb-6">
+                    <h1 className="text-xl sm:text-2xl font-serif text-slate-800 font-medium mb-1">
+                        {currentSeo.title}
+                    </h1>
+                    <p className="text-xs sm:text-sm text-gray-500 max-w-3xl leading-relaxed">
+                        {currentSeo.description}
+                    </p>
+                </div>
+
                 {/* BARRE D'OUTILS */}
                 <div className="flex items-center justify-between gap-4 mb-6 pb-2 border-b border-gray-100">
-                    <div className="">
+                    <div>
                         <Titre text1={'Notre'} text2={'Collection'} />
                     </div>
                     
@@ -114,14 +193,14 @@ const Collection = () => {
                         className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold uppercase tracking-wider text-slate-700 bg-gray-50 hover:bg-gray-100 transition-colors"
                     >
                         <SlidersHorizontal className="h-3.5 w-3.5 text-amber-600" />
-                        Filtres  {(selectedCategories.length + selectedMatieres.length) > 0 && `(${selectedCategories.length + selectedMatieres.length})`}
+                        Filtres {(selectedCategories.length + selectedMatieres.length) > 0 && `(${selectedCategories.length + selectedMatieres.length})`}
                     </button>
 
                     {/* Sélecteur de Tri */}
                     <div className="relative flex items-center border border-gray-200 rounded-xl px-1 py-1 bg-gray-50 text-xs font-medium text-slate-700">
                         <select 
                             onChange={(e) => setSortType(e.target.value)} 
-                            className="appearance-none bg-transparent  outline-none cursor-pointer font-semibold"
+                            className="appearance-none bg-transparent outline-none cursor-pointer font-semibold"
                         >
                             <option value="reveler">Pertinence</option>
                             <option value="prix-asc">Prix : Croissant</option>
@@ -134,10 +213,10 @@ const Collection = () => {
                 {/* GRILLE PRODUITS */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-3 gap-y-8">
                     {filtreProduits.map((item, index) => (
-                    <ProduitItem 
+                        <ProduitItem 
                             key={index} 
                             id={item._id} 
-                            slug={item.slug} // 🌟 N'oublie surtout pas cette ligne !
+                            slug={item.slug}
                             nom={item.nom} 
                             prix={item.prix} 
                             image={item.image} 
@@ -168,7 +247,7 @@ const Collection = () => {
                     </div>
 
                     <div className="p-6 overflow-y-auto space-y-8 flex-1">
-                        {/* Section Catégories réparée */}
+                        {/* Section Catégories */}
                         <div>
                             <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-4">Par Catégories</h4>
                             <div className="grid grid-cols-2 gap-2">
