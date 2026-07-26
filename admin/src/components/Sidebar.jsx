@@ -105,7 +105,7 @@ const Sidebar = () => {
         </div>
         <div className="flex flex-col">
           <span className="text-xs font-semibold text-slate-800">Administrateur</span>
-          <span className="text-[10px] text-gray-400">Gestion Arilona</span>
+          <span className="text-[10px] text-gray-400">Gestion Aridona</span>
         </div>
       </div>
 

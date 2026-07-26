@@ -1,10 +1,11 @@
 User-agent: *
 Allow: /
 
-# Interdire l'indexation du panier et de l'espace d'administration
+# Interdire l'indexation des pages privées et processus d'achat
 Disallow: /panier
 Disallow: /commander
-Disallow: /admin
+Disallow: /login
+Disallow: /reset-password/
 
-# Indiquer l'emplacement du Sitemap
+# Emplacement officiel du Sitemap
 Sitemap: https://aridona.store/sitemap.xml

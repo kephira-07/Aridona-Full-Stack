@@ -137,13 +137,13 @@ export default function Hero() {
   }, [slidingPcImages.length]);
 
   return (  
-    <main className="w-full bg-[#fffaf5] pt-16 md:pt-24 overflow-hidden">
+    <main className="w-full bg-[#fffaf5] overflow-hidden">
       <div className="max-w-10xl mx-auto">
     
         {/* ================= DESIGN PC ================= */}
         <div className="hidden md:grid grid-cols-2 w-full md:aspect-[18/5.5] lg:aspect-[18/8.5]">
                         
-          <div className="relative overflow-hidden group shadow-md border border-stone-200/40 bg-stone-900 flex items-center justify-center">
+          <div className="relative overflow-hidden group shadow-md  flex items-center justify-center">
             <img 
               src={images[0].src} 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
@@ -171,7 +171,7 @@ export default function Hero() {
           </div>
 
           {/* 2. POP-BOX DYNAMIQUE (DROITE) */}
-          <div className="relative overflow-hidden shadow-md border border-stone-200/40 bg-stone-950 group">
+          <div className="relative overflow-hidden shadow-md bg-stone-950 group">
             
             {slidingPcImages.map((img, index) => (
               <div
@@ -218,7 +218,7 @@ export default function Hero() {
         </div>
 
         {/* ================= APPAREILS MOBILES ================= */}
-        <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5] mt-4 border border-stone-200/50">
+        <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5]  border border-stone-200/50">
           <Caroussel autoSlide={true} autoSlideInterval={4000} onChange={setActiveMobileIndex}>
             {images.map((image) => (
               <img 

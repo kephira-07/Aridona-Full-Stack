@@ -3,99 +3,148 @@ import { ShopContext } from '../context/ShopContext';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Check } from "lucide-react"; 
 
-
 const ProduitItem = ({ id, slug, image, nom, prix }) => {
-    // On récupère les outils du contexte global
     const { monnaie, ajouterPanier, favoris, toggleFavori } = useContext(ShopContext);
-    
-    // Petit état local pour animer le bouton temporairement après l'ajout
     const [isAdded, setIsAdded] = useState(false);
 
-    // Vérification dynamique des favoris
     const isFavorite = favoris ? favoris.includes(id) : false;
+
+    // --- SÉCURISATION DU FORMAT IMAGE (Gère Strings & Objets MongoDB) ---
+    const getFirstImageUrl = (imgData) => {
+        if (!imgData) return 'https://placehold.co/600x600?text=Aridona+Bijoux';
+        if (Array.isArray(imgData) && imgData.length > 0) {
+            const first = imgData[0];
+            return typeof first === 'object' && first?.url ? first.url : first;
+        }
+        return typeof imgData === 'object' && imgData?.url ? imgData.url : imgData;
+    };
+
+    const imageUrl = getFirstImageUrl(image);
+    const itemSlug = slug || id;
 
     const handleFavoriteClick = (e) => {
         e.preventDefault(); 
-        if (toggleFavori) {
-            toggleFavori(id);
-        }
+        e.stopPropagation();
+        if (toggleFavori) toggleFavori(id);
     };
 
     const handleAddToCart = (e) => {
         e.preventDefault();
-        if (ajouterPanier) {
-            // "Standard" ou taille par défaut pour la liste globale
-            ajouterPanier(id, "Standard"); 
-
-            // 🎯 EFFET VISUEL : Le bouton se transforme brièvement
+        e.stopPropagation();
+        if (ajouterPanier && !isAdded) {
+            ajouterPanier(id, "Unique"); 
             setIsAdded(true);
             setTimeout(() => setIsAdded(false), 2000);
         }
     };
 
-    return (
-        <Link 
-            className='text-gray-700 cursor-pointer group flex flex-col h-full bg-white  hover:bg-gray-100  border border-transparent hover:border-stone-100 hover:shadow-xl transition-all duration-500' 
-            to={`/produit/${slug || id}`}
-        >
-            <div className='relative overflow-hidden aspect-square bg-stone-50 border border-stone-100/60'> 
-                <img 
-                    className='w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105' 
-                    src={Array.isArray(image) ? image[0] : image} 
-                    alt={nom} 
-                />
-                
-                {/* 🌟 Bouton Favoris : Miniature sur mobile, taille normale sur desktop */}
-                <button 
-                    onClick={handleFavoriteClick} 
-                    className={`absolute p-1.5 top-2 right-2 md:top-3 md:right-3 md:p-2.5 rounded-full transition-all duration-300 shadow-xs border focus:outline-none backdrop-blur-md
-                        ${isFavorite 
-                            ? 'bg-red-50/90 border-red-200 text-amber-700 scale-105 md:scale-110' 
-                            : 'bg-white/80 border-stone-100 text-stone-400 hover:text-amber-700 hover:bg-white md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0'
-                        }`}
-                >
-                    <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isFavorite ? 'fill-amber-700' : ''}`} />
-                </button>
+    // --- JSON-LD OPTIMISÉ POUR GOOGLE ---
+    const productSchema = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": nom || "Création Aridona Bijoux",
+        "image": imageUrl,
+        "brand": {
+            "@type": "Brand",
+            "name": "Aridona Bijoux"
+        },
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": monnaie === "FCFA" ? "XOF" : "EUR",
+            "price": Number(prix) || 0,
+            "availability": "https://schema.org/InStock"
+        }
+    };
 
-                {/* 🌟 Bouton d'ajout : Totalement masqué sur mobile (hidden) et visible sur desktop (md:block) */}
-                <div className="hidden md:block absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 ease-out">
+    return (
+        <article className="h-full">
+            <script type="application/ld+json">
+                {JSON.stringify(productSchema)}
+            </script>
+
+            <Link 
+                className="text-stone-800 cursor-pointer group flex flex-col h-full bg-white hover:shadow-lg transition-all duration-300 overflow-hidden border border-stone-100" 
+                to={`/produit/${itemSlug}`}
+            >
+                <div className="relative overflow-hidden aspect-square bg-stone-50"> 
+                    <img 
+                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
+                        src={imageUrl} 
+                        alt={`${nom || 'Bijou'} - Aridona Bijoux`}
+                        loading="lazy"
+                        width="300"
+                        height="300"
+                    />
+                    
+                    {/* Bouton Favoris */}
                     <button 
-                        onClick={handleAddToCart} 
-                        disabled={isAdded}
-                        className={`w-full py-3 text-xs font-semibold  transition-all duration-300 uppercase tracking-widest shadow-md flex items-center justify-center gap-2
-                            ${isAdded 
-                                ? 'bg-emerald-600 text-white' 
-                                : 'bg-white/95 backdrop-blur-md text-stone-900 hover:bg-amber-900 hover:text-white'
-                            }`}
+                        type="button"
+                        aria-label="Ajouter aux favoris"
+                        onClick={handleFavoriteClick} 
+                        className={`absolute top-2 right-2 p-2 rounded-full transition-all duration-300 shadow-xs border backdrop-blur-md z-10 ${
+                            isFavorite 
+                                ? 'bg-rose-50/90 border-rose-200 text-rose-600 scale-105' 
+                                : 'bg-white/80 border-stone-100 text-stone-500 hover:text-amber-900 hover:bg-white md:opacity-0 md:group-hover:opacity-100'
+                        }`}
                     >
-                        {isAdded ? (
-                            <>
-                                <Check className="w-3.5 h-3.5" />
-                                Ajouté
-                            </>
-                        ) : (
-                            <>
-                                <ShoppingBag className="w-3.5 h-3.5" />
-                                Ajouter
-                            </>
-                        )}
+                        <Heart className={`w-4 h-4 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
                     </button>
+
+                    {/* Bouton Ajout Rapide Mobile */}
+                    <button
+                        type="button"
+                        aria-label="Ajouter au panier"
+                        onClick={handleAddToCart}
+                        disabled={isAdded}
+                        className={`md:hidden absolute bottom-2 right-2 p-2.5 rounded-full shadow-md z-10 transition-all active:scale-95 ${
+                            isAdded ? 'bg-emerald-700 text-white' : 'bg-amber-900/90 text-white backdrop-blur-xs'
+                        }`}
+                    >
+                        {isAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+                    </button>
+
+                    {/* Bouton Ajout Rapide Desktop */}
+                    <div className="hidden md:block absolute inset-x-0 bottom-0 p-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 ease-out z-10">
+                        <button 
+                            type="button"
+                            onClick={handleAddToCart} 
+                            disabled={isAdded}
+                            className={`w-full py-2.5 text-xs font-semibold uppercase tracking-widest shadow-md flex items-center justify-center transition-colors ${
+                                isAdded 
+                                    ? 'bg-emerald-700 text-white' 
+                                    : 'bg-white/95 backdrop-blur-md text-stone-900 hover:bg-amber-900 hover:text-white'
+                            }`}
+                        >
+                            <span className="flex items-center gap-2 pointer-events-none">
+                                {isAdded ? (
+                                    <>
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span>Ajouté</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ShoppingBag className="w-3.5 h-3.5" />
+                                        <span>Ajouter</span>
+                                    </>
+                                )}
+                            </span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
-            {/* Détails textuels du bijou */}
-            <div className="flex flex-col flex-1 pt-3 pb-1 px-1 justify-between">
-                <div>
-                    <p className='text-l font-medium text-black font- font-dmsans
-                     tracking-tight line-clamp-1 group-hover:text-stone-600 transition-colors duration-300'>
-                        {nom || "Création unique"}
+                
+                {/* Informations Produit */}
+                <div className="flex flex-col flex-1 p-3 justify-between">
+                    <div>
+                        <h3 className="text-xs sm:text-sm font-medium text-stone-900 line-clamp-1 group-hover:text-amber-900 transition-colors">
+                            {nom || "Création unique"}
+                        </h3>
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-amber-950 mt-1.5">
+                        {Number(prix || 0).toLocaleString()} {monnaie || 'FCFA'}
                     </p>
                 </div>
-                <p className='text-sm font-dmsans text-stone-900 mt-2 italic'>
-                    {prix?.toLocaleString()} {monnaie}
-                </p>
-            </div>
-        </Link>
+            </Link>
+        </article>
     );
 };
 

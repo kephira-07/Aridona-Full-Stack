@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
-import { Trash, ShoppingBag, ArrowRight } from 'lucide-react'; 
+import { Trash, ShoppingBag, ArrowRight, AlertCircle } from 'lucide-react'; 
 import { useNavigate } from 'react-router-dom';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify'; 
@@ -11,6 +11,16 @@ const Panier = () => {
   const { produits, monnaie, panierProduits, updateQuantity } = useContext(ShopContext);
   const [panierData, setPanierData] = useState([]);
   const navigate = useNavigate();
+
+  // Helper de sécurisation d'URL image pour MongoDB/Cloudinary
+  const getImageUrl = (imgData) => {
+    if (!imgData) return '';
+    if (Array.isArray(imgData) && imgData.length > 0) {
+      const first = imgData[0];
+      return typeof first === 'object' && first?.url ? first.url : first;
+    }
+    return typeof imgData === 'object' && imgData?.url ? imgData.url : imgData;
+  };
 
   // Analyse et structure les données du panier à chaque modification
   useEffect(() => {
@@ -29,7 +39,7 @@ const Panier = () => {
     setPanierData(tempData);
   }, [panierProduits]);
 
-  // 🔄 GÉRER LE CHANGEMENT DE TAILLE EN DIRECT ET FUSIONNER LES QUANTITÉS SI BESOIN
+  // 🔄 GÉRER LE CHANGEMENT DE TAILLE EN DIRECT
   const handleSizeChange = (itemId, oldSize, newSize, quantity) => {
     if (oldSize === newSize) return;
 
@@ -47,14 +57,22 @@ const Panier = () => {
   const verifierTaillesEtProceder = () => {
     let erreurTaille = false;
     let nomDuBijouErreur = "";
+    let produitRupture = false;
 
     for (const item of panierData) {
-      const produitInfo = produits.find((p) => p._id === item._id || p.id === item._id);
+      const produitInfo = (produits || []).find((p) => String(p._id || p.id) === String(item._id));
       
       if (produitInfo) {
+        // Vérification de stock
+        if (produitInfo.enStock === false) {
+          produitRupture = true;
+          nomDuBijouErreur = produitInfo.nom || "Création Aridona";
+          break;
+        }
+
         const aPlusieursTailles = produitInfo.sizes && produitInfo.sizes.length > 0;
         
-        // Validation : La taille est jugée invalide si non définie ou restée sur "Choisir"
+        // Validation de taille
         const tailleInvalide = 
           !item.sizes || 
           item.sizes.trim() === "" || 
@@ -64,34 +82,44 @@ const Panier = () => {
 
         if (aPlusieursTailles && tailleInvalide) {
           erreurTaille = true;
-          nomDuBijouErreur = produitInfo.nom || "Création Arilona";
+          nomDuBijouErreur = produitInfo.nom || "Création Aridona";
           break; 
         }
       }
     }
 
+    if (produitRupture) {
+      toast.error(`Le produit "${nomDuBijouErreur}" est désormais en rupture de stock. Veuillez le retirer du panier.`, {
+        position: "top-right",
+        autoClose: 4000,
+        theme: "dark"
+      });
+      return;
+    }
+
     if (erreurTaille) {
-      toast.error(`Veuillez sélectionner une taille pour le produit "${nomDuBijouErreur}" avant de valider votre commande.`, {
+      toast.error(`Veuillez sélectionner une taille pour le produit "${nomDuBijouErreur}" avant de valider.`, {
         position: "top-right",
         autoClose: 4000,
         theme: "dark"
       });
     } else {
-      navigate('/passercommande');
+      navigate('/commander');
     }
   };
 
   return (
-    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 min-h-[70vh]'> 
-        <BoutonRetour/>
+    <div className='max-w-7xl mx-auto pb-10 min-h-[70vh] px-4 sm:px-6 lg:px-8'> 
+      <BoutonRetour/>
+      
       {/* En-tête de page */}
       <div className='text-3xl mb-10 text-center sm:text-left font-light tracking-wide'>
-        <Titre text1={'VOTRE'} text2={'PANIER'} />
+        <Titre text1='' text2='Votre Panier' />
       </div>
 
       {/* Zone principale */}
       {panierData.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-24 border border-dashed rounded-xl bg-stone-50/50 max-w-2xl mx-auto px-6 text-center shadow-sm'>
+        <div className='flex flex-col items-center justify-center py-24 border border-dashed  bg-stone-50/50 max-w-2xl mx-auto px-6 text-center shadow-sm'>
           <div className='p-5 bg-stone-100 rounded-full mb-5 text-stone-400'>
             <ShoppingBag size={45} strokeWidth={1.2} />
           </div>
@@ -100,8 +128,9 @@ const Panier = () => {
             Laissez-vous tenter par nos créations exclusives et commencez votre sélection de bijoux.
           </p>
           <button 
+            type="button"
             onClick={() => navigate('/collection')}
-            className='mt-8 bg-stone-900 text-white text-xs tracking-widest uppercase px-8 py-3.5 rounded-none hover:bg-stone-800 transition-all shadow-md font-medium'
+            className='mt-8 bg-amber-900 text-white text-xs tracking-widest uppercase px-8 py-3.5 hover:bg-amber-950 transition-all shadow-md font-medium  cursor-pointer'
           >
             Découvrir nos créations
           </button>
@@ -112,16 +141,17 @@ const Panier = () => {
           {/* Liste des articles */}
           <div className='lg:col-span-2 divide-y divide-stone-100 border-b border-stone-100'>
             {panierData.map((item, index) => {
-              const produitsData = produits.find((produit) => (produit._id === item._id || produit.id === item._id));
+              const produitsData = (produits || []).find((produit) => String(produit._id || produit.id) === String(item._id));
 
               if (!produitsData) return null;
 
-              const nomBijou = produitsData.nom || produitsData.name || "Création Arilona";
-              const prixBijou = produitsData.prix || produitsData.price || 0;
-              const imageBijou = (produitsData.image && produitsData.image[0]) ? produitsData.image[0] : "";
+              const nomBijou = produitsData.nom || produitsData.name || "Création Aridona";
+              const prixBijou = Number(produitsData.prix || produitsData.price || 0);
+              const imageBijou = getImageUrl(produitsData.image);
               const taillesDisponibles = produitsData.sizes || [];
+              const estEnStock = produitsData.enStock !== false;
 
-              // Évaluation de l'état de la taille actuelle
+              // Évaluation de l'état de la taille
               const valeurTailleActuelle = item.sizes ? item.sizes.trim().replace(/"/g, '') : "";
               const estTailleManquante = (!valeurTailleActuelle || valeurTailleActuelle === "" || valeurTailleActuelle === "Choisir") && taillesDisponibles.length > 0;
 
@@ -132,19 +162,31 @@ const Panier = () => {
                 >
                   {/* Image & Détails du bijou */}
                   <div className='flex items-center gap-5 w-full sm:w-auto'>
-                    <div className='w-20 h-24 bg-stone-50 border border-stone-100 overflow-hidden flex-shrink-0 flex items-center justify-center p-1 rounded-sm shadow-sm'>
-                      <img 
-                        src={imageBijou} 
-                        className='w-full h-full object-cover object-center' 
-                        alt={nomBijou} 
-                      />
+                    <div className='w-20 h-24 bg-stone-50 border border-stone-100 overflow-hidden flex-shrink-0 flex items-center justify-center p-1 shadow-sm relative'>
+                      {imageBijou ? (
+                        <img 
+                          src={imageBijou} 
+                          className='w-full h-full object-cover object-center' 
+                          alt={nomBijou} 
+                        />
+                      ) : (
+                        <ShoppingBag className='text-stone-300' size={24} />
+                      )}
                     </div>
                     
                     <div className='space-y-2 w-full sm:w-auto'>
-                      <p className='text-sm sm:text-base font-medium text-stone-800 tracking-wide'>{nomBijou}</p>
-                      <p className='text-sm font-semibold text-stone-900'>{prixBijou.toLocaleString()} {monnaie}</p>
+                      <div className='flex items-center gap-2'>
+                        <p className='text-sm sm:text-base font-medium text-stone-800 tracking-wide'>{nomBijou}</p>
+                        {!estEnStock && (
+                          <span className='inline-flex items-center gap-1 text-[10px] font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded'>
+                            <AlertCircle size={10} /> Rupture
+                          </span>
+                        )}
+                      </div>
                       
-                      {/* 🛠️ SÉLECTEUR DE TAILLE EN DIRECT FORCE AVEC INTERCEPTOR */}
+                      <p className='text-sm font-semibold text-stone-900'>{prixBijou.toLocaleString()} {monnaie || 'FCFA'}</p>
+                      
+                      {/* SÉLECTEUR DE TAILLE */}
                       <div className='flex items-center gap-2 pt-1'>
                         <span className='text-xs text-stone-500 font-light'>Taille :</span>
                         {taillesDisponibles.length > 0 ? (
@@ -157,7 +199,6 @@ const Panier = () => {
                                 : 'border-stone-200 text-stone-700 focus:border-stone-900'
                             }`}
                           >
-                            {/* Option neutre injectée si l'utilisateur n'a pas arrêté son choix */}
                             {estTailleManquante && <option value="Choisir">⚠️ Choisir une taille</option>}
                             
                             {taillesDisponibles.map((t, idx) => (
@@ -167,7 +208,7 @@ const Panier = () => {
                             ))}
                           </select>
                         ) : (
-                          <span className='text-xs font-medium text-stone-400 px-2 py-0.5 bg-stone-100 rounded-sm'>Unique</span>
+                          <span className='text-xs font-medium text-stone-400 px-2 py-0.5 bg-stone-100 '>Unique</span>
                         )}
                       </div>
 
@@ -176,12 +217,12 @@ const Panier = () => {
 
                   {/* Quantité & Action de suppression */}
                   <div className='flex items-center justify-between sm:justify-end gap-8 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-none border-stone-100'>
-                    <div className='flex items-center border border-stone-300 bg-white rounded-sm shadow-inner'>
+                    <div className='flex items-center border border-stone-300 bg-white shadow-inner'>
                       <button 
                         type="button"
                         disabled={item.quantity <= 1}
                         onClick={() => updateQuantity(item._id, item.sizes, item.quantity - 1)}
-                        className='px-2.5 py-1 text-stone-500 hover:text-stone-800 disabled:opacity-30 transition-colors text-base font-light'
+                        className='px-2.5 py-1 text-stone-500 hover:text-stone-800 disabled:opacity-30 transition-colors text-base font-light cursor-pointer'
                       >
                         -
                       </button>
@@ -191,7 +232,7 @@ const Panier = () => {
                       <button 
                         type="button"
                         onClick={() => updateQuantity(item._id, item.sizes, item.quantity + 1)}
-                        className='px-2.5 py-1 text-stone-500 hover:text-stone-800 transition-colors text-base font-light'
+                        className='px-2.5 py-1 text-stone-500 hover:text-stone-800 transition-colors text-base font-light cursor-pointer'
                       >
                         +
                       </button>
@@ -200,7 +241,8 @@ const Panier = () => {
                     <button 
                       type="button"
                       onClick={() => updateQuantity(item._id, item.sizes, 0)} 
-                      className='p-2 group text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300'
+                      className='p-2 group text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 cursor-pointer'
+                      title="Retirer du panier"
                     >
                       <Trash size={18} className='transform group-hover:scale-105 transition-transform' />
                     </button>
@@ -211,13 +253,13 @@ const Panier = () => {
           </div>
 
           {/* Résumé & Caisse */}
-          <div className='lg:col-span-1 bg-stone-50/50 p-6 sm:p-8 border border-stone-100 rounded-lg lg:sticky lg:top-28 shadow-sm'>
+          <div className='lg:col-span-1 bg-stone-50/50 p-6 sm:p-8 border border-stone-100  lg:sticky lg:top-28 shadow-sm'>
             <PanierTotal />
             <div className='mt-8'>
                <button 
                  type="button"
                  onClick={verifierTaillesEtProceder} 
-                 className='w-full bg-stone-900 text-white text-xs font-medium tracking-widest uppercase py-4 rounded-none hover:bg-stone-800 active:bg-stone-950 transition-all flex items-center justify-center gap-3 group shadow-md'
+                 className='w-full bg-amber-900 text-white text-xs font-semibold tracking-widest uppercase py-4 hover:bg-amber-950 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group shadow-md cursor-pointer'
                >
                  Passer à la caisse
                  <ArrowRight size={14} className='transform group-hover:translate-x-1 transition-transform' />

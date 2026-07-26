@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -24,8 +24,9 @@ const Login = () => {
 
   const navigate = useNavigate(); 
 
-  // ================= CHARGEMENT DU PROFIL AVEC DOUBLE HEADER (Anti-401) =================
-  const chargerProfil = async () => {
+  // ================= CHARGEMENT DU PROFIL =================
+  const chargerProfil = useCallback(async () => {
+    if (!token) return;
     try {
       const response = await axios.post(
         `${backendUrl}/api/utilisateur/profil`, 
@@ -38,25 +39,27 @@ const Login = () => {
         }
       );
       if (response.data.success) {
-        setProfil(response.data.utilisateur);
+        const u = response.data.utilisateur;
+        setProfil(u);
         setFormProfil({
-          name: response.data.utilisateur.name,
-          telephone: response.data.utilisateur.telephone || '',
-          adresse: response.data.utilisateur.adresse || '',
-          ville: response.data.utilisateur.ville || 'Lomé'
+          name: u.name || u.nom || '',
+          telephone: u.telephone || '',
+          adresse: u.adresse || '',
+          ville: u.ville || 'Lomé'
         });
       }
     } catch (error) {
       console.error("Erreur chargement profil:", error);
     }
-  };
+  }, [backendUrl, token]);
 
   useEffect(() => {
     if (token) {
       chargerProfil();
     }
-  }, [token]);
+  }, [token, chargerProfil]);
 
+  // ================= MODIFICATION DU PROFIL =================
   const handleUpdateProfil = async (e) => {
     e.preventDefault();
     try {
@@ -69,22 +72,24 @@ const Login = () => {
       if (response.data.success) {
         setProfil(response.data.utilisateur);
         setIsEditing(false);
-        toast.success("Coordonnées mises à jour.", { theme: "dark" });
+        toast.success("Profil mis à jour avec succès !", { theme: "dark" });
       } else {
-        toast.error(response.data.message, { theme: "dark" });
+        toast.error(response.data.message || "Impossible de modifier le profil.", { theme: "dark" });
       }
     } catch (error) {
-      toast.error("Erreur lors de la modification.", { theme: "dark" });
+      toast.error("Erreur lors de la modification du profil.", { theme: "dark" });
     } finally {
       setLoading(false);
     }
   };
 
+  // ================= DÉCONNEXION =================
   const handleLogout = () => {
     setToken('');
     setProfil(null);
     localStorage.removeItem('token');
     setEtatactuel('Connexion'); 
+    toast.info("Vous êtes déconnecté(e)", { theme: "dark" });
   };
 
   // ================= CONNEXION AVEC GOOGLE =================
@@ -98,7 +103,7 @@ const Login = () => {
         if (res.data.success) {
           setToken(res.data.token);
           localStorage.setItem('token', res.data.token);
-          toast.success("Connexion Google réussie ! ✨", { theme: "dark" });
+          toast.success("Connexion Google réussie !", { theme: "dark" });
         } else {
           toast.error(res.data.message, { theme: "dark" });
         }
@@ -112,7 +117,7 @@ const Login = () => {
     onError: () => toast.error("La connexion Google a échoué.", { theme: "dark" }),
   });
 
-  // ================= SOUMISSION DES FORMULAIRES (INSCRIPTION / CONNEXION / OUBLI) =================
+  // ================= SOUMISSION DES FORMULAIRES =================
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     try {
@@ -123,7 +128,7 @@ const Login = () => {
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-          toast.success("Bienvenue dans l'univers d'Arilona ! ✨", { theme: "dark" });
+          toast.success("Bienvenue chez Aridona !", { theme: "dark" });
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
@@ -133,7 +138,7 @@ const Login = () => {
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
-          toast.success("Ravis de vous revoir. ✨", { theme: "dark" });
+          toast.success("Heureux de vous revoir !", { theme: "dark" });
         } else {
           toast.error(response.data.message, { theme: "dark" });
         }
@@ -142,7 +147,7 @@ const Login = () => {
         const response = await axios.post(`${backendUrl}/api/utilisateur/mot-de-passe-oublie`, { email });
         
         if (response.data.success) {
-          toast.success("Un lien de récupération a été envoyé sur votre boîte mail avec soin. ✨", { theme: "dark" });
+          toast.success("Un lien de réinitialisation vous a été envoyé par e-mail.", { theme: "dark" });
           setEtatactuel('Connexion');
         } else {
           toast.error(response.data.message || "Une erreur est survenue.", { theme: "dark" });
@@ -158,26 +163,25 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#FAF9F6] flex items-center mt-25 justify-center font-sans relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#FAF9F6] flex items-center justify-center font-sans relative overflow-hidden py-12">
       
-      {/* Bouton Retour Flottant Épuré */}
+      {/* Bouton Retour Flottant */}
       <div className="absolute top-6 left-6 z-20">
         <BoutonRetour />
       </div>
 
       {/* Grand Container Split Screen */}
-      <div className="w-full min-h-screen lg:min-h-[50vh] lg:max-w-[1100px] lg:my-12 lg:rounded-3xl lg:shadow-[0_20px_50px_rgba(28,26,23,0.08)] bg-white flex flex-col lg:flex-row overflow-hidden border border-stone-100">
+      <div className="w-full min-h-screen lg:min-h-[50vh] lg:max-w-[1100px] lg:rounded-3xl lg:shadow-[0_20px_50px_rgba(28,26,23,0.08)] bg-white flex flex-col lg:flex-row overflow-hidden border border-stone-100">
         
-        {/* ================= PANNEAU DE GAUCHE : IDENTITÉ DE MAISON (Caché sur mobile) ================= */}
+        {/* PANNEAU DE GAUCHE : IDENTITÉ DE MAISON */}
         <div className="hidden lg:flex lg:w-1/2 bg-[#301c0cee] relative p-12 flex-col justify-between overflow-hidden">
-          {/* Effet lumineux doré en arrière-plan */}
           <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-amber-500/10 blur-[120px] pointer-events-none"></div>
           <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-amber-600/55 blur-[120px] pointer-events-none"></div>
           
           <div className="relative z-10">
             <span className="font-caveat text-2xl text-amber-400 tracking-wide block">Maison</span>
-            <div className="flex items-center cursor-pointer h-15 w-35">
-              <img src={logo} alt="Logo" className="object-contain w-full h-full" />
+            <div className="flex items-center cursor-pointer h-15 w-35" onClick={() => navigate('/')}>
+              <img src={logo} alt="Logo Aridona Bijoux" className="object-contain w-full h-full" />
             </div>
           </div>
 
@@ -192,40 +196,40 @@ const Login = () => {
           </div>
         </div>
 
-        {/* ================= PANNEAU DE DROITE : FORMULAIRES & PROFIL ================= */}
+        {/* PANNEAU DE DROITE : FORMULAIRES & PROFIL */}
         <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-12 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
           
           {token && profil ? (
-            /* ================= DESIGN PROFIL VIP ================= */
+            /* DESIGN PROFIL VIP */
             <div className="space-y-8 animate-in fade-in duration-500">
               <div className="space-y-2">
                 <span className="font-caveat text-2xl text-amber-800">Mon doux espace secret</span>
-                <h1 className="font-serif text-4xl text-stone-900 tracking-wide font-alice">Bonjour, {profil.name}</h1>
+                <h1 className="font-serif text-4xl text-stone-900 tracking-wide font-alice">Bonjour, {profil.name || profil.nom}</h1>
                 <div className="h-[2px] w-12 bg-amber-800 mt-2"></div>
               </div>
 
-              {/* Contenu Profil Raffiné */}
               <div className="space-y-6 font-dmsans">
                 {!isEditing ? (
-                  <div className="space-y-2">
-                    <div className="p-4 rounded-2xl bg-stone-50 border border-stone-100/80 space-y-3">
+                  <div className="space-y-4">
+                    <div className="p-5 rounded-2xl bg-stone-50 border border-stone-100 space-y-3.5">
                       <div className="flex items-center gap-3 text-stone-700 text-sm">
-                        <Mail size={16} className="text-amber-800" />
-                        <span>{profil.email}</span>
+                        <Mail size={16} className="text-amber-800 shrink-0" />
+                        <span className="font-medium">{profil.email}</span>
                       </div>
                       <div className="flex items-center gap-3 text-stone-700 text-sm">
-                        <Phone size={16} className="text-amber-800" />
+                        <Phone size={16} className="text-amber-800 shrink-0" />
                         <span>{profil.telephone || "Aucun numéro WhatsApp lié"}</span>
                       </div>
                       <div className="flex items-start gap-3 text-stone-700 text-sm">
                         <MapPin size={16} className="text-amber-800 shrink-0 mt-0.5" />
-                        <span>{profil.adresse ? `${profil.adresse}, ${profil.ville}` : "Aucune adresse enregistrée"}</span>
+                        <span>{profil.adresse ? `${profil.adresse}, ${profil.ville || 'Lomé'}` : "Aucune adresse enregistrée"}</span>
                       </div>
                     </div>
 
                     <button 
+                      type="button"
                       onClick={() => setIsEditing(true)}
-                      className="w-full py-3.5 bg-transparent border border-stone-900 text-stone-900 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-stone-950 hover:text-white transition-all duration-300"
+                      className="w-full py-3.5 bg-transparent border border-stone-900 text-stone-900 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-stone-950 hover:text-white transition-all duration-300 cursor-pointer"
                     >
                       Mettre à jour mes coordonnées
                     </button>
@@ -236,24 +240,27 @@ const Login = () => {
                       <input 
                         type="text" 
                         placeholder="Votre Nom Complet"
+                        aria-label="Votre Nom Complet"
                         value={formProfil.name} 
                         onChange={(e) => setFormProfil({...formProfil, name: e.target.value})}
-                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3 text-xs outline-none focus:border-amber-800 transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3 text-xs outline-none focus:border-amber-800 transition-all text-stone-800"
                         required
                       />
                       <input 
                         type="text" 
                         placeholder="Téléphone / WhatsApp (ex: +228 90 00 00 00)"
+                        aria-label="Téléphone ou WhatsApp"
                         value={formProfil.telephone} 
                         onChange={(e) => setFormProfil({...formProfil, telephone: e.target.value})}
-                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all text-stone-800"
                       />
                       <input 
                         type="text" 
                         placeholder="Adresse (Quartier, Rue, Maison)"
+                        aria-label="Adresse"
                         value={formProfil.adresse} 
                         onChange={(e) => setFormProfil({...formProfil, adresse: e.target.value})}
-                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all"
+                        className="w-full bg-white border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-amber-800 transition-all text-stone-800"
                       />
                     </div>
 
@@ -261,14 +268,14 @@ const Login = () => {
                       <button 
                         type="button"
                         onClick={() => setIsEditing(false)}
-                        className="flex-1 py-3 bg-stone-100 text-stone-700 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-200 transition-all"
+                        className="flex-1 py-3 bg-stone-100 text-stone-700 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-200 transition-all cursor-pointer"
                       >
                         Annuler
                       </button>
                       <button 
                         type="submit" 
                         disabled={loading}
-                        className="flex-1 py-3 bg-[#1C1A17] text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-all"
+                        className="flex-1 py-3 bg-[#1C1A17] text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-stone-800 transition-all cursor-pointer disabled:bg-stone-200 disabled:cursor-not-allowed"
                       >
                         {loading ? 'Enregistrement...' : 'Confirmer'}
                       </button>
@@ -277,8 +284,9 @@ const Login = () => {
                 )}
 
                 <button 
+                  type="button"
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-stone-50 border border-stone-200 rounded-full text-[11px] font-semibold uppercase tracking-wider text-stone-500 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all duration-300"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-stone-50 border border-stone-200 rounded-full text-[11px] font-semibold uppercase tracking-wider text-stone-500 hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-all duration-300 cursor-pointer"
                 >
                   <LogOut size={13} />
                   <span>Se déconnecter</span>
@@ -286,7 +294,7 @@ const Login = () => {
               </div>
             </div>
           ) : (
-            /* ================= FORMULAIRE SÉDUISANT (CONNEXION/INSCRIPTION/OUBLI) ================= */
+            /* FORMULAIRE (CONNEXION/INSCRIPTION/OUBLI) */
             <div className="animate-in fade-in duration-500 space-y-8">
               
               <div className="space-y-3">
@@ -303,7 +311,7 @@ const Login = () => {
                 </p>
               </div>
 
-              <form onSubmit={onSubmitHandler} className="space-y-2">
+              <form onSubmit={onSubmitHandler} className="space-y-4">
                 {etatactuel === 'Inscription' && (
                   <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
                     <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-700 ml-1">Nom Complet</label>
@@ -338,7 +346,7 @@ const Login = () => {
                         <button 
                           type="button"
                           onClick={() => setEtatactuel('Oubli')}
-                          className="text-[10px] uppercase tracking-widest font-semibold text-amber-800 hover:text-stone-900 transition-all"
+                          className="text-[10px] uppercase tracking-widest font-semibold text-amber-800 hover:text-stone-900 transition-all cursor-pointer"
                         >
                           Oublié ?
                         </button>
@@ -348,7 +356,7 @@ const Login = () => {
                       type="password" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-white lg:bg-stone-50/50 border border-stone-200/80 rounded-xl px-5 py-3 text-xs outline-none focus:border-stone-950 focus:bg-white transition-all text-stone-800"
+                      className="w-full bg-white lg:bg-stone-50/50 border border-stone-200/80 rounded-xl px-5 py-3.5 text-xs outline-none focus:border-stone-950 focus:bg-white transition-all text-stone-800"
                       placeholder="••••••••"
                       required
                     />
@@ -358,7 +366,7 @@ const Login = () => {
                 <button 
                   disabled={loading}
                   type="submit"
-                  className="w-full bg-[#1C1A17] hover:bg-stone-800 text-stone-100 py-4 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-stone-950/5 active:scale-[0.98] disabled:bg-stone-200 disabled:text-stone-400"
+                  className="w-full bg-[#1C1A17] hover:bg-stone-800 text-stone-100 py-4 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-stone-950/5 active:scale-[0.98] disabled:bg-stone-200 disabled:text-stone-400 cursor-pointer disabled:cursor-not-allowed"
                 >
                   <span>{loading ? 'Traitement...' : etatactuel === 'Connexion' ? 'Se Connecter' : etatactuel === 'Inscription' ? 'Rejoindre le Club' : 'Recevoir le lien'}</span>
                   {!loading && <ArrowRight size={13} className="text-amber-400" />}
@@ -367,7 +375,7 @@ const Login = () => {
 
               {/* Séparateur pour Google */}
               {etatactuel !== 'Oubli' && (
-                <div className="space-y-2 -mt-5">
+                <div className="space-y-4">
                   <div className="flex items-center">
                     <div className="flex-1 border-t border-stone-200/60"></div>
                     <span className="px-3 text-[10px] text-stone-500 uppercase tracking-widest font-medium">ou</span>
@@ -379,7 +387,7 @@ const Login = () => {
                     type="button"
                     onClick={() => loginAvecGoogle()}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-1 bg-white border border-stone-400 text-stone-700 py-2 px-6 rounded-full text-[10px] font-bold tracking-widest uppercase hover:bg-stone-50 hover:border-amber-800/30 transition-all duration-300 active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 bg-white border border-stone-300 text-stone-700 py-3 px-6 rounded-full text-[10px] font-bold tracking-widest uppercase hover:bg-stone-50 hover:border-amber-800/30 transition-all duration-300 active:scale-[0.98] cursor-pointer"
                   >
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                       <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.51 15 0 12 0 7.35 0 3.37 2.67 1.48 6.56l3.87 3a7.18 7.18 0 0 1 6.65-4.52z" />
@@ -396,11 +404,11 @@ const Login = () => {
               <div className="text-center pt-2">
                 {etatactuel === 'Connexion' ? (
                   <p className="text-xs text-stone-500 font-light">
-                    Nouveau chez Arilona ?{' '}
+                    Nouveau chez Aridona ?{' '}
                     <button 
                       type="button"
                       onClick={() => setEtatactuel('Inscription')}
-                      className="text-amber-800 font-bold uppercase tracking-wider ml-1 hover:text-stone-900 transition-colors"
+                      className="text-amber-800 font-bold uppercase tracking-wider ml-1 hover:text-stone-900 transition-colors cursor-pointer"
                     >
                       Créer un compte
                     </button>
@@ -411,7 +419,7 @@ const Login = () => {
                     <button 
                       type="button"
                       onClick={() => setEtatactuel('Connexion')}
-                      className="text-amber-800 font-bold uppercase tracking-wider ml-1 hover:text-stone-900 transition-colors"
+                      className="text-amber-800 font-bold uppercase tracking-wider ml-1 hover:text-stone-900 transition-colors cursor-pointer"
                     >
                       Se connecter
                     </button>

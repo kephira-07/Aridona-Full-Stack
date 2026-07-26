@@ -46,7 +46,7 @@ const MeilleurVente = () => {
         <div className='text-center text-3xl pb-8'>
             <Titre text1='Découvrez notre' text2='Meilleure vente' />
             <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-stone-500 font-light mt-2 italic'>
-                L'excellence signée Arilona : les créations les plus plébiscitées et convoitées de notre collection.
+                L'excellence signée Aridona : les créations les plus plébiscitées et convoitées de notre collection.
             </p>
         </div>
         

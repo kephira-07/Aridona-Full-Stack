@@ -1,16 +1,24 @@
 import express from 'express';
-import { placeOrder, allOrders, updateStatus } from '../controller/orderController.js';
-import authUser from '../middleware/authUser.js'; 
-import adminAuth from '../middleware/adminAuth.js'; 
+import { placeOrder, userOrders, allOrders, updateStatus } from '../controller/orderController.js';
+import auth from '../middleware/auth.js'; 
 
 const orderRouter = express.Router();
 
-// 🛒 ROUTE BOUTIQUE CLIENT (POST & authUser)
-orderRouter.post('/place',placeOrder);  
+const adminOnly = (req, res, next) => {
+  if (req.userRole !== 'admin') {
+    return res.status(403).json({ success: false, message: "Accès refusé. Droits administrateur requis." });
+  }
+  next();
+};
 
-// 👑 ROUTES PANEL ADMIN (POST pour correspondre à ton Axios frontend !)
-// Si tu n'as pas de middleware adminAuth, retire-le temporairement pour tester : (ex: orderRouter.post('/list', allOrders))
-orderRouter.post('/list', adminAuth, allOrders);   
-orderRouter.post('/status', adminAuth, updateStatus); 
+// Client
+orderRouter.post('/place', placeOrder);
+orderRouter.get('/userorders', auth, userOrders);
+
+// Admin
+orderRouter.get('/list', auth, adminOnly, allOrders);
+orderRouter.post('/list', auth, adminOnly, allOrders);
+orderRouter.put('/status', auth, adminOnly, updateStatus);
+orderRouter.post('/status', auth, adminOnly, updateStatus);
 
 export default orderRouter;

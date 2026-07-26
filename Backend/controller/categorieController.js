@@ -1,69 +1,140 @@
 import categorieModel from "../models/categorieModel.js";
-import { v2 as cloudinary } from 'cloudinary'; // 🛠️ Import direct de la v2 de Cloudinary
+import produitModel from "../models/produitModel.js"; // 👈 Pour la gestion des bijoux orphelins
+import { v2 as cloudinary } from 'cloudinary';
 import slugify from 'slugify';
+import fs from 'fs';
 
-// 1. AJOUTER une catégorie avec image Cloudinary (Create)
+// Helper pour nettoyer le fichier temporaire créé par Multer
+const cleanLocalFile = (file) => {
+    if (file && file.path && fs.existsSync(file.path)) {
+        try { 
+            fs.unlinkSync(file.path); 
+        } catch (error) { 
+            console.error("Erreur nettoyage fichier temporaire:", error); 
+        }
+    }
+};
+
+// Helper pour extraire le public_id de Cloudinary
+const getPublicIdFromUrl = (url) => {
+    try {
+        if (!url) return null;
+        const parts = url.split('/upload/');
+        if (parts.length < 2) return null;
+        
+        let publicIdWithExtension = parts[1];
+        if (publicIdWithExtension.startsWith('v')) {
+            const remainingParts = publicIdWithExtension.split('/');
+            remainingParts.shift();
+            publicIdWithExtension = remainingParts.join('/');
+        }
+        return publicIdWithExtension.split('.').slice(0, -1).join('.');
+    } catch (error) {
+        return null;
+    }
+};
+
+// 1. AJOUTER UNE CATÉGORIE
 export const addCategorie = async (req, res) => {
     try {
         const { nom } = req.body;
         const imageFile = req.file; 
 
+        if (!nom) {
+            cleanLocalFile(imageFile);
+            return res.status(400).json({ success: false, message: "Le nom de la catégorie est requis" });
+        }
+
         if (!imageFile) {
             return res.status(400).json({ success: false, message: "Une image est requise pour la catégorie" });
         }
 
-        // 🛠️ Connexion directe à l'uploader v2
+        // Vérification des doublons
+        const categorieExistante = await categorieModel.findOne({ nom: nom.trim() });
+        if (categorieExistante) {
+            cleanLocalFile(imageFile);
+            return res.status(400).json({ success: false, message: "Une catégorie avec ce nom existe déjà" });
+        }
+
+        // Upload sur Cloudinary
         const uploadResult = await cloudinary.uploader.upload(imageFile.path, {
-            folder: 'arilona_bijoux',
+            folder: 'arilona_bijoux/categories',
             resource_type: "image"
         });
 
-        const nouvelleCategorie = new categorieModel({ 
-            nom, 
-            image: uploadResult.secure_url,
-            slug: slugify(nom, {
-                lower: true,
-                strict: true,
-                remove: /[*+~.()'"!:@]/g
-            })
+        // Nettoyage disque local
+        cleanLocalFile(imageFile);
+
+        const slug = slugify(nom, {
+            lower: true,
+            strict: true,
+            remove: /[*+~.()'"!:@]/g
         });
 
+        const nouvelleCategorie = new categorieModel({ 
+            nom: nom.trim(), 
+            image: uploadResult.secure_url,
+            slug
+        });
 
         await nouvelleCategorie.save();
-        res.status(201).json({ success: true, message: "Catégorie ajoutée avec succès !", data: nouvelleCategorie });
+        return res.status(201).json({ success: true, message: "Catégorie ajoutée avec succès !", data: nouvelleCategorie });
 
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur lors de l'ajout", error: error.message });
+        cleanLocalFile(req.file);
+        return res.status(500).json({ success: false, message: "Erreur lors de l'ajout", error: error.message });
     }
 };
 
-
-// 2. RÉCUPÉRER toutes les catégories (Read)
+// 2. RÉCUPÉRER TOUTES LES CATÉGORIES
 export const getCategories = async (req, res) => {
     try {
-        const categories = await categorieModel.find({});
-        res.status(200).json({ success: true, data: categories });
+        const categories = await categorieModel.find({}).sort({ nom: 1 });
+        return res.status(200).json({ success: true, data: categories });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur de récupération", error: error.message });
+        return res.status(500).json({ success: false, message: "Erreur de récupération", error: error.message });
     }
 };
 
-// 3. MODIFIER une catégorie (Update)
+// 3. MODIFIER UNE CATÉGORIE
 export const updateCategorie = async (req, res) => {
     try {
         const { id } = req.params;
         const { nom } = req.body;
         const imageFile = req.file;
 
-        let donneesMiseAJour = { nom };
+        const categorie = await categorieModel.findById(id);
+        if (!categorie) {
+            cleanLocalFile(imageFile);
+            return res.status(404).json({ success: false, message: "Catégorie introuvable" });
+        }
 
-        // Si l'utilisateur a choisi une NOUVELLE image, on l'uploade sur Cloudinary
+        let donneesMiseAJour = {};
+
+        // Mise à jour du nom et du slug
+        if (nom && nom.trim() !== categorie.nom) {
+            donneesMiseAJour.nom = nom.trim();
+            donneesMiseAJour.slug = slugify(nom, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
+        }
+
+        // Si une NOUVELLE image est fournie
         if (imageFile) {
+            // Upload de la nouvelle image
             const uploadResult = await cloudinary.uploader.upload(imageFile.path, {
-               folder: 'arilona_bijoux',
+                folder: 'arilona_bijoux/categories',
                 resource_type: "image"
             });
             donneesMiseAJour.image = uploadResult.secure_url;
+
+            // Suppression de l'ANCIENNE image sur Cloudinary
+            if (categorie.image) {
+                const oldPublicId = getPublicIdFromUrl(categorie.image);
+                if (oldPublicId) {
+                    await cloudinary.uploader.destroy(oldPublicId);
+                }
+            }
+
+            cleanLocalFile(imageFile);
         }
 
         const categorieModifiee = await categorieModel.findByIdAndUpdate(
@@ -71,66 +142,46 @@ export const updateCategorie = async (req, res) => {
             donneesMiseAJour, 
             { new: true }
         );
-        
-        res.status(200).json({ success: true, message: "Catégorie mise à jour !", data: categorieModifiee });
+
+        return res.status(200).json({ success: true, message: "Catégorie mise à jour avec succès !", data: categorieModifiee });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur lors de la modification", error: error.message });
+        cleanLocalFile(req.file);
+        return res.status(500).json({ success: false, message: "Erreur lors de la modification", error: error.message });
     }
-};
-// Fonction pour extraire proprement le public_id de Cloudinary depuis une URL complète
-const getPublicIdFromUrl = (url) => {
-  try {
-    if (!url) return null;
-    
-    // Découpe l'URL pour isoler la partie après '/upload/'
-    const parts = url.split('/upload/');
-    if (parts.length < 2) return null;
-    
-    // On retire la version (ex: v17234567/) si elle est présente
-    let publicIdWithExtension = parts[1];
-    if (publicIdWithExtension.startsWith('v')) {
-      const remainingParts = publicIdWithExtension.split('/');
-      remainingParts.shift(); // Supprime le segment de version 'vXXXXXX'
-      publicIdWithExtension = remainingParts.join('/');
-    }
-    
-    // Supprime l'extension du fichier (.jpg, .png, etc.)
-    const publicId = publicIdWithExtension.split('.').slice(0, -1).join('.');
-    
-    return publicId;
-  } catch (error) {
-    console.error("Erreur extraction publicId:", error);
-    return null;
-  }
 };
 
-// 4. SUPPRIMER une catégorie et son image Cloudinary
+// 4. SUPPRIMER UNE CATÉGORIE
 export const deleteCategorie = async (req, res) => {
     try {
         const { id } = req.params;
       
-        // 1. Trouver la catégorie pour récupérer l'URL de son image
         const categorie = await categorieModel.findById(id);
-        
         if (!categorie) {
             return res.status(404).json({ success: false, message: "Catégorie introuvable" });
         }
 
-        // 2. Si la catégorie possède une image, on la détruit sur Cloudinary
+        // 1. Suppression de l'image sur Cloudinary
         if (categorie.image) {
             const publicId = getPublicIdFromUrl(categorie.image);
-            
             if (publicId) {
-                console.log(`Suppression de l'image catégorie Cloudinary : ${publicId}`);
                 await cloudinary.uploader.destroy(publicId);
             }
         }
+
+        // 2. Vérification des produits associés pour éviter les objets orphelins
+        const nombreProduits = await produitModel.countDocuments({ categorie: id });
+        if (nombreProduits > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `Impossible de supprimer : ${nombreProduits} bijou(x) sont encore associés à cette catégorie.` 
+            });
+        }
         
-        // 3. Suppression de l'entrée dans MongoDB
+        // 3. Suppression dans MongoDB
         await categorieModel.findByIdAndDelete(id);
         
-        res.status(200).json({ success: true, message: "Catégorie et son image supprimées avec succès !" });
+        return res.status(200).json({ success: true, message: "Catégorie et son image supprimées avec succès !" });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur lors de la suppression", error: error.message });
+        return res.status(500).json({ success: false, message: "Erreur lors de la suppression", error: error.message });
     }
 };

@@ -1,22 +1,37 @@
 import mongoose from "mongoose";
 
 const produitSchema = new mongoose.Schema({
-    nom: { type: String, required: true },
-    description: { type: String, required: true },
-    prix: { type: Number, required: true },
-    image: { type: Array, required: true },
-    categorie: { type: String, required: true },
-    matiere: { type: String }, // Ex: Or, Argent
-    sizes: { type: Array, required: true },
-    slug: { type: String, required: true, unique: true },
-    meilleurVente: { type: Boolean, default: false },
-    enStock: { type: Boolean, default: true } // 👈 NOUVEAU : Par défaut le produit est en stock
-},{ timestamps: true });
+  nom: { type: String, required: true, trim: true },
+  description: { type: String, required: true },
+  prix: { type: Number, required: true, min: 0 },
+  image: { type: [String], required: true },
+  
+  categorie: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'categorie', 
+    required: true 
+  },
+  
+  // Matière principale (ex: "Acier Inoxydable 316L", "Or 18k", "Argent 925")
+  matiere: { type: String, default: "Acier Inoxydable" }, 
+  
+  // Couleurs disponibles sélectionnables par le client
+  couleurs: { 
+    type: [String], 
+    enum: ["Doré", "Argenté", "Or Rose"],
+    default: ["Doré"] 
+  },
+  
+  sizes: { type: [String], default: [] },
+  slug: { type: String, required: true, unique: true, index: true },
+  meilleurVente: { type: Boolean, default: false },
+  enStock: { type: Boolean, default: true }
+}, { timestamps: true });
 
-// Index textuel pour la recherche
+// Indexation pour la recherche plein texte (inclut la couleur)
 produitSchema.index(
-    { nom: "text", description: "text", matiere: "text" },
-    { weights: { nom: 10, matiere: 5, description: 1 } }
+  { nom: "text", description: "text", matiere: "text", couleurs: "text" },
+  { weights: { nom: 10, matiere: 5, couleurs: 5, description: 1 } }
 );
 
 const produitModel = mongoose.models.produit || mongoose.model("produit", produitSchema);

@@ -1,78 +1,78 @@
-import produitModel from "../models/produitModel.js"; // Ajuste le chemin selon ton projet
+import produitModel from "../models/produitModel.js";
 import categorieModel from "../models/categorieModel.js";
 
 export const getDashboardStats = async (req, res) => {
     try {
-        // 1. Récupérer tous les produits et catégories
-        const produits = await produitModel.find({});
-        const categories = await categorieModel.find({});
+        // 1. Exécution des comptages globaux en parallèle
+        const [totalProduits, totalCategories, rupturesStock, meilluresVentes] = await Promise.all([
+            produitModel.countDocuments({}),
+            categorieModel.countDocuments({}),
+            produitModel.countDocuments({ enStock: false }),
+            produitModel.countDocuments({ meilleurVente: true })
+        ]);
 
-        // 2. Calculs généraux
-        const totalProduits = produits.length;
-        const totalCategories = categories.length;
-
-        // 3. Calcul de la valeur totale du stock (Prix * Quantité)
-        let valeurTotaleStock = 0;
-        let alertesStockCritique = 0;
-
-        // Structure pour compter les produits par catégorie
-        const repartitionCategories = {};
-        // Initialisation avec toutes les catégories existantes à 0
-        categories.forEach(cat => {
-            repartitionCategories[cat.nom] = 0;
-        });
-
-        produits.forEach(prod => {
-            // Valeur du stock
-            const qte = prod.stock || prod.quantite || 0;
-            const prix = prod.prix || 0;
-            valeurTotaleStock += (prix * qte);
-
-            // Alerte si le stock est inférieur ou égal à 3 (seuil personnalisable)
-            if (qte <= 3) {
-                alertesStockCritique++;
+        // 2. Répartition des produits par catégorie via Agrégation MongoDB ($lookup + $group)
+        const repartitionCategoriesRaw = await produitModel.aggregate([
+            {
+                $group: {
+                    _id: "$categorie",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: "categories", // Nom de la collection MongoDB pour le modèle 'categorie'
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "detailsCategorie"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$detailsCategorie",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    nomCategorie: { $ifNull: ["$detailsCategorie.nom", "Non catégorisé"] },
+                    count: 1
+                }
             }
+        ]);
 
-            // Répartition par catégorie (liaison par ID ou par nom selon ton modèle)
-            // Si ton produit stocke l'ID de la catégorie :
-            const categorieTrouvee = categories.find(c => c._id.toString() === prod.categorie?.toString());
-            if (categorieTrouvee) {
-                repartitionCategories[categorieTrouvee.nom]++;
-            } else if (prod.categorie) {
-                // Si tu stockes directement le nom en string
-                repartitionCategories[prod.categorie] = (repartitionCategories[prod.categorie] || 0) + 1;
-            }
-        });
-
-        // 4. Préparer les données pour le graphique de répartition
+        // Formater les données pour ApexCharts / Chart.js
         const chartDataCategories = {
-            labels: Object.keys(repartitionCategories),
-            series: Object.values(repartitionCategories)
+            labels: repartitionCategoriesRaw.map(item => item.nomCategorie),
+            series: repartitionCategoriesRaw.map(item => item.count)
         };
 
-        // 5. Récupérer les 5 produits avec le stock le plus bas
-        const produitsStockBas = produits
-            .sort((a, b) => (a.stock || 0) - (b.stock || 0))
-            .slice(0, 5)
-            .map(p => ({
-                nom: p.nom,
-                stock: p.stock || p.quantite || 0,
-                prix: p.prix
-            }));
+        // 3. Récupérer les 5 derniers produits ajoutés
+        const derniersProduits = await produitModel.find({})
+            .select("nom prix enStock image createdAt")
+            .populate("categorie", "nom")
+            .sort({ createdAt: -1 })
+            .limit(5);
 
-        res.status(200).json({
+        // 4. Envoi de la réponse formatée
+        return res.status(200).json({
             success: true,
             stats: {
                 totalProduits,
                 totalCategories,
-                valeurTotaleStock,
-                alertesStockCritique,
-                chartDataCategories,
-                produitsStockBas
+                rupturesStock,        // Nombre de bijoux en rupture
+                meilluresVentes,      // Nombre de bijoux "Coup de cœur / Meilleure vente"
+                chartDataCategories,  // { labels: [...], series: [...] }
+                derniersProduits      // Aperçu des récents ajouts
             }
         });
 
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur stats dashboard", error: error.message });
+        console.error("Erreur Dashboard Stats:", error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Erreur lors de la récupération des statistiques du tableau de bord", 
+            error: error.message 
+        });
     }
 };

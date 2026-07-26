@@ -7,14 +7,14 @@
     <priority>1.0</priority>
   </url>
   
-  <!-- Page Collection -->
+  <!-- Catalogue / Collection -->
   <url>
     <loc>https://aridona.store/collection</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Page À Propos / Contact -->
+  <!-- À Propos -->
   <url>
     <loc>https://aridona.store/a-propos</loc>
     <changefreq>monthly</changefreq>

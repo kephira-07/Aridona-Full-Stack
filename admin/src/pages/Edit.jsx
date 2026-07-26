@@ -13,7 +13,7 @@ const Edit = ({ token }) => {
   const [description, setDescription] = useState('');
   const [prix, setPrix] = useState('');
   
-  // 🛠️ FIX 1 : Initialisation dynamique des catégories (au lieu des textes en dur)
+  // Catégories dynamiques
   const [categorie, setCategorie] = useState('');
   const [categoriesList, setCategoriesList] = useState([]);
 
@@ -30,35 +30,40 @@ const Edit = ({ token }) => {
 
   const availableSizes = ["50", "52", "54", "56", "58", "Unique"];
 
-  // 1. Charger les catégories et les données du bijou au démarrage
+  // 1. Charger la liste des catégories et les détails du produit
   useEffect(() => {
     const fetchCategoriesAndProduct = async () => {
       try {
-        // A. On récupère d'abord les vraies catégories
+        // A. Récupération des catégories
         const catResponse = await axios.get(`${backendUrl}/api/categorie`);
         if (catResponse.data.success) {
-          setCategoriesList(catResponse.data.data);
+          setCategoriesList(catResponse.data.data || catResponse.data.categories || []);
         }
 
-        // B. On récupère les détails du produit
+        // B. Récupération des détails du produit
         const prodResponse = await axios.get(`${backendUrl}/api/produit/single/${id}`);
         if (prodResponse.data.success) {
           const p = prodResponse.data.produit;
-          setNom(p.nom);
-          setDescription(p.description);
-          setPrix(p.prix);
+          setNom(p.nom || '');
+          setDescription(p.description || '');
+          setPrix(p.prix || '');
           
-          // Si la catégorie est "populée" par le backend (objet), on extrait son _id
-          setCategorie(p.categorie && typeof p.categorie === 'object' ? p.categorie._id : p.categorie);
+          // Extraction de l'ID si la catégorie est populée sous forme d'objet
+          if (p.categorie) {
+            const catId = typeof p.categorie === 'object' ? p.categorie._id : p.categorie;
+            setCategorie(catId);
+          }
           
-          setMatiere(p.matiere);
+          setMatiere(p.matiere || 'Or Jaune');
           setSizes(p.sizes || []);
-          setMeilleurVente(p.meilleurVente);
+          setMeilleurVente(Boolean(p.meilleurVente));
           setExistingImages(p.image || []);
+        } else {
+          alert(prodResponse.data.message || "Impossible de charger le produit.");
         }
       } catch (error) {
-        console.error(error);
-        alert("Erreur lors du chargement des informations du composant.");
+        console.error("Erreur lors du chargement :", error);
+        alert("Erreur lors de la récupération des données.");
       }
     };
 
@@ -69,10 +74,11 @@ const Edit = ({ token }) => {
     setSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
   };
 
-  // 2. Envoyer les modifications au serveur
+  // 2. Soumission du formulaire de mise à jour
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const formData = new FormData();
       formData.append("nom", nom);
@@ -83,10 +89,11 @@ const Edit = ({ token }) => {
       formData.append("meilleurVente", meilleurVente);
       formData.append("sizes", JSON.stringify(sizes));
 
-      // On envoie aussi la liste des images actuelles pour que le backend sache ce qu'on garde
-      formData.append("existingImages", JSON.stringify(existingImages));
+      // Nettoyage et envoi des URLs des images existantes conservées
+      const cleanedExistingImages = existingImages.filter(img => Boolean(img));
+      formData.append("existingImages", JSON.stringify(cleanedExistingImages));
 
-      // Fichiers d'images modifiés
+      // Ajout des éventuels nouveaux fichiers d'images
       if (image1) formData.append("image1", image1);
       if (image2) formData.append("image2", image2);
       if (image3) formData.append("image3", image3);
@@ -97,8 +104,8 @@ const Edit = ({ token }) => {
         formData, 
         { 
           headers: { 
-            token,
-            "Content-Type": "multipart/form-data" // 🛠️ Sécurité pour Axios
+            token, // Token d'authentification admin
+            "Content-Type": "multipart/form-data" 
           } 
         }
       );
@@ -107,11 +114,11 @@ const Edit = ({ token }) => {
         alert("Bijou mis à jour avec succès ! ✨");
         navigate('/list');
       } else {
-        alert(response.data.message);
+        alert(response.data.message || "Erreur lors de la mise à jour.");
       }
     } catch (error) {
-      console.error(error);
-      alert(error.message);
+      console.error("Erreur d'envoi :", error);
+      alert(error.response?.data?.message || error.message || "Une erreur est survenue.");
     } finally {
       setLoading(false);
     }
@@ -124,9 +131,9 @@ const Edit = ({ token }) => {
         <p className="text-xs text-gray-400 mt-0.5">Ajustez les détails de votre bijou premium</p>
       </div>
       
-      {/* Visualisation / Remplacement des Photos */}
+      {/* Gestion & Sélection des Images */}
       <div className="w-full">
-        <p className="text-xs font-semibold text-slate-700 mb-2">Photos du bijou (Cliquez sur une case pour la remplacer)</p>
+        <p className="text-xs font-semibold text-slate-700 mb-2">Photos du bijou (Cliquez pour remplacer)</p>
         <div className="flex gap-3">
           {[image1, image2, image3, image4].map((img, index) => {
             const setImg = [setImage1, setImage2, setImage3, setImage4][index];
@@ -158,14 +165,15 @@ const Edit = ({ token }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Prix public (Fcf)</label>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Prix public (FCFA)</label>
           <input onChange={(e) => setPrix(e.target.value)} value={prix} className="w-full border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:border-black" type="number" required />
         </div>
         
-        {/* 🛠️ FIX 2 : Liste déroulante des catégories branchée sur la BDD */}
+        {/* Choix de la catégorie */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">Catégorie</label>
-          <select onChange={(e) => setCategorie(e.target.value)} value={categorie} className="w-full border border-gray-200 p-2.5 rounded-xl bg-white text-sm outline-none focus:border-black cursor-pointer">
+          <select onChange={(e) => setCategorie(e.target.value)} value={categorie} className="w-full border border-gray-200 p-2.5 rounded-xl bg-white text-sm outline-none focus:border-black cursor-pointer" required>
+            <option value="">Sélectionner</option>
             {categoriesList.map((cat) => (
               <option key={cat._id} value={cat._id}>
                 {cat.nom}
@@ -177,7 +185,7 @@ const Edit = ({ token }) => {
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">Métal précieux</label>
           <select onChange={(e) => setMatiere(e.target.value)} value={matiere} className="w-full border border-gray-200 p-2.5 rounded-xl bg-white text-sm outline-none focus:border-black cursor-pointer">
-            <option value="Or Jaune">Or Jaune 18k</option>
+            <option value="Or Jaune">Or Jaune</option>
             <option value="Or Blanc">Or Blanc</option>
             <option value="Argent 925">Argent 925</option>
             <option value="Plaqué Or">Plaqué Or</option>

@@ -13,7 +13,7 @@ const Navbar = ({ setToken }) => {
       {/* Côté Gauche : Branding / Logo */}
       <div className="flex flex-col items-start select-none">
         <h1 className="text-xl md:text-2xl font-semibold tracking-[0.2em] text-slate-900 font-serif">
-          ARILONA
+          Aridona
         </h1>
         <span className="text-[10px] uppercase tracking-[0.15em] text-amber-600 font-medium mt-0.5">
           Espace Admin

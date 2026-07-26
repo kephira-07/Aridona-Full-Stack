@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { ShopContext } from '../context/ShopContext';
 import { useLocation } from 'react-router-dom';
-import { SlidersHorizontal, X, ChevronDown } from "lucide-react";
+import { SlidersHorizontal, X, ArrowUpDown } from "lucide-react";
 import Titre from '../composant/Titre';
 import ProduitItem from "../composant/ProduitItem";
 import Categorybar from "../composant/Categorybar"; 
@@ -9,8 +9,6 @@ import axios from "axios";
 import { backendUrl } from "../config";
 import BoutonRetour from "../composant/BoutonRetour";
 import { Helmet } from 'react-helmet-async';
-
-
 
 // --- DICTIONNAIRE TEXTES OPTIMISÉS SEO PAR CATÉGORIE ---
 const SEO_TEXTS = {
@@ -43,9 +41,9 @@ const SEO_TEXTS = {
         description: "Ajoutez une touche de style à vos lunettes avec nos chaînes en acier inoxydable. Élégantes, durables et résistantes à l'eau."
     },
     parure: {
-    title: "Parures & Ensembles de Bijoux en Acier Inoxydable",
-    description: "Découvrez nos parures et ensembles de bijoux 2, 3 ou 4 pièces en acier inoxydable. Colliers, bagues, bracelets et boucles d'oreilles assortis, waterproof et résistant à l'eau."
-}
+        title: "Parures & Ensembles de Bijoux en Acier Inoxydable",
+        description: "Découvrez nos parures et ensembles de bijoux 2, 3 ou 4 pièces en acier inoxydable. Colliers, bagues, bracelets et boucles d'oreilles assortis, waterproof et résistant à l'eau."
+    }
 };
 
 const Collection = () => {
@@ -151,16 +149,18 @@ const Collection = () => {
 
     const currentSeo = getSeoContent();
 
+    // Compteur de filtres actifs
+    const activeFiltersCount = selectedCategories.length + selectedMatieres.length + (sortType !== 'reveler' ? 1 : 0);
+
     return (
-        <div className="min-h-screen bg-white mt-50">
+        <div className="min-h-screen bg-white mt-22 md:mt-24 ">
             <Helmet>
-    <title>{`${currentSeo.title} | ARIDONA Bijoux`}</title>
-    <meta name="description" content={currentSeo.description} />
-    {/* Balises Open Graph pour le partage sur WhatsApp / réseaux sociaux */}
-    <meta property="og:title" content={currentSeo.title} />
-    <meta property="og:description" content={currentSeo.description} />
-    <meta property="og:type" content="website" />
-</Helmet>
+                <title>{`${currentSeo.title} | ARIDONA Bijoux`}</title>
+                <meta name="description" content={currentSeo.description} />
+                <meta property="og:title" content={currentSeo.title} />
+                <meta property="og:description" content={currentSeo.description} />
+                <meta property="og:type" content="website" />
+            </Helmet>
             
             {/* BARRE DE CATÉGORIES INTELLIGENTE */}
             <Categorybar 
@@ -182,32 +182,25 @@ const Collection = () => {
                     </p>
                 </div>
 
-                {/* BARRE D'OUTILS */}
+                {/* BARRE D'OUTILS UNIQUE */}
                 <div className="flex items-center justify-between gap-4 mb-6 pb-2 border-b border-gray-100">
                     <div>
                         <Titre text1={'Notre'} text2={'Collection'} />
                     </div>
                     
+                    {/* BOUTON UNIQUE FILTRES ET TRI */}
                     <button 
                         onClick={() => setShowFilter(true)}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-xs font-semibold uppercase tracking-wider text-slate-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 border border-gray-200 text-xs font-semibold uppercase tracking-wider text-slate-700 bg-gray-50 hover:bg-gray-100 transition-colors rounded-sm"
                     >
                         <SlidersHorizontal className="h-3.5 w-3.5 text-amber-600" />
-                        Filtres {(selectedCategories.length + selectedMatieres.length) > 0 && `(${selectedCategories.length + selectedMatieres.length})`}
+                        <span>Filtres & Tri</span>
+                        {activeFiltersCount > 0 && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-amber-600 text-white text-[10px] rounded-full font-bold">
+                                {activeFiltersCount}
+                            </span>
+                        )}
                     </button>
-
-                    {/* Sélecteur de Tri */}
-                    <div className="relative flex items-center border border-gray-200 rounded-xl px-1 py-1 bg-gray-50 text-xs font-medium text-slate-700">
-                        <select 
-                            onChange={(e) => setSortType(e.target.value)} 
-                            className="appearance-none bg-transparent outline-none cursor-pointer font-semibold"
-                        >
-                            <option value="reveler">Pertinence</option>
-                            <option value="prix-asc">Prix : Croissant</option>
-                            <option value="prix-desc">Prix : Décroissant</option>
-                        </select>
-                        <ChevronDown className="h-3 w-3 absolute right-2.5 text-gray-700 pointer-events-none" />
-                    </div>
                 </div>
 
                 {/* GRILLE PRODUITS */}
@@ -231,7 +224,7 @@ const Collection = () => {
                 )}
             </div>
 
-            {/* --- TIROIR DE FILTRES SLIDEOVER (MOBILE FIRST) --- */}
+            {/* --- TIROIR UNIFIÉ DE FILTRES ET TRI SLIDEOVER --- */}
             <div className={`fixed inset-0 z-50 transition-opacity duration-300 ${showFilter ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
                 <div onClick={() => setShowFilter(false)} className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                 
@@ -240,16 +233,43 @@ const Collection = () => {
                 }`}>
                     
                     <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-                        <h3 className="text-sm font-bold tracking-widest uppercase text-slate-800">Ajuster la sélection</h3>
+                        <h3 className="text-sm font-bold tracking-widest uppercase text-slate-800">Filtres & Tri</h3>
                         <button onClick={() => setShowFilter(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-slate-700 transition-colors">
                             <X className="h-5 w-5" />
                         </button>
                     </div>
 
                     <div className="p-6 overflow-y-auto space-y-8 flex-1">
-                        {/* Section Catégories */}
+                        
+                        {/* SECTION TRI */}
                         <div>
-                            <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-4">Par Catégories</h4>
+                            <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-3 flex items-center gap-1.5">
+                                <ArrowUpDown className="h-3.5 w-3.5" /> Trier Par
+                            </h4>
+                            <div className="grid grid-cols-1 gap-2">
+                                {[
+                                    { id: 'reveler', label: 'Pertinence' },
+                                    { id: 'prix-asc', label: 'Prix : du - cher au + cher' },
+                                    { id: 'prix-desc', label: 'Prix : du + cher au - cher' },
+                                ].map((option) => (
+                                    <button
+                                        key={option.id}
+                                        onClick={() => setSortType(option.id)}
+                                        className={`py-2.5 px-3 border text-xs font-medium text-left transition-all ${
+                                            sortType === option.id
+                                                ? 'bg-amber-50 border-amber-500 text-amber-800 font-semibold'
+                                                : 'bg-white border-gray-200 text-slate-600 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* SECTION CATÉGORIES */}
+                        <div>
+                            <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-3">Par Catégories</h4>
                             <div className="grid grid-cols-2 gap-2">
                                 {categoriesList.map((cat) => {
                                     const isChecked = selectedCategories.includes(cat._id);
@@ -257,10 +277,10 @@ const Collection = () => {
                                         <button
                                             key={cat._id}
                                             onClick={() => toggleCategorie(cat._id)}
-                                            className={`py-2.5 px-3 rounded-xl border text-xs font-medium text-left transition-all ${
+                                            className={`py-2.5 px-3 border text-xs font-medium text-left transition-all ${
                                                 isChecked
                                                 ? 'bg-amber-50 border-amber-500 text-amber-800 font-semibold'
-                                                : 'bg-white border-gray-200 text-slate-600'
+                                                : 'bg-white border-gray-200 text-slate-600 hover:bg-gray-50'
                                             }`}
                                         >
                                             {cat.nom}
@@ -270,10 +290,10 @@ const Collection = () => {
                             </div>
                         </div>
 
-                        {/* Section Matières */}
+                        {/* SECTION MATIÈRES */}
                         <div>
-                            <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-4">Par Matière</h4>
-                            <div className="flex flex-col gap-3">
+                            <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-3">Par Matière</h4>
+                            <div className="flex flex-col gap-2">
                                 {[
                                     { id: "Dore", label: "Doré à l'Or Fin" },
                                     { id: "Argenter", label: "Argenté Scintillant" },
@@ -281,7 +301,7 @@ const Collection = () => {
                                 ].map((mat) => {
                                     const isChecked = selectedMatieres.includes(mat.id);
                                     return (
-                                        <label key={mat.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl bg-gray-50/50 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        <label key={mat.id} className="flex items-center justify-between p-3 border border-gray-200 bg-gray-50/50 cursor-pointer hover:bg-gray-50 transition-colors">
                                             <span className="text-xs font-medium text-slate-700">{mat.label}</span>
                                             <input 
                                                 type="checkbox" 
@@ -294,18 +314,24 @@ const Collection = () => {
                                 })}
                             </div>
                         </div>
+
                     </div>
 
+                    {/* PIED DU TIROIR */}
                     <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-t-2xl flex gap-3">
                         <button 
-                            onClick={() => { setSelectedCategories([]); setSelectedMatieres([]); }}
-                            className="flex-1 py-3 border border-gray-200 bg-white rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+                            onClick={() => { 
+                                setSelectedCategories([]); 
+                                setSelectedMatieres([]); 
+                                setSortType('reveler');
+                            }}
+                            className="flex-1 py-3 border border-gray-200 bg-white text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
                         >
                             Réinitialiser
                         </button>
                         <button 
                             onClick={() => setShowFilter(false)}
-                            className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-xs font-semibold tracking-wide shadow-md hover:bg-slate-800 transition-colors"
+                            className="flex-1 py-3 bg-slate-900 text-white text-xs font-semibold tracking-wide shadow-md hover:bg-slate-800 transition-colors"
                         >
                             Voir les résultats
                         </button>

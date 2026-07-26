@@ -12,7 +12,7 @@ const Erreur404 = () => {
         404
       </h1>
       
-      {/* Ligne de séparation dorée pour le rappel du design Arilona */}
+      {/* Ligne de séparation dorée pour le rappel du design Aridona */}
       <div className='w-16 h-[2px] bg-amber-500 my-6'></div>
       
       <h2 className='text-2xl md:text-3xl font-light text-gray-800 uppercase tracking-[0.2em] mb-4'>

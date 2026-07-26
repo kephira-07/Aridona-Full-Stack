@@ -1,21 +1,20 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import backendUrl from '../config';
 
 const ResetPassword = () => {
-  const { token } = useParams(); // Récupère le token depuis l'URL de la route
-  
+  const { token } = useParams();
   const navigate = useNavigate();
-  
+
   const [nouveauPassword, setNouveauPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleReset = async (e) => {
     e.preventDefault();
-    
+
     if (nouveauPassword.length < 6) {
       toast.error("Le mot de passe doit contenir au moins 6 caractères.", { theme: "dark" });
       return;
@@ -36,10 +35,10 @@ const ResetPassword = () => {
         toast.success("Votre mot de passe a été mis à jour ! Redirection...", { theme: "dark" });
         setTimeout(() => navigate('/login'), 3000);
       } else {
-        toast.error(response.data.message, { theme: "dark" });
+        toast.error(response.data.message || "Impossible de réinitialiser le mot de passe.", { theme: "dark" });
       }
     } catch (error) {
-      toast.error("Une erreur est survenue lors de la réinitialisation.", { theme: "dark" });
+      toast.error(error.response?.data?.message || "Une erreur est survenue lors de la réinitialisation.", { theme: "dark" });
     } finally {
       setLoading(false);
     }
@@ -58,6 +57,7 @@ const ResetPassword = () => {
           <input 
             type="password" 
             placeholder="Nouveau mot de passe"
+            aria-label="Nouveau mot de passe"
             value={nouveauPassword}
             onChange={(e) => setNouveauPassword(e.target.value)}
             className="w-full bg-stone-50 border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-stone-900 focus:bg-white transition-all text-stone-800"
@@ -66,6 +66,7 @@ const ResetPassword = () => {
           <input 
             type="password" 
             placeholder="Confirmez le mot de passe"
+            aria-label="Confirmez le mot de passe"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full bg-stone-50 border border-stone-200 rounded-full px-5 py-3.5 text-xs outline-none focus:border-stone-900 focus:bg-white transition-all text-stone-800"
@@ -75,7 +76,7 @@ const ResetPassword = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-[#1C1A17] hover:bg-stone-800 text-white py-3.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 disabled:bg-stone-200 disabled:text-stone-400"
+            className="w-full bg-[#1C1A17] hover:bg-stone-800 text-white py-3.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300 disabled:bg-stone-200 disabled:text-stone-400 cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? 'Modification...' : 'Enregistrer'}
           </button>

@@ -1,16 +1,23 @@
 import express from "express";
 import upload from "../middleware/multer.js";
-import adminAuth from "../middleware/adminAuth.js"; // 🔒 Ajout de la protection admin
-import { addCategorie, getCategories, updateCategorie, deleteCategorie } from "../controller/categorieController.js"; // 🛠️ Dossier corrigé avec un "s"
+import auth from "../middleware/auth.js"; 
+import { addCategorie, getCategories, updateCategorie, deleteCategorie } from "../controller/categorieController.js"; 
 
 const categorieRouter = express.Router();
 
-// 🔓 Tout le monde peut lire les catégories
+const adminOnly = (req, res, next) => {
+  if (req.userRole !== 'admin') {
+    return res.status(403).json({ success: false, message: "Accès refusé. Droits administrateur requis." });
+  }
+  next();
+};
+
+// Route publique
 categorieRouter.get("/", getCategories);
 
-// 🔒 Seul l'admin authentifié peut ajouter, modifier ou supprimer
-categorieRouter.post("/add", adminAuth, upload.single("image"), addCategorie);
-categorieRouter.put("/update/:id", adminAuth,  upload.single("image"), updateCategorie);
-categorieRouter.delete("/delete/:id", adminAuth,  deleteCategorie);
+// Routes Admin
+categorieRouter.post("/add", auth, adminOnly, upload.single("image"), addCategorie);
+categorieRouter.put("/update/:id", auth, adminOnly, upload.single("image"), updateCategorie);
+categorieRouter.delete("/delete/:id", auth, adminOnly, deleteCategorie);
 
 export default categorieRouter;

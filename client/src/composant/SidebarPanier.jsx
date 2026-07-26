@@ -1,144 +1,183 @@
 import React, { useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
-import { useNavigate } from 'react-router-dom'; // 👈 Importe le hook de navigation
-import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Trash, ShoppingBag } from 'lucide-react';
 
 const SidebarPanier = () => {
-  const { panierOuvert, setPanierOuvert, panierProduits ,produits, monnaie , updateQuantity} = useContext(ShopContext);
-  const navigate = useNavigate(); // 👈 Initialise la navigation
+  const { 
+    panierOuvert, 
+    setPanierOuvert, 
+    panierProduits, 
+    produits, 
+    monnaie, 
+    updateQuantity, 
+    getPanierMontant 
+  } = useContext(ShopContext);
+  
+  const navigate = useNavigate();
 
   if (!panierOuvert) return null;
 
   const allerAuPanier = () => {
-    setPanierOuvert(false); // 1. On ferme d'abord la sidebar
-    navigate('/panier');    // 2. On redirige vers ta page panier existante
+    setPanierOuvert(false);
+    navigate('/panier');
   };
-    // 🔄 GÉRER LE CHANGEMENT DE TAILLE EN DIRECT ET FUSIONNER LES QUANTITÉS SI BESOIN
-    const handleSizeChange = (itemId, oldSize, newSize, quantity) => {
-      if (oldSize === newSize) return;
-  
-      // 1. On retire l'article associé à l'ancienne taille
-      updateQuantity(itemId, oldSize, 0);
-  
-      // 2. On injecte la quantité vers la nouvelle taille choisie
-      const quantiteExistante = panierProduits[itemId]?.[newSize] || 0;
-      updateQuantity(itemId, newSize, quantiteExistante + quantity);
-      
-      toast.info("Taille mise à jour avec succès.", { theme: "dark", autoClose: 2000 });
-    };
+
+  const allerACommande = () => {
+    setPanierOuvert(false);
+    navigate('/commander');
+  };
+
+  const sousTotal = getPanierMontant ? getPanierMontant() : 0;
 
   return (
     <div className="fixed inset-0 z-[2000]">
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setPanierOuvert(false)} />
+      {/* Overlay sombre */}
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity" 
+        onClick={() => setPanierOuvert(false)} 
+      />
 
       <div className="absolute inset-y-0 right-0 w-full max-w-md bg-white flex flex-col shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-lg font-dmsans">Votre Panier</h2>
-          <button onClick={() => setPanierOuvert(false)}><X size={24} /></button>
+        {/* En-tête */}
+        <div className="flex items-center justify-between p-5 border-b border-stone-100">
+          <div className="flex items-center gap-2">
+            <ShoppingBag size={20} className="text-amber-900" />
+            <h2 className="text-lg font-semibold text-stone-800">Votre Panier</h2>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setPanierOuvert(false)}
+            className="p-1 text-stone-400 hover:text-stone-800 rounded-full hover:bg-stone-100 transition-colors"
+          >
+            <X size={22} />
+          </button>
         </div>
 
-        {/* Liste des produits au milieu */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* ... Ton code actuel pour lister les produits ... */}
-           <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
-  {Object.keys(panierProduits).length === 0 ? (
-    <div className="flex flex-col items-center justify-center h-full text-center">
-      <p className="text-stone-400 italic">Votre panier est encore vide.</p>
-    </div>
-  ) : (
-    <div className="space-y-6">
-      {Object.keys(panierProduits).map((produitId) => {
-        // Retrouver les détails du produit dans la liste globale
-        const produitInfo = produits.find((p) => p._id === produitId);
-        
-        if (!produitInfo) return null;
-
-        // On boucle sur chaque taille ajoutée pour ce produit
-        return Object.keys(panierProduits[produitId]).map((taille) => {
-          const quantite = panierProduits[produitId][taille];
-
-          if (quantite <= 0) return null;
-
-          return (
-            <div key={`${produitId}-${taille}`} className="flex gap-4 border-b border-stone-100  pb-4 last:border-none">
-              {/* Image du produit */}
-              <div className="w-20 h-20 bg-stone-50 rounded-lg overflow-hidden  flex-shrink-0 border border-stone-100">
-                <img 
-                  src={produitInfo.image && produitInfo.image[0]} 
-                  alt={produitInfo.nom} 
-                  className="w-full h-full object-cover"
-                />
+        {/* Liste des articles */}
+        <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+          {Object.keys(panierProduits).length === 0 || sousTotal === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12">
+              <div className="p-4 bg-stone-50 rounded-full text-stone-300 mb-4">
+                <ShoppingBag size={40} strokeWidth={1.5} />
               </div>
-
-              {/* Détails du produit */}
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <h4 className="font-medium font-ebgaramond text-stone-800 text-sm line-clamp-1">{produitInfo.nom}</h4>
-                  <p className="text-xs text-stone-400 mt-1">Taille : <span className="font-semibold text-stone-600">{taille}</span></p>
-                </div>
-                
-                <div className="flex items-center justify-between mt-2">
-                  {/* Quantité */}
-                    <div className="flex items-center gap-2">
-                        <button 
-                          type="button"
-                          disabled={quantite <= 1}
-                          onClick={() => updateQuantity(produitId, taille, quantite - 1)}
-                          className="w-6 h-6 flex items-center justify-center bg-stone-100 rounded-full text-stone-600 hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            -
-                        </button>
-                        <span className="text-sm font-medium">{quantite}</span>
-                        <button 
-                          type="button"
-                            onClick={() => updateQuantity(produitId, taille, quantite + 1)}
-                            className="w-6 h-6 flex items-center justify-center bg-stone-100 rounded-full text-stone-600 hover:bg-stone-200"
-                        >
-                            +
-                        </button>
-                    </div>
-
-                  {/* Prix */}
-                  <p className="text-sm font-semibold text-amber-900">
-                    {(produitInfo.prix * quantite).toLocaleString()} {monnaie}
-                  </p>
-                </div>
-              </div>
+              <p className="text-stone-500 font-medium text-sm">Votre panier est vide pour le moment.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setPanierOuvert(false);
+                  navigate('/collection');
+                }}
+                className="mt-6 text-xs uppercase tracking-widest text-amber-900 font-semibold hover:underline"
+              >
+                Explorer nos créations
+              </button>
             </div>
-          );
-        });
-      })}
-    </div>
-  )}
-</div>
+          ) : (
+            <div className="space-y-6">
+              {Object.keys(panierProduits).map((produitId) => {
+                const produitInfo = produits.find((p) => String(p._id) === String(produitId) || String(p.id) === String(produitId));
+                if (!produitInfo) return null;
+
+                return Object.keys(panierProduits[produitId]).map((taille) => {
+                  const quantite = panierProduits[produitId][taille];
+                  if (quantite <= 0) return null;
+
+                  return (
+                    <div 
+                      key={`${produitId}-${taille}`} 
+                      className="flex gap-4 border-b border-stone-100 pb-5 last:border-none last:pb-0"
+                    >
+                      <div className="w-20 h-20 bg-stone-50 rounded-md overflow-hidden flex-shrink-0 border border-stone-100">
+                        <img 
+                          src={Array.isArray(produitInfo.image) ? produitInfo.image[0] : produitInfo.image} 
+                          alt={produitInfo.nom || produitInfo.name} 
+                          className="w-full h-full object-cover object-center"
+                        />
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-medium text-stone-800 text-sm line-clamp-1">
+                              {produitInfo.nom || produitInfo.name}
+                            </h3>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(produitId, taille, 0)}
+                              className="text-stone-300 hover:text-red-500 transition-colors p-1"
+                              aria-label="Supprimer l'article"
+                            >
+                              <Trash size={15} />
+                            </button>
+                          </div>
+                          
+                          <p className="text-xs text-stone-400 mt-1">
+                            Taille : <span className="font-medium text-stone-700">{taille}</span>
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center gap-2 border border-stone-200 rounded-md px-2 py-0.5">
+                            <button 
+                              type="button"
+                              onClick={() => updateQuantity(produitId, taille, quantite - 1)}
+                              className="text-stone-400 hover:text-stone-800 text-sm font-bold"
+                            >
+                              -
+                            </button>
+                            <span className="text-xs font-semibold px-1 text-stone-700">{quantite}</span>
+                            <button 
+                              type="button"
+                              onClick={() => updateQuantity(produitId, taille, quantite + 1)}
+                              className="text-stone-400 hover:text-stone-800 text-sm font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+
+                          <p className="text-sm font-semibold text-amber-950">
+                            {(produitInfo.prix * quantite).toLocaleString()} {monnaie || 'FCFA'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })}
+            </div>
+          )}
         </div>
 
-        {/* FOOTER : LA CONNEXION ENTRE LES DEUX PANIER */}
-        <div className="border-t p-6 bg-white space-y-3">
-          
-          {/* BOUTON 1 : Lien vers ta page panier complète */}
-          <button 
-            onClick={allerAuPanier}
-            className="w-full bg-transparent border-2 border-amber-700 text-amber-700 py-3 rounded-lg text-sm font-semibold hover:bg-stone-100 transition-colors"
-          >
-            Voir le panier complet
-          </button>
+        {/* Pied de page */}
+        {sousTotal > 0 && (
+          <div className="border-t border-stone-200 p-6 bg-stone-50/50 space-y-4">
+            <div className="flex justify-between items-center text-sm font-semibold text-stone-800">
+              <span>Sous-total</span>
+              <span className="text-base text-amber-950 font-bold">
+                {sousTotal.toLocaleString()} {monnaie || 'FCFA'}
+              </span>
+            </div>
 
-          {/* BOUTON 2 : Lien direct vers le paiement */}
-          <button 
-            onClick={() => {
-              setPanierOuvert(false);
-              navigate('/passercommande'); // Ou ta route de paiement
-            }}
-            className="w-full bg-amber-700 text-white py-3 rounded-lg text-sm font-semibold hover:text-amber-700 hover:border-2 border-amber-700 hover:bg-gray-100 transition-colors"
-          >
-            Passer la commande
-          </button>
-          
-          
-        </div>
+            <div className="space-y-2 pt-2">
+              <button 
+                type="button"
+                onClick={allerAuPanier}
+                className="w-full bg-white border border-stone-800 text-stone-800 py-3 rounded-lg text-xs font-bold tracking-widest uppercase hover:bg-stone-900 hover:text-white transition-all shadow-xs"
+              >
+                Voir le panier complet
+              </button>
+
+              <button 
+                type="button"
+                onClick={allerACommande}
+                className="w-full bg-amber-900 text-white py-3 rounded-lg text-xs font-bold tracking-widest uppercase hover:bg-amber-950 transition-all shadow-xs"
+              >
+                Passer la commande
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
