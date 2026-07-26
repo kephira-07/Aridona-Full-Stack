@@ -104,7 +104,7 @@ const PageProduit = () => {
 
   return produitData ? (
     <div className='mt-5 md:mt-8 transition-opacity ease-in duration-500 opacity-100 bg-white'>
-      
+  
       {/* METADONNÉES SEO */}
       <Helmet>
         <title>{`${produitData.nom} - Bijoux en Acier Inoxydable | Aridona Bijoux`}</title>
