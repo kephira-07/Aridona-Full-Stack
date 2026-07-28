@@ -142,8 +142,8 @@ export default function Hero() {
     
         {/* ================= DESIGN PC ================= */}
         <div className="hidden md:grid grid-cols-2 w-full md:aspect-[18/5.5] lg:aspect-[18/8.5]">
-                        
-          <div className="relative overflow-hidden group shadow-md  flex items-center justify-center">
+                    
+          <div className="relative overflow-hidden group shadow-md flex items-center justify-center">
             <img 
               src={images[0].src} 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
@@ -161,7 +161,11 @@ export default function Hero() {
                 {images[0].title}
               </h1>
               
-              <Link to="/collection" className="relative group/btn inline-block transform transition-all duration-300 hover:scale-102 active:scale-98">
+              <Link 
+                to="/collection" 
+                aria-label="Visiter la boutique de bijoux en acier inoxydable"
+                className="relative group/btn inline-block transform transition-all duration-300 hover:scale-102 active:scale-98"
+              >
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
                 <div className="relative shadow-xl overflow-hidden">
                   <Boutton textb="Visiter la boutique" />
@@ -189,7 +193,7 @@ export default function Hero() {
               </div>
             ))}
 
-            <div className="absolute inset-x-0 p-10 flex flex-col items-start text-left z-20 pointer-events-none">
+            <div className="absolute inset-x-0 p-10 flex flex-col items-start text-left z-20">
               <span className="text-[9px] uppercase tracking-[0.25em] text-amber-400 font-medium mb-2">
                 Focus Création
               </span>
@@ -218,7 +222,7 @@ export default function Hero() {
         </div>
 
         {/* ================= APPAREILS MOBILES ================= */}
-        <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5]  border border-stone-200/50">
+        <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5] border border-stone-200/50">
           <Caroussel autoSlide={true} autoSlideInterval={4000} onChange={setActiveMobileIndex}>
             {images.map((image) => (
               <img 
@@ -243,6 +247,7 @@ export default function Hero() {
             
             <Link 
               to="/collection" 
+              aria-label="Visiter la boutique de bijoux"
               className="relative w-full max-w-xs group active:scale-95 transform transition-transform"
             >
               <div className="absolute -inset-0.5 bg-amber-500 blur opacity-60"></div>

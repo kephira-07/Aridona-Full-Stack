@@ -15,11 +15,10 @@ const PageFavoris = () => {
   // 🚀 ACTION : Tout ajouter au panier et ouvrir la caisse/panier
   const commanderTousLesFavoris = () => {
     produitsFavoris.forEach((item) => {
-      // Détermine la taille initiale à attribuer
-      const tailleInitiale = item.sizes && item.sizes.length > 0 ? item.sizes[0] : 'Unique';
+      
       const idProduit = item._id || item.id;
       
-      ajouterAuPanier(idProduit, tailleInitiale);
+      ajouterAuPanier(idProduit);
     });
 
     // Redirection vers la page panier pour ajuster les tailles et finaliser

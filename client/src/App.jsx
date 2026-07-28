@@ -20,6 +20,9 @@ import PageFavoris from './pages/PageFavoris';
 import ResetPassword from './pages/ResetPassword';
 import Apropos from './pages/Apropos';
 import Erreur404 from './pages/Erreur404';
+import ConditionUtilisation from './pages/ConitionUtilisation';
+import Contact from './pages/Contact';
+import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite';
 
 function App() {
   return (
@@ -50,6 +53,9 @@ function App() {
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           
           <Route path="/a-propos" element={<Apropos />} />
+          <Route path="/conditions-utilisation" element={<ConditionUtilisation />} />
+          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+          <Route path="/contact" element={<Contact />} />
           
           {/* Capture des URLs inconnues */}
           <Route path="*" element={<Erreur404 />} />

@@ -232,13 +232,13 @@ const motDePasseOublie = async (req, res) => {
     const resetLink = `${frontendUrl}/reinitialiser-mot-de-passe/${rawToken}`;
 
     const { error } = await resend.emails.send({
-      from: 'Maison Arilona <onboarding@resend.dev>',
+      from: 'Maison Aridona <onboarding@resend.dev>',
       to: [user.email],
-      subject: 'Réinitialisation de votre mot de passe — Arilona Héritage',
+      subject: 'Réinitialisation de votre mot de passe — Aridona Héritage',
       html: `
         <div style="font-family: 'Georgia', serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; border: 1px solid #e3dfd9; background-color: #faf9f6; color: #1c1a17;">
           <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="font-size: 28px; letter-spacing: 4px; text-transform: uppercase; margin: 0; font-weight: 300;">ARILONA</h1>
+            <h1 style="font-size: 28px; letter-spacing: 4px; text-transform: uppercase; margin: 0; font-weight: 300;">Aridona</h1>
             <p style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; margin: 5px 0 0; color: #b45309;">BIJOUX & HÉRITAGE</p>
           </div>
           <p style="font-size: 15px; line-height: 1.6; color: #2e2b27;">Bonjour ${user.name},</p>
@@ -307,6 +307,21 @@ const reinitialiserMotDePasse = async (req, res) => {
     return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
+// Récupérer le panier de l'utilisateur connecté
+const getUtilisateurPanier = async (req, res) => {
+  try {
+    const { userId } = req.body; // Injecté par le middleware d'authentification (authUser)
+
+    const userData = await userModel.findById(userId);
+    let cartData = await userData.cartData;
+
+    res.json({ success: true, cartData });
+  } catch (error) {
+    console.error("Erreur lors de la récupération du panier :", error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 
 
 export { 
@@ -318,5 +333,6 @@ export {
   updateProfilUtilisateur, 
   motDePasseOublie, 
   reinitialiserMotDePasse,
-  listerUtilisateurs
+  listerUtilisateurs,
+  getUtilisateurPanier
 };

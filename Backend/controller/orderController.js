@@ -39,15 +39,16 @@ const placeOrder = async (req, res) => {
                 return res.status(404).json({ success: false, message: `Le bijou avec l'ID ${item._id} n'existe plus.` });
             }
 
-            const itemPrice = productDB.prix;
+            const itemPrice = Number(productDB.prix || productDB.price || 0);
             const quantity = Number(item.quantity) || 1;
             calculatedAmount += itemPrice * quantity;
 
             verifiedItems.push({
                 _id: productDB._id,
-                nom: productDB.nom,
+                nom: productDB.nom || productDB.name,
                 prix: itemPrice,
-                size: item.size || "Standard",
+                // Supporte 'size' ou 'sizes' selon l'objet envoyé par le Frontend
+                size: item.size || item.sizes || "Standard", 
                 quantity,
                 image: productDB.image
             });
@@ -57,7 +58,7 @@ const placeOrder = async (req, res) => {
             userId,
             items: verifiedItems,
             address,
-            amount: calculatedAmount, // Utilisation du prix recalculé côté serveur
+            amount: calculatedAmount, // Prix recalculé côté serveur
             paymentMethod: paymentMethod || "Manuel",
             payment: false,
             status: "Commande passée"
@@ -86,7 +87,13 @@ const placeOrder = async (req, res) => {
 // 2. Récupérer les commandes d'un utilisateur connecté (Espace Client)
 const userOrders = async (req, res) => {
     try {
-        const userId = req.userId; // Injecté par le middleware authUser
+        // Double sécurité d'injection middleware (req.userId ou req.body.userId)
+        const userId = req.userId || req.body.userId; 
+        
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Utilisateur non identifié." });
+        }
+
         const orders = await orderModel.find({ userId }).sort({ createdAt: -1 });
         return res.status(200).json({ success: true, orders });
     } catch (error) {

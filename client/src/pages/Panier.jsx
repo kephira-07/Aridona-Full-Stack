@@ -43,10 +43,10 @@ const Panier = () => {
   const handleSizeChange = (itemId, oldSize, newSize, quantity) => {
     if (oldSize === newSize) return;
 
-    // 1. On retire l'article associé à l'ancienne taille
+    // 1. Suppression de l'entrée associée à l'ancienne taille (ou clé temporaire "Choisir")
     updateQuantity(itemId, oldSize, 0);
 
-    // 2. On injecte la quantité vers la nouvelle taille choisie
+    // 2. Fusion ou affectation de la quantité à la nouvelle taille
     const quantiteExistante = panierProduits[itemId]?.[newSize] || 0;
     updateQuantity(itemId, newSize, quantiteExistante + quantity);
     
@@ -66,11 +66,12 @@ const Panier = () => {
         // Vérification de stock
         if (produitInfo.enStock === false) {
           produitRupture = true;
-          nomDuBijouErreur = produitInfo.nom || "Création Aridona";
+          nomDuBijouErreur = produitInfo.nom || produitInfo.name || "Création Aridona";
           break;
         }
 
-        const aPlusieursTailles = produitInfo.sizes && produitInfo.sizes.length > 0;
+        const declinaisons = produitInfo.sizes || produitInfo.tailles || [];
+        const aPlusieursTailles = declinaisons.length > 0;
         
         // Validation de taille
         const tailleInvalide = 
@@ -82,7 +83,7 @@ const Panier = () => {
 
         if (aPlusieursTailles && tailleInvalide) {
           erreurTaille = true;
-          nomDuBijouErreur = produitInfo.nom || "Création Aridona";
+          nomDuBijouErreur = produitInfo.nom || produitInfo.name || "Création Aridona";
           break; 
         }
       }
@@ -119,7 +120,7 @@ const Panier = () => {
 
       {/* Zone principale */}
       {panierData.length === 0 ? (
-        <div className='flex flex-col items-center justify-center py-24 border border-dashed  bg-stone-50/50 max-w-2xl mx-auto px-6 text-center shadow-sm'>
+        <div className='flex flex-col items-center justify-center py-24 border border-dashed bg-stone-50/50 max-w-2xl mx-auto px-6 text-center shadow-sm'>
           <div className='p-5 bg-stone-100 rounded-full mb-5 text-stone-400'>
             <ShoppingBag size={45} strokeWidth={1.2} />
           </div>
@@ -130,7 +131,7 @@ const Panier = () => {
           <button 
             type="button"
             onClick={() => navigate('/collection')}
-            className='mt-8 bg-amber-900 text-white text-xs tracking-widest uppercase px-8 py-3.5 hover:bg-amber-950 transition-all shadow-md font-medium  cursor-pointer'
+            className='mt-8 bg-amber-900 text-white text-xs tracking-widest uppercase px-8 py-3.5 hover:bg-amber-950 transition-all shadow-md font-medium cursor-pointer'
           >
             Découvrir nos créations
           </button>
@@ -148,7 +149,7 @@ const Panier = () => {
               const nomBijou = produitsData.nom || produitsData.name || "Création Aridona";
               const prixBijou = Number(produitsData.prix || produitsData.price || 0);
               const imageBijou = getImageUrl(produitsData.image);
-              const taillesDisponibles = produitsData.sizes || [];
+              const taillesDisponibles = produitsData.sizes || produitsData.tailles || [];
               const estEnStock = produitsData.enStock !== false;
 
               // Évaluation de l'état de la taille
@@ -208,7 +209,7 @@ const Panier = () => {
                             ))}
                           </select>
                         ) : (
-                          <span className='text-xs font-medium text-stone-400 px-2 py-0.5 bg-stone-100 '>Unique</span>
+                          <span className='text-xs font-medium text-stone-400 px-2 py-0.5 bg-stone-100'>Unique</span>
                         )}
                       </div>
 
@@ -253,7 +254,7 @@ const Panier = () => {
           </div>
 
           {/* Résumé & Caisse */}
-          <div className='lg:col-span-1 bg-stone-50/50 p-6 sm:p-8 border border-stone-100  lg:sticky lg:top-28 shadow-sm'>
+          <div className='lg:col-span-1 bg-stone-50/50 p-6 sm:p-8 border border-stone-100 lg:sticky lg:top-28 shadow-sm'>
             <PanierTotal />
             <div className='mt-8'>
                <button 

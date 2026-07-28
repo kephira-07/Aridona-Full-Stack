@@ -13,7 +13,7 @@ const auth = (roles = []) => {
         token = req.headers.authorization.split(' ')[1];
       }
 
-      if (!token) {
+      if (!token || token === "null" || token === "undefined") {
         return res.status(401).json({ 
           success: false, 
           message: "Non autorisé, veuillez vous connecter." 
@@ -36,6 +36,7 @@ const auth = (roles = []) => {
       // 3. Attachement des informations à la requête
       req.userId = userId;
       req.userRole = decoded.role;
+      req.userEmail = decoded.email;
 
       // 4. Rétrocompatibilité anciens contrôleurs (injection dans req.body)
       if (typeof req.body !== 'object' || req.body === null) {
@@ -52,19 +53,19 @@ const auth = (roles = []) => {
             message: "Accès interdit. Privilèges insuffisants." 
           });
         }
+      }
 
-        // SÉCURITÉ RENFORCÉE POUR L'ADMINISTRATION :
-        // Validation stricte de l'email admin face à la variable d'environnement ADMIN_EMAIL
-        if (decoded.role === 'admin' || roles.includes('admin')) {
-          const adminEmailAttendu = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase() : '';
-          const emailToken = decoded.email ? decoded.email.toLowerCase() : '';
+      // 6. SÉCURITÉ RENFORCÉE POUR L'ADMINISTRATEUR :
+      // Si l'utilisateur possède le rôle admin, validation stricte de son email
+      if (decoded.role === 'admin') {
+        const adminEmailAttendu = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase() : '';
+        const emailToken = decoded.email ? decoded.email.toLowerCase() : '';
 
-          if (!adminEmailAttendu || emailToken !== adminEmailAttendu) {
-            return res.status(403).json({ 
-              success: false, 
-              message: "Accès interdit. Identité administrateur non reconnue." 
-            });
-          }
+        if (!adminEmailAttendu || emailToken !== adminEmailAttendu) {
+          return res.status(403).json({ 
+            success: false, 
+            message: "Accès interdit. Identité administrateur non reconnue." 
+          });
         }
       }
 
