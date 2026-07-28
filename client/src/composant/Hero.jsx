@@ -98,23 +98,59 @@ const Caroussel = ({ children, autoSlide = true, autoSlideInterval = 3500, onCha
   );
 };
 
+// --- DONNÉES STRUCTURÉES SCHEMA.ORG (aide Google à comprendre l'activité du site) ---
+const StructuredData = () => {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "ARIDONA Bijoux",
+    "description": "Boutique e-commerce spécialisée dans la vente de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets, boucles d'oreilles hypoallergéniques et waterproof, livrés en moins de 30 minutes sur Lomé.",
+    "image": [Heroimg1, Heroimg2, Heroimg3],
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Lomé",
+      "addressCountry": "TG"
+    },
+    "areaServed": {
+      "@type": "City",
+      "name": "Lomé"
+    },
+    "priceRange": "$$",
+    "makesOffer": {
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Product",
+        "category": "Bijoux en acier inoxydable",
+        "name": "Bijoux ARIDONA (bagues, colliers, bracelets, boucles d'oreilles)"
+      }
+    }
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+};
+
 // --- COMPOSANT HERO PRINCIPAL ---
 export default function Hero() {
   const [activeMobileIndex, setActiveMobileIndex] = useState(0);
   const [currentPcSlide, setCurrentPcSlide] = useState(0);
 
   const images = [
-    { id: 1, src: Heroimg1, title: 'Bijoux en Acier Inoxydable', alt: 'Collection de bijoux en acier inoxydable ARIDONA Bijoux' },
-    { id: 2, src: Heroimg2, title: 'Bague Ajustable Dorée', alt: 'Bague en acier inoxydable doré résistante à eau' },
-    { id: 3, src: Heroimg3, title: 'Collier Résistant à l\'Eau', alt: 'Collier maille en acier inoxydable qui ne rouille pas' },
-    { id: 4, src: Heroimg4, title: 'Bracelet Jonc Hypoallergénique', alt: 'Bracelet jonc en acier chirurgical pour peau sensible' },
-    { id: 5, src: Heroimg5, title: 'Créoles Dorées Tendance', alt: 'Boucles d oreilles créoles en acier inoxydable doré' },
-    { id: 6, src: Heroimg6, title: 'Parure Waterproof Prestige', alt: 'Parure de bijoux en acier inoxydable haute qualité' },
-    { id: 7, src: Heroimg7, title: 'Bague Éclat Éternel', alt: 'Bague solitaire en acier inoxydable argenté' },
-    { id: 8, src: Heroimg8, title: 'Collier Étoile Argenté', alt: 'Collier pendentif étoile en acier inoxydable' },
-    { id: 9, src: Heroimg9, title: 'Boucles d’Oreilles Perle', alt: 'Puces d oreilles perle et acier inoxydable' },
-    { id: 10, src: Heroimg10, title: 'Chaîne à Lunettes Dorée', alt: 'Chaîne à lunettes tendance en acier inoxydable' },
-    { id: 11, src: Heroimg12, title: 'Bracelet Tressé & Acier', alt: 'Bracelet tressé avec fermoir en acier inoxydable' }
+    { id: 1, src: Heroimg1, title: 'Bijoux en Acier Inoxydable', alt: 'Collection de bijoux en acier inoxydable 316L pour femme et homme - ARIDONA Bijoux Lomé Togo' },
+    { id: 2, src: Heroimg2, title: 'Bague Ajustable Dorée', alt: 'Bague ajustable en acier inoxydable doré, résistante à l\'eau et hypoallergénique' },
+    { id: 3, src: Heroimg3, title: 'Collier Résistant à l\'Eau', alt: 'Collier maille en acier inoxydable waterproof qui ne rouille pas ni ne ternit' },
+    { id: 4, src: Heroimg4, title: 'Bracelet Jonc Hypoallergénique', alt: 'Bracelet jonc en acier chirurgical hypoallergénique pour peau sensible' },
+    { id: 5, src: Heroimg5, title: 'Créoles Dorées Tendance', alt: 'Boucles d\'oreilles créoles en acier inoxydable doré, tendance 2026' },
+    { id: 6, src: Heroimg6, title: 'Parure Waterproof Prestige', alt: 'Parure complète de bijoux en acier inoxydable haute qualité, collier bracelet et boucles assortis' },
+    { id: 7, src: Heroimg7, title: 'Bague Éclat Éternel', alt: 'Bague solitaire en acier inoxydable argenté, finition brillante longue durée' },
+    { id: 8, src: Heroimg8, title: 'Collier Étoile Argenté', alt: 'Collier pendentif étoile en acier inoxydable argenté, idée cadeau bijoux' },
+    { id: 9, src: Heroimg9, title: 'Boucles d\'Oreilles Perle', alt: 'Puces d\'oreilles perle et acier inoxydable, bijoux fins pour femme' },
+    { id: 10, src: Heroimg10, title: 'Chaîne à Lunettes Dorée', alt: 'Chaîne à lunettes tendance en acier inoxydable doré' },
+    { id: 11, src: Heroimg12, title: 'Bracelet Tressé & Acier', alt: 'Bracelet tressé avec fermoir en acier inoxydable, style unisexe' }
   ];
 
   const slidingPcImages = [
@@ -136,7 +172,11 @@ export default function Hero() {
   }, [slidingPcImages.length]);
 
   return (  
-    <main className="w-full bg-[#fffaf5] overflow-hidden">
+    <main className="w-full bg-[#fffaf5] overflow-hidden" itemScope itemType="https://schema.org/Store">
+      <StructuredData />
+      <meta itemProp="name" content="ARIDONA Bijoux" />
+      <meta itemProp="description" content="Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets et boucles d'oreilles, hypoallergéniques et waterproof, livrés en moins de 30 minutes." />
+
       <div className="max-w-10xl mx-auto">
     
         {/* ================= DESIGN PC ================= */}
@@ -147,26 +187,28 @@ export default function Hero() {
               src={images[0].src} 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
               alt={images[0].alt} 
+              itemProp="image"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent"></div>
             
             <div className="absolute inset-x-0 p-5 lg:p-8 flex flex-col items-center text-center z-10">
               <span className="text-[10px] uppercase tracking-[0.3em] text-amber-400 font-semibold mb-2 animate-pulse">
-                Livraison Express à Lomé
+                Livraison Express à Lomé, Togo
               </span>
               
               <h1 className="text-2xl lg:text-5xl font-serif font-light text-white mb-3 tracking-wide max-w-md leading-tight">
                 {images[0].title}
               </h1>
 
-              {/* 🎯 DESCRIPTION CONCRÈTE & PRÉCISE CONFORME GOOGLE OAUTH */}
+              {/* Description enrichie : activité claire pour Google + argumentaire marketing */}
               <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
-                Boutique e-commerce de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> (bagues, colliers, bracelets, boucles d'oreilles). Connectez-vous avec Google pour parcourir nos catégories, passer commande et être <strong className="text-amber-300 font-medium">livré en moins de 30 minutes</strong>.
+                <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme et homme : bagues, colliers, bracelets et boucles d'oreilles hypoallergéniques, waterproof et inoxydables. Parcourez nos catégories, commandez en quelques clics et recevez vos bijoux à <strong className="text-amber-300 font-medium">Lomé en moins de 30 minutes</strong>.
               </p>
               
               <Link 
                 to="/collection" 
-                aria-label="Visiter la boutique de bijoux en acier inoxydable"
+                aria-label="Visiter la boutique de bijoux en acier inoxydable ARIDONA à Lomé"
+                title="Découvrir la collection de bijoux ARIDONA"
                 className="relative group/btn inline-block transform transition-all duration-300 hover:scale-102 active:scale-98"
               >
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
@@ -191,6 +233,7 @@ export default function Hero() {
                   src={img.src} 
                   className="w-full h-full object-cover transition-transform duration-[4500ms] ease-out scale-100 group-hover:scale-105" 
                   alt={img.alt} 
+                  itemProp="image"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
               </div>
@@ -233,6 +276,7 @@ export default function Hero() {
                 src={image.src} 
                 alt={image.alt} 
                 className="min-w-full h-full object-cover flex-shrink-0" 
+                itemProp="image"
               />
             ))}
           </Caroussel>
@@ -247,14 +291,15 @@ export default function Hero() {
               {images[activeMobileIndex].title}
             </h1>
 
-            {/* 🎯 PHRASE CLAIRE ET CONCRÈTE MOBILE */}
+            {/* Description enrichie mobile : activité claire pour Google + argumentaire marketing */}
             <p className="text-stone-200 font-light text-[11px] max-w-xs mb-4 leading-relaxed">
-              Vente de bijoux en acier inoxydable. Choisissez parmi nos catégories, commandez en ligne et recevez vos pièces en <strong>moins de 30 minutes</strong>.
+              ARIDONA Bijoux : vente en ligne de bijoux en acier inoxydable 316L (bagues, colliers, bracelets, boucles d'oreilles), hypoallergéniques et waterproof. Commandez et recevez à Lomé en <strong>moins de 30 minutes</strong>.
             </p>
             
             <Link 
               to="/collection" 
-              aria-label="Visiter la boutique de bijoux"
+              aria-label="Visiter la boutique de bijoux en acier inoxydable ARIDONA à Lomé"
+              title="Découvrir la collection de bijoux ARIDONA"
               className="relative w-full max-w-xs group active:scale-95 transform transition-transform"
             >
               <div className="absolute -inset-0.5 bg-amber-500 blur opacity-60"></div>

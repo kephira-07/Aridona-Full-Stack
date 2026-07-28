@@ -6,21 +6,15 @@ import BoutonRetour from '../composant/BoutonRetour'
 import Titre from '../composant/Titre'
 
 const PageFavoris = () => {
-  // 🌟 On consomme 'ajouterFavoriAuPanier' depuis le contexte
-  const { produits, monnaie, favoris, toggleFavori, ajouterFavoriAuPanier } = useContext(ShopContext);
+  const { produits, monnaie, favoris, toggleFavori, ajouterFavoriAuPanier, ajouterTousLesFavorisAuPanier } = useContext(ShopContext);
   const navigate = useNavigate();
 
   // Filtrer les produits favoris
   const produitsFavoris = produits.filter((item) => favoris.includes(item._id || item.id));
 
-  // 🚀 ACTION GLOBALE : Transfert brut de tous les favoris vers le panier puis redirection
-  const commanderTousLesFavoris = () => {
-    produitsFavoris.forEach((item) => {
-      const idProduit = item._id || item.id;
-      ajouterFavoriAuPanier(idProduit);
-    });
-
-    // Redirection vers la page panier
+  // 🚀 ACTION GLOBALE : Ajoute tous les favoris en un seul bloc puis redirige
+  const commanderTousLesFavoris = async () => {
+    await ajouterTousLesFavorisAuPanier(produitsFavoris);
     navigate('/panier');
   };
 
@@ -112,7 +106,7 @@ const PageFavoris = () => {
                   </div>
 
                   <div className='space-y-2 pt-2'>
-                    {/* 🛒 BOUTON INDIVIDUEL : Transfert direct au panier sans contrôle de taille */}
+                    {/* Bouton individuel */}
                     <button 
                       onClick={() => ajouterFavoriAuPanier(idProduit)}
                       className='w-full py-2.5 px-3 bg-stone-900 hover:bg-amber-800 text-white text-xs font-medium tracking-wider uppercase flex items-center justify-center gap-2 transition-colors cursor-pointer'
@@ -140,4 +134,4 @@ const PageFavoris = () => {
   )
 }
 
-export default PageFavoris
+export default PageFavoris;

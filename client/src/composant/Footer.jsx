@@ -102,7 +102,7 @@ const Footer = () => {
             </Link>
             <Link onClick={scrollToTop} to="/conditions-utilisation" className="hover:text-stone-200 transition-colors">
               Conditions
-            </Link>
+            </Link> 
           </div>
         </div>
       </div>

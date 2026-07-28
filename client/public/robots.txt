@@ -5,7 +5,8 @@ Allow: /
 Disallow: /panier
 Disallow: /commander
 Disallow: /login
-Disallow: /reset-password/
+Disallow: /reset-password
+
 
 # Emplacement officiel du Sitemap
 Sitemap: https://aridona.store/sitemap.xml

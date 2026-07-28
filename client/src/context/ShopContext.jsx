@@ -192,38 +192,46 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // 2. Transfert des favoris vers le panier
-  const ajouterFavoriAuPanier = async (produitId, size = '') => {
-    const produitTarget = produits.find(p => String(p._id || p.id) === String(produitId));
-    if (!produitTarget) return;
+  // 🌟 Fonction pour ajouter TOUS les favoris d'un seul coup au panier
+const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
+  if (!listeProduitsFavoris || listeProduitsFavoris.length === 0) return;
 
-    const tailleClf = size || 'Taille Unique';
+  // 1. Cloner le panier actuel
+  let panierData = structuredClone(panierProduits);
 
-    let panierData = structuredClone(panierProduits);
+  // 2. Ajouter tous les produits favoris dans l'objet panier local
+  listeProduitsFavoris.forEach((item) => {
+    const idProduit = item._id || item.id;
+    const tailleClf = 'Taille Unique';
 
-    if (!panierData[produitId]) {
-      panierData[produitId] = {};
+    if (!panierData[idProduit]) {
+      panierData[idProduit] = {};
     }
+    panierData[idProduit][tailleClf] = (panierData[idProduit][tailleClf] || 0) + 1;
+  });
 
-    panierData[produitId][tailleClf] = (panierData[produitId][tailleClf] || 0) + 1;
+  // 3. Mettre à jour l'état React en une seule fois
+  setPanierProduits(panierData);
+  toast.success("Tous vos favoris ont été ajoutés au panier !");
+  setPanierOuvert(true);
 
-    setPanierProduits(panierData);
-    toast.success("Bijou transféré au panier !");
-    setPanierOuvert(true);
-
-    if (token) {
-      try {
-        await axios.post(
+  // 4. Synchroniser avec MongoDB si l'utilisateur est connecté
+  if (token) {
+    try {
+      const requetes = listeProduitsFavoris.map((item) => {
+        const idProduit = item._id || item.id;
+        return axios.post(
           `${backendUrl}/api/utilisateur/panier/ajouter`,
-          { itemId: produitId, size: tailleClf },
+          { itemId: idProduit, size: 'Taille Unique' },
           { headers: { token } }
         );
-      } catch (error) {
-        console.error("Erreur lors du transfert panier BDD :", error);
-      }
+      });
+      await Promise.all(requetes);
+    } catch (error) {
+      console.error("Erreur lors de la synchronisation BDD des favoris :", error);
     }
-  };
-
+  }
+};
   // 3. Modifier la taille d'un article déjà dans le panier (Version unique et nettoyée)
   const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) => {
     if (ancienneTaille === nouvelleTaille) return;
@@ -346,7 +354,7 @@ const ShopContextProvider = (props) => {
     setMontreRecherche, 
     panierProduits, 
     ajouterPanier, 
-    ajouterFavoriAuPanier, 
+    ajouterTousLesFavorisAuPanier, 
     modifierTaillePanier,
     getPanierCount, 
     updateQuantity, 
