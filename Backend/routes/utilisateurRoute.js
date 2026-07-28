@@ -9,7 +9,9 @@ import {
   motDePasseOublie, 
   reinitialiserMotDePasse,
   listerUtilisateurs,
-  getUtilisateurPanier
+  getUtilisateurPanier,
+  ajouterAuPanier,
+  updatePanier
 } from '../controller/utilisateurController.js';
 
 // Importation du middleware d'authentification RBAC
@@ -30,6 +32,8 @@ utilisateurRouter.get('/profil', auth(), getProfilUtilisateur); // Passage en GE
 utilisateurRouter.post('/profil', auth(), getProfilUtilisateur); // Conservé en POST si votre frontend l'exige
 utilisateurRouter.put('/modifier-profil', auth(), updateProfilUtilisateur); // PUT ou POST selon votre frontend
 utilisateurRouter.post('/panier', auth(), getUtilisateurPanier);
+utilisateurRouter.post('/panier/ajouter', auth(), ajouterAuPanier);
+utilisateurRouter.post('/panier/update', auth(), updatePanier);
 
 // --- 3. Routes Protégées Administrateur ---
 // Utilisation directe du contrôle de rôle intégré dans auth(['admin'])

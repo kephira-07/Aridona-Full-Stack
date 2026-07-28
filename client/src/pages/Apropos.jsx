@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { MessageCircle, Mail, MapPin, ShieldCheck, Sparkles, Droplets, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, CheckCircle2, Award, HeartHandshake } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 
 const APropos = () => {
   // CONFIGURATION DES CONTACTS
-  const NUMERO_WHATSAPP = "22891253109"; // Ton numéro sans le '+'
-  const EMAIL_CONTACT = "contact@aridona.store";
+  const NUMERO_WHATSAPP = "22891253109";
+  const EMAIL_CONTACT = "aridonabijoux@gmail.com";
   const ADRESSE = "Lomé, Togo";
 
   const [formData, setFormData] = useState({ nom: '', email: '', sujet: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
 
   const ouvrirWhatsApp = () => {
-    const message = "Bonjour Arilona Bijoux ! 💎 Je souhaiterais avoir un renseignement.";
+    const message = "Bonjour Aridona Bijoux ! 💎 Je souhaiterais avoir un renseignement sur vos bijoux en acier inoxydable.";
     window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -25,114 +25,120 @@ const APropos = () => {
   };
 
   return (
-    <div className="bg-slate-950 text-slate-100 min-h-screen pt-28 pb-20 font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div className="bg-stone-50/50 text-stone-800 min-h-screen pt-10 pb-24 font-sans selection:bg-amber-100 selection:text-amber-900">
       
-      {/* METADONNÉES SEO */}
+      {/* 🎯 BALISES SEO OPTIMISÉES */}
       <Helmet>
-        <title>Notre Histoire & Contact | Arilona Bijoux</title>
+        <title>À Propos & Contact | Aridona Bijoux - Haute Joaillerie Fine à Lomé</title>
         <meta 
           name="description" 
-          content="Découvrez l'univers d'Arilona Bijoux : créations d'exception, bijoux en acier inoxydable durables et waterproof, et nos canaux de contact." 
+          content="Découvrez l'univers Aridona Bijoux à Lomé : bijoux en acier inoxydable 316L résistant à l'eau, hypoallergéniques et dorés à l'or fin. Contactez notre conciergerie." 
         />
+        <meta name="keywords" content="bijoux acier inoxydable Lomé, bijoux waterproof Togo, collier inoxydable, bague dorée, Aridona Bijoux contact" />
       </Helmet>
 
-      <div className="px-6 md:px-12 lg:px-20 max-w-6xl mx-auto space-y-20">
+      <div className="px-4 sm:px-8 md:px-12 lg:px-20 max-w-6xl mx-auto space-y-20">
         
         <BoutonRetour />
 
-        {/* --- SECTION 1 : HERO & HISTOIRE --- */}
-        <section className="text-center flex flex-col items-center relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        {/* --- SECTION 1 : HERO & STORYTELLING SEO --- */}
+        <section className="text-center flex flex-col items-center relative animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {/* Halo lumineux discret pour le thème clair */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-amber-200/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold tracking-[0.25em] uppercase mb-6">
-            <Sparkles size={14} /> L'univers Arilona
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/80 border border-amber-200/60 text-amber-900 text-xs font-semibold tracking-[0.25em] uppercase mb-6 shadow-sm">
+             La Maison Aridona
           </span>
 
-          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-amber-100 via-amber-300 to-amber-100 bg-clip-text text-transparent uppercase tracking-wider leading-tight max-w-4xl">
-            Éléganter votre quotidien, <br className="hidden sm:inline" /> sans compromis.
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl text-stone-900 font-bold tracking-tight leading-tight max-w-4xl">
+            L'Élégance Fine & Durable <br className="hidden sm:inline" />
+            <span className="text-amber-800 italic font-serif">Conçue Pour Traverser Le Temps</span>
           </h1>
 
-          <div className="w-16 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent my-8" />
+          <div className="w-16 h-[2px] bg-amber-700/40 my-8" />
 
-          <p className="text-slate-300 text-sm md:text-base max-w-2xl leading-relaxed font-light text-balance">
-            Née de la passion pour la haute joaillerie fine et l’accessibilité, <strong className="text-amber-400 font-medium">Arilona Bijoux</strong> façonne des créations durables et intemporelles en acier inoxydable, conçues pour sublimer chaque instant de votre vie.
+          <p className="text-stone-600 text-sm md:text-base max-w-2xl leading-relaxed font-light text-balance">
+            Basée à <strong className="text-stone-900 font-medium">Lomé</strong>, la Maison <strong className="text-amber-900 font-medium">Aridona Bijoux</strong> sélectionne et façonne des parures d'exception en <strong className="text-stone-900 font-medium">acier inoxydable de qualité supérieure</strong>. Pensées pour les femmes modernes, nos créations allient le raffinement de la haute joaillerie à la liberté du quotidien.
           </p>
         </section>
 
-        {/* --- SECTION 2 : VOS ENGAGEMENTS & QUALITÉ --- */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800/80 hover:border-amber-500/40 transition-all duration-300 flex flex-col items-center text-center group">
-            <div className="p-4 rounded-xl bg-amber-500/10 text-amber-400 mb-5 group-hover:scale-110 transition-transform duration-300">
+        {/* --- SECTION 2 : ENGAGEMENTS QUALITÉ --- */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-sm hover:shadow-md hover:border-amber-700/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="p-4 rounded-xl bg-amber-50 text-amber-800 mb-5 group-hover:scale-110 group-hover:bg-amber-100 transition-transform duration-300">
               <Droplets size={26} />
             </div>
-            <h3 className="font-serif text-lg font-bold text-slate-100 mb-2">100% Waterproof</h3>
-            <p className="text-xs text-slate-400 leading-relaxed font-light">
-              Nos bijoux résistent parfaitement à l'eau, aux parfums et à la transpiration sans jamais perdre leur éclat d'origine.
+            <h3 className="font-serif text-lg font-bold text-stone-900 mb-2">100% Waterproof</h3>
+            <p className="text-xs text-stone-600 leading-relaxed font-light">
+              Résistance garantie sous l'eau, à la mer et aux cosmétiques. Vos bijoux conservent leur éclat d'origine sans jamais ternir.
             </p>
           </div>
 
-          <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800/80 hover:border-amber-500/40 transition-all duration-300 flex flex-col items-center text-center group">
-            <div className="p-4 rounded-xl bg-amber-500/10 text-amber-400 mb-5 group-hover:scale-110 transition-transform duration-300">
+          <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-sm hover:shadow-md hover:border-amber-700/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="p-4 rounded-xl bg-amber-50 text-amber-800 mb-5 group-hover:scale-110 group-hover:bg-amber-100 transition-transform duration-300">
               <ShieldCheck size={26} />
             </div>
-            <h3 className="font-serif text-lg font-bold text-slate-100 mb-2">Hypoallergénique</h3>
-            <p className="text-xs text-slate-400 leading-relaxed font-light">
-              Sélectionnés dans un acier inoxydable de grade supérieur pour respecter la sensibilité de toutes les peaux.
+            <h3 className="font-serif text-lg font-bold text-stone-900 mb-2">Acier Hypoallergénique</h3>
+            <p className="text-xs text-stone-600 leading-relaxed font-light">
+              Sélection rigoureuse d'acier 316L certifié, formulé spécifiquement pour préserver la sensibilité des peaux les plus délicates.
             </p>
           </div>
 
-          <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800/80 hover:border-amber-500/40 transition-all duration-300 flex flex-col items-center text-center group">
-            <div className="p-4 rounded-xl bg-amber-500/10 text-amber-400 mb-5 group-hover:scale-110 transition-transform duration-300">
-              <Sparkles size={26} />
+          <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-sm hover:shadow-md hover:border-amber-700/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="p-4 rounded-xl bg-amber-50 text-amber-800 mb-5 group-hover:scale-110 group-hover:bg-amber-100 transition-transform duration-300">
+              <Award size={26} />
             </div>
-            <h3 className="font-serif text-lg font-bold text-slate-100 mb-2">Finition Éclatante</h3>
-            <p className="text-xs text-slate-400 leading-relaxed font-light">
-              Un polissage minutieux assurant une brillance dorée ou argentée inaltérable au fil des saisons.
+            <h3 className="font-serif text-lg font-bold text-stone-900 mb-2">Dorure Haute Tenue</h3>
+            <p className="text-xs text-stone-600 leading-relaxed font-light">
+              Un plaquage minutieux à l'or fin offrant une brillance chaude et durable au fil des saisons, sans altération.
             </p>
           </div>
         </section>
 
-        {/* --- SECTION 3 : MANIFESTE / VISION --- */}
-        <section className="bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-900 border border-amber-500/20 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl">
-          <div className="absolute right-0 bottom-0 w-72 h-72 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+        {/* --- SECTION 3 : LE MANIFESTE / VALEURS --- */}
+        <section className="bg-amber-900 text-stone-100 rounded-3xl p-8 md:p-14 relative overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-500">
+          {/* Texture d'arrière-plan discrète */}
+          <div className="absolute right-0 bottom-0 w-80 h-80 bg-amber-800/40 rounded-full blur-3xl pointer-events-none" />
           
           <div className="max-w-2xl space-y-4 relative z-10">
-            <span className="text-xs uppercase tracking-[0.3em] text-amber-400 font-semibold">Notre Manifeste</span>
-            <h2 className="font-serif text-2xl md:text-3xl font-bold leading-tight text-slate-100">
-              « Un bijou ne doit pas seulement compléter une tenue, il doit révéler votre assurance. »
+            <span className="text-xs uppercase tracking-[0.3em] text-amber-300 font-medium flex items-center gap-2">
+              <HeartHandshake size={15} /> Notre Philosophie
+            </span>
+            <h2 className="font-serif text-2xl md:text-3xl font-normal leading-relaxed text-amber-50">
+              « Un bijou ne doit pas seulement sublimer votre allure, il doit être le complice fidèle de vos plus beaux souvenirs. »
             </h2>
-            <p className="text-slate-300 text-xs md:text-sm leading-relaxed font-light">
-              Chez Arilona, nous refusons les compromis entre raffinement et durabilité. Nos parures sont pensées pour être superposées, portées sans contrainte et traverser le temps avec vous.
+            <p className="text-amber-100/80 text-xs md:text-sm leading-relaxed font-light pt-2">
+              Chaque bague, collier ou bracelet de notre collection est pensé pour être superposé à l'infini, porté en toute liberté sans crainte d'usure, et transmis au fil des émotions.
             </p>
           </div>
         </section>
 
-        {/* --- SECTION 4 : SERVICE CLIENT & FORMULAIRE --- */}
-        <section className="space-y-10">
+        {/* --- SECTION 4 : CONCIERGERIE & CONTACT --- */}
+        <section className="space-y-12">
           <div className="text-center space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-amber-400 font-semibold">Conciergerie & Support</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-100">Contactez la Maison</h2>
-            <p className="text-xs text-slate-400">Une question sur une création ou le suivi d'une commande ? Nous sommes à votre écoute.</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-amber-800 font-semibold">Service Client & Conciergerie</p>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-stone-900">Contactez la Maison</h2>
+            <p className="text-xs text-stone-500 max-w-md mx-auto">Une question sur nos créations, une demande de conseils ou le suivi d'une commande ? Nous sommes à votre écoute.</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
             
-            {/* Canaux de contact rapides (2 colonnes) */}
+            {/* CANAUX RAPIDES (2 COLONNES) */}
             <div className="lg:col-span-2 space-y-4">
               
-              {/* WhatsApp */}
+              {/* WhatsApp Direct */}
               <button
                 onClick={ouvrirWhatsApp}
-                className="w-full p-6 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 hover:border-emerald-500/60 transition-all text-left flex items-start justify-between group cursor-pointer"
+                className="w-full p-6 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 hover:border-emerald-400 hover:bg-emerald-50 hover:-translate-y-0.5 transition-all duration-300 text-left flex items-start justify-between group cursor-pointer shadow-sm"
               >
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">WhatsApp Direct</span>
-                    <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-semibold">Réponse immédiate</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">WhatsApp Direct</span>
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Réponse rapide</span>
                   </div>
-                  <p className="text-xs text-slate-400">Échangez instantanément avec notre conseiller client.</p>
+                  <p className="text-xs text-emerald-900/70">Conseil personnalisé et commande instantanée.</p>
                 </div>
-                <div className="p-3 bg-emerald-600 text-white rounded-xl group-hover:scale-105 transition-transform">
+                <div className="p-3 bg-emerald-700 text-white rounded-xl group-hover:scale-105 transition-transform shadow-sm">
                   <MessageCircle size={20} />
                 </div>
               </button>
@@ -140,95 +146,95 @@ const APropos = () => {
               {/* Email */}
               <a
                 href={`mailto:${EMAIL_CONTACT}`}
-                className="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all text-left flex items-start justify-between group block"
+                className="p-6 rounded-2xl bg-white border border-stone-200/80 hover:border-amber-800/40 hover:-translate-y-0.5 transition-all duration-300 text-left flex items-start justify-between group block shadow-sm"
               >
                 <div className="space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Adresse Email</span>
-                  <p className="text-xs text-amber-400 font-medium">{EMAIL_CONTACT}</p>
+                  <span className="text-xs font-bold uppercase tracking-wider text-stone-500">Service Courrier</span>
+                  <p className="text-xs text-amber-900 font-medium">{EMAIL_CONTACT}</p>
                 </div>
-                <div className="p-3 bg-slate-800 text-slate-300 rounded-xl group-hover:scale-105 transition-transform">
+                <div className="p-3 bg-stone-100 text-stone-700 rounded-xl group-hover:scale-105 transition-transform">
                   <Mail size={20} />
                 </div>
               </a>
 
-              {/* Localisation & Horaires */}
-              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-                <div className="flex items-center gap-3 text-slate-300">
-                  <MapPin size={18} className="text-amber-400" />
+              {/* Infos Clés */}
+              <div className="p-6 rounded-2xl bg-white border border-stone-200/80 space-y-3.5 shadow-sm">
+                <div className="flex items-center gap-3 text-stone-700">
+                  <MapPin size={18} className="text-amber-800 shrink-0" />
                   <span className="text-xs font-medium">{ADRESSE}</span>
                 </div>
-                <div className="flex items-center gap-3 text-slate-400 text-xs">
-                  <Clock size={18} className="text-amber-400" />
+                <div className="flex items-center gap-3 text-stone-600 text-xs">
+                  <Clock size={18} className="text-amber-800 shrink-0" />
                   <span>Du Lundi au Samedi : 09h00 – 19h00</span>
                 </div>
               </div>
 
             </div>
 
-            {/* Formulaire de message (3 colonnes) */}
-            <div className="lg:col-span-3 bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl">
-              <h3 className="text-lg font-serif font-bold text-slate-100 mb-6">Envoyez-nous un message</h3>
+            {/* FORMULAIRE DE MESSAGE (3 COLONNES) */}
+            <div className="lg:col-span-3 bg-white border border-stone-200/80 p-8 rounded-2xl shadow-sm">
+              <h3 className="text-lg font-serif font-bold text-stone-900 mb-6">Transmettre un message</h3>
 
               {submitted && (
-                <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs flex items-center gap-3">
-                  <CheckCircle2 size={18} />
-                  <span>Votre message a été transmis avec succès. Nous vous répondrons sous peu.</span>
+                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-3 animate-in fade-in duration-300">
+                  <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                  <span>Votre demande a été transmise avec succès. Notre équipe vous répondra sous 24h.</span>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] uppercase tracking-wider text-slate-400">Nom complet *</label>
+                    <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Nom complet *</label>
                     <input
                       type="text"
                       required
                       value={formData.nom}
                       onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
                       placeholder="Votre nom"
-                      className="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/70 transition-all"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[11px] uppercase tracking-wider text-slate-400">Email *</label>
+                    <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Adresse Email *</label>
                     <input
                       type="email"
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="votre@email.com"
-                      className="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/70 transition-all"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] uppercase tracking-wider text-slate-400">Sujet</label>
+                  <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Sujet de la demande</label>
                   <input
                     type="text"
                     value={formData.sujet}
                     onChange={(e) => setFormData({ ...formData, sujet: e.target.value })}
-                    placeholder="Suivi de commande, renseignement..."
-                    className="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/70 transition-all"
+                    placeholder="Conseil bijou, suivi de livraison..."
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] uppercase tracking-wider text-slate-400">Message *</label>
+                  <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Message *</label>
                   <textarea
                     required
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="Détaillez votre demande..."
-                    className="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-amber-500/70 transition-all resize-none"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full bg-amber-800 hover:bg-amber-900 active:scale-[0.99] text-white font-semibold py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Send size={15} /> Envoyer la demande
                 </button>

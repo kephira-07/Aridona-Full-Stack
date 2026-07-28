@@ -80,14 +80,14 @@ const Caroussel = ({ children, autoSlide = true, autoSlideInterval = 3500, onCha
         <div className="absolute inset-0 flex items-center justify-between p-4 pointer-events-none z-20">
           <button 
             aria-label="Image précédente"
-            className="p-2 rounded-1xl bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
+            className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300 cursor-pointer" 
             onClick={prev}
           >
             <ChevronLeft size={20} />
           </button>
           <button 
             aria-label="Image suivante"
-            className="p-2 rounded-1xl bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300" 
+            className="p-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white pointer-events-auto shadow-lg hover:bg-amber-600 transition-all duration-300 cursor-pointer" 
             onClick={next}
           >
             <ChevronRight size={20} />
@@ -103,7 +103,6 @@ export default function Hero() {
   const [activeMobileIndex, setActiveMobileIndex] = useState(0);
   const [currentPcSlide, setCurrentPcSlide] = useState(0);
 
-  // Mots-clés SEO ciblés dans les titres et attributs ALT des visuels
   const images = [
     { id: 1, src: Heroimg1, title: 'Bijoux en Acier Inoxydable', alt: 'Collection de bijoux en acier inoxydable ARIDONA Bijoux' },
     { id: 2, src: Heroimg2, title: 'Bague Ajustable Dorée', alt: 'Bague en acier inoxydable doré résistante à eau' },
@@ -149,17 +148,21 @@ export default function Hero() {
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
               alt={images[0].alt} 
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent"></div>
             
-            <div className="absolute inset-x-0 p-5 flex flex-col items-center text-center z-10">
+            <div className="absolute inset-x-0 p-5 lg:p-8 flex flex-col items-center text-center z-10">
               <span className="text-[10px] uppercase tracking-[0.3em] text-amber-400 font-semibold mb-2 animate-pulse">
-                Nouvelle Collection
+                Livraison Express à Lomé
               </span>
               
-              {/* BALISE H1 STRUCTURANTE POUR LE SEO GOOGLE */}
-              <h1 className="text-2xl lg:text-5xl font-serif font-light text-white mb-8 md:mb-12 tracking-wide max-w-md leading-tight">
+              <h1 className="text-2xl lg:text-5xl font-serif font-light text-white mb-3 tracking-wide max-w-md leading-tight">
                 {images[0].title}
               </h1>
+
+              {/* 🎯 DESCRIPTION CONCRÈTE & PRÉCISE CONFORME GOOGLE OAUTH */}
+              <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
+                Boutique e-commerce de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> (bagues, colliers, bracelets, boucles d'oreilles). Connectez-vous avec Google pour parcourir nos catégories, passer commande et être <strong className="text-amber-300 font-medium">livré en moins de 30 minutes</strong>.
+              </p>
               
               <Link 
                 to="/collection" 
@@ -168,7 +171,7 @@ export default function Hero() {
               >
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
                 <div className="relative shadow-xl overflow-hidden">
-                  <Boutton textb="Visiter la boutique" />
+                  <Boutton textb="Commander en ligne" />
                 </div>
               </Link>
             </div>
@@ -193,12 +196,12 @@ export default function Hero() {
               </div>
             ))}
 
-            <div className="absolute inset-x-0 p-10 flex flex-col items-start text-left z-20">
+            <div className="absolute inset-x-0 bottom-6 p-8 lg:p-10 flex flex-col items-start text-left z-20">
               <span className="text-[9px] uppercase tracking-[0.25em] text-amber-400 font-medium mb-2">
-                Focus Création
+                Qualité Inoxydable & Waterproof
               </span>
               
-              <h2 className="text-xl lg:text-5xl font-serif font-light text-stone-100 tracking-wide min-h-[3.5rem] leading-snug">
+              <h2 className="text-xl lg:text-4xl font-serif font-light text-stone-100 tracking-wide min-h-[3.5rem] leading-snug">
                 {slidingPcImages.map((img, index) => 
                   index === currentPcSlide && (
                     <TypewriterText key={img.id} text={img.title} />
@@ -222,7 +225,7 @@ export default function Hero() {
         </div>
 
         {/* ================= APPAREILS MOBILES ================= */}
-        <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5] border border-stone-200/50">
+        <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5.5] border border-stone-200/50">
           <Caroussel autoSlide={true} autoSlideInterval={4000} onChange={setActiveMobileIndex}>
             {images.map((image) => (
               <img 
@@ -234,16 +237,20 @@ export default function Hero() {
             ))}
           </Caroussel>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent pointer-events-none"></div>
 
-          <div className="absolute inset-x-0 bottom-0 p-8 flex flex-col items-center text-center z-10">
-            {/* BALISE H1 POUR MOBILE */}
+          <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col items-center text-center z-10">
             <h1 
               key={activeMobileIndex} 
-              className="text-2xl font-serif text-white mb-6 tracking-wide leading-tight min-h-[3rem] animate-[fadeInUp_0.5s_ease-out]"
+              className="text-xl font-serif text-white mb-2 tracking-wide leading-tight animate-[fadeInUp_0.5s_ease-out]"
             >
               {images[activeMobileIndex].title}
             </h1>
+
+            {/* 🎯 PHRASE CLAIRE ET CONCRÈTE MOBILE */}
+            <p className="text-stone-200 font-light text-[11px] max-w-xs mb-4 leading-relaxed">
+              Vente de bijoux en acier inoxydable. Choisissez parmi nos catégories, commandez en ligne et recevez vos pièces en <strong>moins de 30 minutes</strong>.
+            </p>
             
             <Link 
               to="/collection" 
@@ -252,7 +259,7 @@ export default function Hero() {
             >
               <div className="absolute -inset-0.5 bg-amber-500 blur opacity-60"></div>
               <div className="relative shadow-[0_0_15px_rgba(217,119,6,0.5)] overflow-hidden">
-                <Boutton textb="Visiter la boutique" />
+                <Boutton textb="Commander en ligne" />
               </div>
             </Link>
           </div>

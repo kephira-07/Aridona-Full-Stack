@@ -12,14 +12,12 @@ const MeilleurVente = () => {
     const fetchMeilleuresVentes = async () => {
       try {
         setLoading(true);
-        
-        // 🛰️ IDÉAL : Remplacer par '${backendUrl}/api/produit/bestsellers' si tu modifies ton backend (voir étape 2)
         const response = await axios.get(`${backendUrl}/api/produit/list`);
         
         if (response.data.success) {
           const produitsBruts = response.data.produits || response.data.products || [];
           
-          // Filtrage côté client (temporaire en attendant l'étape 2)
+          // Filtrage côté client pour récupérer les pièces coups de cœur
           const topProduits = produitsBruts.filter(p => 
             p.bestseller === true || 
             p.bestseller === "true" || 
@@ -27,7 +25,6 @@ const MeilleurVente = () => {
             p.meilleurVente === "true"
           );
           
-          // On garde les 8 premiers produits
           setMeilleurVente(topProduits.slice(0, 8));
         }
       } catch (error) {
@@ -41,19 +38,20 @@ const MeilleurVente = () => {
   }, []);
 
   return (
-    <div className="bg-white py-12">
-        {/* En-tête de section luxueux */}
-        <div className='text-center text-3xl pb-8'>
-            <Titre text1='Découvrez notre' text2='Meilleure vente' />
-            <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-stone-500 font-light mt-2 italic'>
-                L'excellence signée Aridona : les créations les plus plébiscitées et convoitées de notre collection.
+    <section className="bg-white py-10">
+        {/* En-tête de section explicite pour Google OAuth */}
+        <div className='text-center text-2xl sm:text-3xl pb-6 px-4'>
+            <Titre text1='Nos Succès' text2='Meilleures Ventes' />
+            
+            {/* 🎯 DESCRIPTIF CONCRET & CLAIR */}
+            <p className='max-w-2xl mx-auto text-xs sm:text-sm font-dmsans text-stone-600 mt-2 leading-relaxed'>
+              Découvrez nos <strong className='font-medium text-stone-800'>bijoux en acier inoxydable 316L</strong> les plus demandés. Sélectionne tes bagues, bracelets et colliers favoris et profite d'une <strong className='font-medium text-amber-700'>livraison express à domicile en moins de 30 minutes</strong>.
             </p>
         </div>
         
-        {/* Grille de produits */}
-        <div className='max-w-7xl mx-auto px-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1 gap-y-2'>
+        {/* Grille de produits aérée */}
+        <div className='max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 gap-y-6'>
             {loading ? (
-              // 🌟 SQUELETTES DE CHARGEMENT ANIMÉS : S'affichent instantanément pendant l'appel API
               Array.from({ length: 4 }).map((_, index) => (
                 <div key={index} className="flex flex-col animate-pulse">
                   <div className="bg-stone-200 aspect-square w-full rounded-md" />
@@ -62,7 +60,7 @@ const MeilleurVente = () => {
                 </div>
               ))
             ) : meilleurVente.length === 0 ? (
-              <p className="col-span-full text-center text-stone-400 text-xs py-10 border border-dashed border-stone-100 italic">
+              <p className="col-span-full text-center text-stone-400 text-xs py-10 border border-dashed border-stone-200 rounded-md italic">
                 Aucune création n'est mise en avant pour le moment.
               </p>
             ) : (
@@ -78,7 +76,7 @@ const MeilleurVente = () => {
               ))
             )}
         </div>
-    </div>
+    </section>
   );
 };
 

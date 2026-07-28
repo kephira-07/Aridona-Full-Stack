@@ -14,13 +14,6 @@ import auth from '../middleware/auth.js';
 
 const produitRouter = express.Router();
 
-const adminOnly = (req, res, next) => {
-  if (req.userRole !== 'admin') {
-    return res.status(403).json({ success: false, message: "Accès refusé. Droits administrateur requis." });
-  }
-  next();
-};
-
 const uploadFields = upload.fields([
   { name: 'image1', maxCount: 1 },
   { name: 'image2', maxCount: 1 },
@@ -28,16 +21,17 @@ const uploadFields = upload.fields([
   { name: 'image4', maxCount: 1 }
 ]);
 
-// Routes Publiques
+// --- Routes Publiques (Catalogue du site) ---
 produitRouter.get('/list', listproduits);
 produitRouter.get('/single/:id', singleproduit);
 produitRouter.get('/search', searchProduits);
 
-// Routes Administrateur
-produitRouter.post('/add', auth, adminOnly, uploadFields, addproduit);
-produitRouter.put('/update/:id', auth, adminOnly, uploadFields, updateproduit);
-produitRouter.delete('/remove/:id', auth, adminOnly, removeproduit);
-produitRouter.put('/changer-stock/:id', auth, adminOnly, changerStatutStock);
-produitRouter.get('/stats-dashboard', auth, adminOnly, getDashboardStats);
+// --- Routes Protégées Administrateur ---
+// L'appel auth(['admin']) vérifie le JWT + le rôle 'admin' + l'email administrateur
+produitRouter.post('/add', auth(['admin']), uploadFields, addproduit);
+produitRouter.put('/update/:id', auth(['admin']), uploadFields, updateproduit);
+produitRouter.delete('/remove/:id', auth(['admin']), removeproduit);
+produitRouter.put('/changer-stock/:id', auth(['admin']), changerStatutStock);
+produitRouter.get('/stats-dashboard', auth(['admin']), getDashboardStats);
 
 export default produitRouter;

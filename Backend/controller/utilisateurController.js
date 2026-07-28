@@ -6,12 +6,54 @@ import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { Resend } from 'resend';
 import utilisateurModel from '../models/utilisateurModel.js';
+import axios from 'axios';
 
 // Helper pour générer des JWT compatibles avec le middleware auth.js
 const createToken = (id, role = 'user', email = null) => {
   const payload = { id, role };
   if (email) payload.email = email;
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+};
+
+
+
+const googleLogin = async (req, res) => {
+  try {
+    const { access_token } = req.body;
+
+    if (!access_token) {
+      return res.status(400).json({ success: false, message: "Jeton d'accès Google manquant." });
+    }
+
+    // Récupérer les infos utilisateur auprès de Google
+    const googleRes = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+
+    const { email, name, picture, sub: googleId } = googleRes.data;
+
+    // Chercher l'utilisateur dans MongoDB
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+      // Création du compte Google dans MongoDB
+      user = await userModel.create({
+        name,
+        email,
+        googleId,
+        avatar: picture,
+        password: "" // Pas de mot de passe nécessaire
+      });
+    }
+
+    // Génération de votre token JWT
+    const token = createToken(user._id);
+
+    return res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.error("Erreur Backend googleLogin:", error.response?.data || error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // 1. Inscription classique
@@ -165,41 +207,8 @@ const listerUtilisateurs = async (req, res) => {
   }
 };
 
-// 7. Connexion via Google OAuth
-const googleLogin = async (req, res) => {
-  try {
-   const { access_token } = req.body;
 
-        // Récupérer les infos utilisateur auprès de Google
-        const googleRes = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo`, {
-            headers: { Authorization: `Bearer ${access_token}` }
-        });
 
-        const { email, name, picture, sub: googleId } = googleRes.data;
-
-        // Chercher l'utilisateur dans MongoDB
-        let user = await userModel.findOne({ email });
-
-        if (!user) {
-            // Création du compte Google dans MongoDB
-            user = await userModel.create({
-                name,
-                email,
-                googleId,
-                avatar: picture,
-                password: "" // Pas de mot de passe nécessaire
-            });
-        }
-
-        // Génération de votre token JWT
-        const token = createToken(user._id);
-
-        res.json({ success: true, token });
-    } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: error.message });
-    }
-};
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -307,22 +316,85 @@ const reinitialiserMotDePasse = async (req, res) => {
     return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
+
+
+
+
 // Récupérer le panier de l'utilisateur connecté
 const getUtilisateurPanier = async (req, res) => {
   try {
-    const { userId } = req.body; // Injecté par le middleware d'authentification (authUser)
+    const userId = req.userId; // Extrait proprement depuis le middleware auth.js
+    const userData = await utilisateurModel.findById(userId);
 
-    const userData = await userModel.findById(userId);
-    let cartData = await userData.cartData;
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
+    }
 
-    res.json({ success: true, cartData });
+    const cartData = userData.cartData || {};
+    return res.json({ success: true, cartData });
   } catch (error) {
-    console.error("Erreur lors de la récupération du panier :", error);
-    res.json({ success: false, message: error.message });
+    console.error("Erreur récupération panier :", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
+// Ajouter / Synchroniser un article dans le panier BDD
+const ajouterAuPanier = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { itemId, size } = req.body;
 
+    const userData = await utilisateurModel.findById(userId);
+    let cartData = userData.cartData || {};
+
+    if (!cartData[itemId]) {
+      cartData[itemId] = {};
+    }
+
+    if (cartData[itemId][size]) {
+      cartData[itemId][size] += 1;
+    } else {
+      cartData[itemId][size] = 1;
+    }
+
+    await utilisateurModel.findByIdAndUpdate(userId, { cartData });
+    return res.json({ success: true, message: "Ajouté au panier BDD" });
+  } catch (error) {
+    console.error("Erreur ajout panier BDD :", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Mettre à jour la quantité d'un article dans le panier BDD
+const updatePanier = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { itemId, size, quantity } = req.body;
+
+    const userData = await utilisateurModel.findById(userId);
+    let cartData = userData.cartData || {};
+
+    if (quantity <= 0) {
+      if (cartData[itemId]) {
+        delete cartData[itemId][size];
+        if (Object.keys(cartData[itemId]).length === 0) {
+          delete cartData[itemId];
+        }
+      }
+    } else {
+      if (!cartData[itemId]) {
+        cartData[itemId] = {};
+      }
+      cartData[itemId][size] = quantity;
+    }
+
+    await utilisateurModel.findByIdAndUpdate(userId, { cartData });
+    return res.json({ success: true, message: "Panier mis à jour" });
+  } catch (error) {
+    console.error("Erreur mise à jour panier BDD :", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 export { 
   registerutilisateur, 
@@ -334,5 +406,7 @@ export {
   motDePasseOublie, 
   reinitialiserMotDePasse,
   listerUtilisateurs,
-  getUtilisateurPanier
+  getUtilisateurPanier,
+  ajouterAuPanier,
+  updatePanier
 };

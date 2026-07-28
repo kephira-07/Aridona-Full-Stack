@@ -6,17 +6,22 @@ const Orders = ({ token }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper sécurisé pour extraire l'URL de l'image (compatible string ou objet Cloudinary)
+  const getImageUrl = (imgData) => {
+    if (!imgData) return 'https://via.placeholder.com/60';
+    const first = Array.isArray(imgData) ? imgData[0] : imgData;
+    return typeof first === 'object' && first?.url ? first.url : (first || 'https://via.placeholder.com/60');
+  };
+
   // 1. Récupérer TOUTES les commandes depuis le Backend
   const fetchAllOrders = async () => {
     try {
       setLoading(true);
-      // Requête POST conforme à ton orderRouter.js sécurisé
       const response = await axios.post(`${backendUrl}/api/order/list`, {}, { headers: { token } });
       
       if (response.data.success) {
-        // Sécurité : On vérifie que orders existe et est bien un tableau avant de le manipuler
         const listeCommandes = response.data.orders || [];
-        setOrders([...listeCommandes]); // Ton backend fait déjà le .sort({ date: -1 }), donc pas besoin de reverse !
+        setOrders([...listeCommandes]);
       } else {
         alert(response.data.message);
       }
@@ -32,7 +37,6 @@ const Orders = ({ token }) => {
   const statusHandler = async (e, orderId) => {
     const newStatus = e.target.value;
     try {
-      // Envoi de la modification vers /api/order/status
       const response = await axios.post(
         `${backendUrl}/api/order/status`, 
         { orderId, status: newStatus }, 
@@ -40,7 +44,7 @@ const Orders = ({ token }) => {
       );
       
       if (response.data.success) {
-        await fetchAllOrders(); // Rafraîchit instantanément la liste après modification
+        await fetchAllOrders();
       } else {
         alert(response.data.message);
       }
@@ -50,7 +54,6 @@ const Orders = ({ token }) => {
     }
   };
 
-  // Enclencher le chargement dès que le token admin est disponible
   useEffect(() => {
     if (token) {
       fetchAllOrders();
@@ -95,9 +98,8 @@ const Orders = ({ token }) => {
                   {order.items && order.items.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-3 bg-white p-2 rounded-xl border border-gray-100">
                       
-                      {/* Image de l'article avec filet de sécurité */}
                       <img 
-                        src={(Array.isArray(item.image) ? item.image[0] : item.image) || 'https://via.placeholder.com/60'} 
+                        src={getImageUrl(item.image)} 
                         alt={item.nom} 
                         className="w-14 h-14 object-cover rounded-lg border border-gray-100 flex-shrink-0"
                       />
@@ -105,7 +107,7 @@ const Orders = ({ token }) => {
                       <div className="text-sm">
                         <p className="font-semibold text-slate-800">{item.nom}</p>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          Taille : <span className="font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{item.size}</span> 
+                          Taille : <span className="font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{item.size || 'Unique'}</span> 
                           <span className="mx-2">|</span> 
                           Qté : <span className="font-bold text-slate-700">{item.quantity}</span>
                         </p>
@@ -135,7 +137,7 @@ const Orders = ({ token }) => {
               {/* 💳 Colonne 3 : Paiement et Prix total */}
               <div className="text-sm space-y-1">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Détails</p>
-                <p className="font-bold text-slate-800 text-base">{order.amount} €</p>
+                <p className="font-bold text-slate-800 text-base">{Number(order.amount || 0).toLocaleString()} FCFA</p>
                 <p className="text-gray-500 text-xs">Méthode : <span className="font-medium">{order.paymentMethod}</span></p>
                 <div>
                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mt-1 ${

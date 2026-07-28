@@ -82,15 +82,17 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // 🛰️ APPEL API : Charger le panier de l'utilisateur connecté
+  // 🛰️ APPEL API : Récupération du panier utilisateur
   const getUserCart = async (authToken) => {
     try {
-      const response = await axios.post(`${backendUrl}/api/cart/get`, {}, { headers: { token: authToken } });
+      const response = await axios.get(`${backendUrl}/api/utilisateur/panier`, { 
+        headers: { token: authToken } 
+      });
       if (response.data.success && response.data.cartData) {
         setPanierProduits(response.data.cartData);
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération du panier BDD :", error);
+      console.error("Erreur récupération panier BDD :", error);
     }
   };
 
@@ -132,138 +134,126 @@ const ShopContextProvider = (props) => {
   }, [recherche]);
 
   
-// Ajouter au panier avec validation de la taille et du stock
-const ajouterPanier = async (produitId, size = null) => {
-  const produitTarget = produits.find(p => String(p._id || p.id) === String(produitId));
 
-  if (!produitTarget) {
-    toast.error("Produit introuvable.");
-    return;
-  }
+// 1. Ajouter au panier avec validation de la taille et du stock
+  const ajouterPanier = async (produitId, size = null) => {
+    const produitTarget = produits.find(p => String(p._id || p.id) === String(produitId));
 
-  // 1. Validation du Stock
-  if (produitTarget.enStock === false) {
-    toast.error("Désolé, ce bijou est actuellement en rupture de stock.");
-    return;
-  }
-
-  // Récupération des tailles disponibles sur le produit (supporte 'tailles' ou 'sizes')
-  const declinaisons = produitTarget.tailles || produitTarget.sizes || [];
-
-  let tailleFinale = size;
-
-  // 2. Gestion de la taille
-  if (declinaisons.length > 1) {
-    // Si le produit a plusieurs tailles et qu'aucune taille n'est sélectionnée (ou si 'Standard' sans être dans le tableau)
-    if (!tailleFinale || (tailleFinale === 'Standard' && !declinaisons.includes('Standard'))) {
-      toast.error("Veuillez sélectionner une taille avant d'ajouter ce bijou au panier.");
+    if (!produitTarget) {
+      toast.error("Produit introuvable.");
       return;
     }
-  } else if (declinaisons.length === 1) {
-    // Une seule taille disponible : on la prend automatiquement
-    tailleFinale = declinaisons[0];
-  } else {
-    // Aucune taille spécifique définie sur le produit (ex: taille unique)
-    tailleFinale = size || 'Taille Unique';
-  }
 
-  // 3. Mise à jour du state local
-  let panierData = structuredClone(panierProduits);
-
-  if (!panierData[produitId]) {
-    panierData[produitId] = {};
-  }
-
-  if (panierData[produitId][tailleFinale]) {
-    panierData[produitId][tailleFinale] += 1;
-  } else {
-    panierData[produitId][tailleFinale] = 1;
-  }
-
-  setPanierProduits(panierData);
-  toast.success("Bijou ajouté au panier !");
-
-  // Ouvre le panier latéral
-  setPanierOuvert(true);
-
-  // 4. Synchronisation BDD si utilisateur connecté
-  if (token) {
-    try {
-      await axios.post(
-        `${backendUrl}/api/cart/add`,
-        { itemId: produitId, size: tailleFinale },
-        { headers: { token } }
-      );
-    } catch (error) {
-      console.error("Erreur lors de la synchro panier BDD :", error);
+    // Validation du Stock
+    if (produitTarget.enStock === false) {
+      toast.error("Désolé, ce bijou est actuellement en rupture de stock.");
+      return;
     }
-  }
-};
 
-  const ajouterAuPanier = ajouterPanier;
+    const declinaisons = produitTarget.tailles || produitTarget.sizes || [];
+    let tailleFinale = size;
 
-  // Fonction pour modifier la taille d'un article déjà présent dans le panier
-const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) => {
-  if (ancienneTaille === nouvelleTaille) return;
-
-  let panierData = structuredClone(panierProduits);
-
-  if (panierData[produitId] && panierData[produitId][ancienneTaille]) {
-    const quantite = panierData[produitId][ancienneTaille];
-    
-    // Supprimer l'ancienne déclinaison
-    delete panierData[produitId][ancienneTaille];
-
-    // Ajouter la quantité à la nouvelle taille
-    if (panierData[produitId][nouvelleTaille]) {
-      panierData[produitId][nouvelleTaille] += quantite;
+    // Gestion de la taille
+    if (declinaisons.length > 1) {
+      if (!tailleFinale || (tailleFinale === 'Standard' && !declinaisons.includes('Standard'))) {
+        toast.error("Veuillez sélectionner une taille avant d'ajouter ce bijou au panier.");
+        return;
+      }
+    } else if (declinaisons.length === 1) {
+      tailleFinale = declinaisons[0];
     } else {
-      panierData[produitId][nouvelleTaille] = quantite;
+      tailleFinale = size || 'Taille Unique';
     }
+
+    // Mise à jour du state local
+    let panierData = structuredClone(panierProduits);
+
+    if (!panierData[produitId]) {
+      panierData[produitId] = {};
+    }
+
+    panierData[produitId][tailleFinale] = (panierData[produitId][tailleFinale] || 0) + 1;
 
     setPanierProduits(panierData);
+    toast.success("Bijou ajouté au panier !");
+    setPanierOuvert(true);
 
-    // Mettre à jour en BDD si connecté
+    // Synchronisation BDD si connecté
     if (token) {
       try {
         await axios.post(
-          `${backendUrl}/api/cart/update-size`,
-          { itemId: produitId, oldSize: ancienneTaille, newSize: nouvelleTaille },
+          `${backendUrl}/api/utilisateur/panier/ajouter`,
+          { itemId: produitId, size: tailleFinale },
           { headers: { token } }
         );
       } catch (error) {
-        console.error("Erreur lors de la mise à jour de la taille :", error);
+        console.error("Erreur lors de la synchro panier BDD :", error);
       }
     }
-  }
-};
+  };
 
-  // Intervertir la taille d'un produit
-  const changerTaille = async (produitId, ancienneTaille, nouvelleTaille) => {
+  // 2. Transfert des favoris vers le panier
+  const ajouterFavoriAuPanier = async (produitId, size = '') => {
+    const produitTarget = produits.find(p => String(p._id || p.id) === String(produitId));
+    if (!produitTarget) return;
+
+    const tailleClf = size || 'Taille Unique';
+
+    let panierData = structuredClone(panierProduits);
+
+    if (!panierData[produitId]) {
+      panierData[produitId] = {};
+    }
+
+    panierData[produitId][tailleClf] = (panierData[produitId][tailleClf] || 0) + 1;
+
+    setPanierProduits(panierData);
+    toast.success("Bijou transféré au panier !");
+    setPanierOuvert(true);
+
+    if (token) {
+      try {
+        await axios.post(
+          `${backendUrl}/api/utilisateur/panier/ajouter`,
+          { itemId: produitId, size: tailleClf },
+          { headers: { token } }
+        );
+      } catch (error) {
+        console.error("Erreur lors du transfert panier BDD :", error);
+      }
+    }
+  };
+
+  // 3. Modifier la taille d'un article déjà dans le panier (Version unique et nettoyée)
+  const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) => {
+    if (ancienneTaille === nouvelleTaille) return;
+
     let panierData = structuredClone(panierProduits);
 
     if (panierData[produitId] && panierData[produitId][ancienneTaille]) {
       const quantite = panierData[produitId][ancienneTaille];
+
+      // On supprime l'ancienne clé
       delete panierData[produitId][ancienneTaille];
 
-      if (panierData[produitId][nouvelleTaille]) {
-        panierData[produitId][nouvelleTaille] += quantite;
-      } else {
-        panierData[produitId][nouvelleTaille] = quantite;
-      }
+      // On fusionne avec la nouvelle clé
+      panierData[produitId][nouvelleTaille] = (panierData[produitId][nouvelleTaille] || 0) + quantite;
 
       setPanierProduits(panierData);
 
       if (token) {
         try {
-          await axios.post(`${backendUrl}/api/cart/update`, { itemId: produitId, size: nouvelleTaille, quantity: quantite }, { headers: { token } });
+          await axios.post(
+            `${backendUrl}/api/utilisateur/panier/update`,
+            { itemId: produitId, oldSize: ancienneTaille, newSize: nouvelleTaille, size: nouvelleTaille, quantity: quantite },
+            { headers: { token } }
+          );
         } catch (error) {
-          console.error("Erreur mise à jour taille BDD :", error);
+          console.error("Erreur lors de la mise à jour de la taille :", error);
         }
       }
     }
   };
-
   // Nombre d'articles totaux dans le panier
   const getPanierCount = () => {
     let totalCount = 0;
@@ -303,14 +293,18 @@ const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) =
 
     if (token) {
       try {
-        await axios.post(`${backendUrl}/api/cart/update`, { itemId: produitId, size, quantity }, { headers: { token } });
+        await axios.post(
+          `${backendUrl}/api/utilisateur/panier/update`, 
+          { itemId: produitId, size, quantity }, 
+          { headers: { token } }
+        );
       } catch (error) {
         console.error("Erreur modification quantité BDD :", error);
       }
     }
   };
 
-  // Vider le panier (Après commande réussie)
+  // Vider le panier
   const viderPanier = () => {
     setPanierProduits({});
     localStorage.removeItem('panierProduits');
@@ -352,8 +346,8 @@ const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) =
     setMontreRecherche, 
     panierProduits, 
     ajouterPanier, 
-    ajouterAuPanier, 
-    changerTaille, 
+    ajouterFavoriAuPanier, 
+    modifierTaillePanier,
     getPanierCount, 
     updateQuantity, 
     getPanierMontant, 
@@ -368,7 +362,8 @@ const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) =
     setFavoris, 
     toggleFavori, 
     panierOuvert, 
-    setPanierOuvert,modifierTaillePanier
+    setPanierOuvert,
+    
   };
 
   return (

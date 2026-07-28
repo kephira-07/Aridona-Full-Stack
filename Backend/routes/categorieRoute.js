@@ -5,19 +5,12 @@ import { addCategorie, getCategories, updateCategorie, deleteCategorie } from ".
 
 const categorieRouter = express.Router();
 
-const adminOnly = (req, res, next) => {
-  if (req.userRole !== 'admin') {
-    return res.status(403).json({ success: false, message: "Accès refusé. Droits administrateur requis." });
-  }
-  next();
-};
-
 // Route publique
 categorieRouter.get("/", getCategories);
 
 // Routes Admin
-categorieRouter.post("/add", auth, adminOnly, upload.single("image"), addCategorie);
-categorieRouter.put("/update/:id", auth, adminOnly, upload.single("image"), updateCategorie);
-categorieRouter.delete("/delete/:id", auth, adminOnly, deleteCategorie);
+categorieRouter.post("/add", auth(['admin']), upload.single("image"), addCategorie);
+categorieRouter.put("/update/:id", auth(['admin']), upload.single("image"), updateCategorie);
+categorieRouter.delete("/delete/:id", auth(['admin']), deleteCategorie);
 
 export default categorieRouter;

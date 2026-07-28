@@ -5,9 +5,7 @@ import { backendUrl } from '../config';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Titre from './Titre';
 
-// 1. 🌟 IMPORTATION DE TON IMAGE POUR "TOUT" 
-// Remplace le chemin ci-dessous par le vrai chemin de ton image (ex: png, webp ou svg)
-import imageTout from '../assets/Heroimg12.jpg'; // Remplace par le chemin correct de ton image "Tout"
+import imageTout from '../assets/Heroimg12.jpg';
 
 export default function Categorybar({ selectedCategories = [], toggleCategorie, clearCategories }) {
   const [categories, setCategories] = useState([]);
@@ -46,7 +44,6 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      // Déclenche le mode sticky un peu plus tôt ou plus tard selon tes besoins
       setIsSticky(currentScrollY > 900); 
 
       if (currentScrollY > lastScrollY && currentScrollY > 150) {
@@ -95,7 +92,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
 
   return (
     <div 
-      className={`w-full bg-white  left-0 transition-all duration-300 ${
+      className={`w-full bg-white left-0 transition-all duration-300 ${
         !isHomePage 
           ? 'fixed shadow-sm z-30' 
           : isSticky 
@@ -104,10 +101,9 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
       } ${
         isHomePage && isSticky && !isVisible ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
       }`}
-      // 🛠️ AJUSTEMENT ICI : Modifie cette valeur si la barre passe encore sous ta Navbar principale
       style={{ 
         top: !isHomePage 
-          ? '6rem'  /* Équivaut à h-16 (hauteur standard d'une Navbar) */
+          ? '6rem'
           : isSticky 
             ? '6rem' 
             : '0px'
@@ -115,7 +111,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
     >
       <div className={`w-full max-w-7xl mx-auto px-10 relative group/bar transition-all duration-300 ${isLarge ? 'py-4' : 'py-2'}`}>
         
-        {/* 🌟 TITRE DE LA SECTION */}
+        {/* TITRE DE LA SECTION */}
         <div className={isLarge ? 'block mb-4' : 'hidden'}>
           <Titre 
             text1="Découvrez notre" 
@@ -127,8 +123,9 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
         <div className="relative w-full">
           {/* FLÈCHE GAUCHE */}
           <button 
+            aria-label="Catégories précédentes"
             onClick={() => scroll('left')}
-            className="absolute left-[-25px] top-1/2 -translate-y-1/2 z-40 bg-amber-700 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-white group/bar:opacity-100   flex items-center justify-center"
+            className="absolute left-[-25px] top-1/2 -translate-y-1/2 z-40 bg-amber-700 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-white group/bar:opacity-100 flex items-center justify-center cursor-pointer"
           >
             <ChevronLeft size={18} strokeWidth={2} />
           </button>
@@ -138,18 +135,17 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
             ref={scrollContainerRef}
             className="flex items-center gap-5 overflow-x-auto scrollbar-hide snap-x py-1 scroll-smooth"
           >
-            {/* Option "Tout" avec Image */}
+            {/* Option "Tout" */}
             <button
               onClick={handleViewAllClick}
               className={`flex flex-col items-center flex-shrink-0 snap-center focus:outline-none text-center transition-all duration-300 ${
                 isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
               }`}
             >
-              {/* 🌟 Remplacement du texte par la balise img */}
               <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
                 isLarge 
-                  ? 'w-30 h-30 md:w-40 md:h-40 hover:scale-105' 
-                  : 'w-12 h-10 md:w-14 md:h-10'
+                  ? 'w-30 h-25 md:w-40 md:h-35 hover:scale-105' 
+                  : 'w-12 h-10 md:w-14 md:h-12'
               } ${
                 isAllSelected 
                   ? 'ring-2 ring-amber-500 ring-offset-2' 
@@ -157,14 +153,14 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
               }`}>
                 <img 
                   src={imageTout} 
-                  alt="Toutes les catégories" 
+                  alt="Toutes les catégories de bijoux" 
                   className="w-full h-full object-cover"
                 />
               </div>
 
               <span className={`tracking-wide font-dmsans mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
-                isLarge ? 'text-xs md:text-sm font-dmsans font-semibold' : 'text-[10px]'
-              } ${isAllSelected ? 'text-amber-600 font-dmsans' : 'text-slate-700'}`}>
+                isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
+              } ${isAllSelected ? 'text-amber-600 font-bold' : 'text-slate-700'}`}>
                 Tout
               </span>
             </button>
@@ -179,9 +175,8 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   }`}
                 >
                   <div className={`rounded-full bg-gray-200 aspect-square flex-shrink-0 ${
-                    isLarge ? 'w-24 h-24 md:w-28 md:h-28' : 'w-12 h-12 md:w-14 md:h-14'
+                    isLarge ? 'w-24 h-24 md:w-28 md:h-28' : 'w-12 h-10 md:w-14 md:h-12'
                   }`} />
-                
                 </div>
               ))
             ) : (
@@ -198,8 +193,8 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   >
                     <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 transition-all duration-300 ${
                       isLarge 
-                        ? 'w-30 h-30 md:w-40 md:h-40 hover:scale-105' 
-                        : 'w-12 h-10 md:w-14 md:h-10'
+                        ? 'w-30 h-25 md:w-40 md:h-35 hover:scale-105' 
+                        : 'w-12 h-10 md:w-14 md:h-12'
                     } ${isChecked ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
                       <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
                     </div>
@@ -218,8 +213,9 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
 
           {/* FLÈCHE DROITE */}
           <button 
+            aria-label="Catégories suivantes"
             onClick={() => scroll('right')}
-            className="absolute right-[-25px] top-1/2 -translate-y-1/2 z-40 bg-amber-700 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-white group/bar:opacity-100 transition-all duration-200  flex items-center justify-center"
+            className="absolute right-[-25px] top-1/2 -translate-y-1/2 z-40 bg-amber-700 backdrop-blur-xs border border-stone-200 p-1.5 rounded-full shadow-xs text-white group/bar:opacity-100 transition-all duration-200 flex items-center justify-center cursor-pointer"
           >
             <ChevronRight size={18} strokeWidth={2} />
           </button>

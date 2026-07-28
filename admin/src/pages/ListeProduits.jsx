@@ -6,7 +6,23 @@ import { backendUrl } from '../config';
 const ListeProduits = ({ token }) => {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState(null); // Pour éviter les double-clics
+  const [updatingId, setUpdatingId] = useState(null);
+
+  // Helper pour extraire l'URL de l'image (compatible string ou objet Cloudinary)
+  const getImageUrl = (imgData) => {
+    if (!imgData) return '/placeholder.png';
+    const first = Array.isArray(imgData) ? imgData[0] : imgData;
+    return typeof first === 'object' && first?.url ? first.url : (first || '/placeholder.png');
+  };
+
+  // Helper pour extraire le nom de la catégorie (compatible string ou objet Populate)
+  const getCategorieNom = (catData) => {
+    if (!catData) return 'Non catégorisé';
+    if (typeof catData === 'object') {
+      return catData.nom || catData.name || 'Non catégorisé';
+    }
+    return catData;
+  };
 
   // 📥 Récupérer tous les produits
   const fetchList = async () => {
@@ -32,9 +48,9 @@ const ListeProduits = ({ token }) => {
       setUpdatingId(id);
       const newStatus = !currentStatus;
 
-      const response = await axios.post(
-        `${backendUrl}/api/produit/stock`,
-        { id, enStock: newStatus },
+      const response = await axios.put(
+        `${backendUrl}/api/produit/changer-stock/${id}`,
+        { enStock: newStatus },
         { headers: { token } }
       );
 
@@ -60,9 +76,8 @@ const ListeProduits = ({ token }) => {
     if (!window.confirm("Es-tu sûr de vouloir supprimer ce bijou ?")) return;
 
     try {
-      const response = await axios.post(
-        `${backendUrl}/api/produit/remove`,
-        { id },
+      const response = await axios.delete(
+        `${backendUrl}/api/produit/remove/${id}`,
         { headers: { token } }
       );
 
@@ -115,27 +130,30 @@ const ListeProduits = ({ token }) => {
             {/* Image */}
             <img 
               className='w-12 h-12 object-cover rounded-md border border-stone-200' 
-              src={item.image?.[0] || '/placeholder.png'} 
+              src={getImageUrl(item.image)} 
               alt={item.nom} 
             />
             
             {/* Nom */}
             <p className='font-medium text-stone-800 truncate'>{item.nom}</p>
             
-            {/* Catégorie */}
-            <p className='hidden md:block text-stone-500 truncate'>{item.categorie}</p>
+            {/* Catégorie sécurisée */}
+            <p className='hidden md:block text-stone-500 truncate'>
+              {getCategorieNom(item.categorie)}
+            </p>
             
             {/* Prix */}
             <p className='hidden md:block font-semibold text-amber-900'>
               {item.prix?.toLocaleString()} FCFA
             </p>
 
-            {/* BOUTON TOGGLE STOCK */}
+            {/* TOGGLE STOCK */}
             <div className='flex items-center justify-center'>
               <button
+                type="button"
                 disabled={updatingId === item._id}
                 onClick={() => toggleStock(item._id, item.enStock !== false)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all duration-200 flex items-center gap-1.5 border
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all duration-200 flex items-center gap-1.5 border cursor-pointer
                   ${updatingId === item._id ? 'opacity-50 cursor-not-allowed' : ''}
                   ${item.enStock !== false
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
@@ -150,8 +168,9 @@ const ListeProduits = ({ token }) => {
             {/* Actions (Suppression) */}
             <div className='text-center'>
               <button 
+                type="button"
                 onClick={() => removeProduct(item._id)}
-                className='text-rose-600 hover:text-rose-800 text-xs font-medium underline px-2 py-1 rounded transition-colors'
+                className='text-rose-600 hover:text-rose-800 text-xs font-medium underline px-2 py-1 rounded transition-colors cursor-pointer'
               >
                 Supprimer
               </button>

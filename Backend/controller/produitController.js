@@ -86,15 +86,17 @@ const addproduit = async (req, res) => {
   }
 };
 
-// 2. Liste des produits
 const listproduits = async (req, res) => {
   try {
     const { categorieId } = req.query;
     const filtre = categorieId ? { categorie: categorieId } : {};
 
-    const produits = await produitModel.find(filtre).populate("categorie");
+    // On récupère les produits
+    const produits = await produitModel.find(filtre).populate("categorie", "nom name");
+
     return res.status(200).json({ success: true, produits });
   } catch (error) {
+    console.error("Erreur listproduits :", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };

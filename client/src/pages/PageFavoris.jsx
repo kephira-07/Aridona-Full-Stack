@@ -1,32 +1,31 @@
 import React, { useContext } from 'react'
 import { ShopContext } from '../context/ShopContext'
 import { Link, useNavigate } from 'react-router-dom'
-import { Trash2, ShoppingBag, Heart, ArrowRight } from 'lucide-react'
+import { Trash2, ShoppingBag, Heart, ArrowRight, Plus } from 'lucide-react'
 import BoutonRetour from '../composant/BoutonRetour'
 import Titre from '../composant/Titre'
 
 const PageFavoris = () => {
-  const { produits, monnaie, favoris, toggleFavori, ajouterAuPanier } = useContext(ShopContext);
+  // 🌟 On consomme 'ajouterFavoriAuPanier' depuis le contexte
+  const { produits, monnaie, favoris, toggleFavori, ajouterFavoriAuPanier } = useContext(ShopContext);
   const navigate = useNavigate();
 
   // Filtrer les produits favoris
   const produitsFavoris = produits.filter((item) => favoris.includes(item._id || item.id));
 
-  // 🚀 ACTION : Tout ajouter au panier et ouvrir la caisse/panier
+  // 🚀 ACTION GLOBALE : Transfert brut de tous les favoris vers le panier puis redirection
   const commanderTousLesFavoris = () => {
     produitsFavoris.forEach((item) => {
-      
       const idProduit = item._id || item.id;
-      
-      ajouterAuPanier(idProduit);
+      ajouterFavoriAuPanier(idProduit);
     });
 
-    // Redirection vers la page panier pour ajuster les tailles et finaliser
+    // Redirection vers la page panier
     navigate('/panier');
   };
 
   return (
-    <div className=' px-4 md:px-10 lg:px-20 min-h-[60vh] bg-white transition-opacity ease-in duration-500 opacity-100'>
+    <div className='px-4 md:px-10 lg:px-20 min-h-[60vh] bg-white transition-opacity ease-in duration-500 opacity-100'>
       <BoutonRetour />
       
       {/* --- En-tête --- */}
@@ -45,7 +44,7 @@ const PageFavoris = () => {
         {produitsFavoris.length > 0 && (
           <button 
             onClick={commanderTousLesFavoris}
-            className='mt-4 flex items-center justify-center gap-3 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs md:text-sm tracking-widest py-3.5 px-8  shadow-lg hover:shadow-amber-700/20 active:scale-[0.98] transition-all uppercase cursor-pointer'
+            className='mt-4 flex items-center justify-center gap-3 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs md:text-sm tracking-widest py-3.5 px-8 shadow-lg hover:shadow-amber-700/20 active:scale-[0.98] transition-all uppercase cursor-pointer'
           >
             <ShoppingBag size={18} />
             Tout ajouter au panier et commander
@@ -54,7 +53,7 @@ const PageFavoris = () => {
         )}
       </div>
 
-      <hr className='border-stone-200 mb-10' />
+      <hr className='border-stone-200 mb-10 mt-6' />
 
       {/* --- Grille des Favoris --- */}
       {produitsFavoris.length === 0 ? (
@@ -65,7 +64,7 @@ const PageFavoris = () => {
           <p className='text-stone-500 font-alice text-lg italic'>Votre liste de favoris est encore vide.</p>
           <Link 
             to='/collection' 
-            className='mt-2 bg-amber-800 text-white text-xs font-semibold tracking-widest py-3 px-8  hover:bg-amber-800 transition-colors uppercase'
+            className='mt-2 bg-amber-800 text-white text-xs font-semibold tracking-widest py-3 px-8 hover:bg-amber-900 transition-colors uppercase'
           >
             Découvrir nos bijoux
           </Link>
@@ -80,7 +79,7 @@ const PageFavoris = () => {
                 key={idProduit} 
                 className='group relative border border-stone-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col bg-stone-50/30'
               >
-                {/* Bouton supprimer */}
+                {/* Bouton supprimer des favoris */}
                 <button 
                   onClick={() => toggleFavori(idProduit)}
                   className='absolute top-3 right-3 z-10 bg-white/80 p-2 rounded-full text-stone-400 hover:text-red-500 backdrop-blur-sm shadow-sm transition-colors duration-200 cursor-pointer'
@@ -98,7 +97,7 @@ const PageFavoris = () => {
                   />
                 </Link>
 
-                {/* Info */}
+                {/* Info & Actions */}
                 <div className='p-4 flex flex-col flex-grow bg-white justify-between space-y-3'>
                   <div>
                     <Link to={`/produit/${item.slug || idProduit}`}>
@@ -112,12 +111,23 @@ const PageFavoris = () => {
                     </p>
                   </div>
 
-                  <Link 
-                    to={`/produit/${item.slug || idProduit}`}
-                    className='text-[11px] font-semibold text-stone-500 hover:text-stone-900 transition-colors underline block text-center'
-                  >
-                    Voir la fiche du bijou
-                  </Link>
+                  <div className='space-y-2 pt-2'>
+                    {/* 🛒 BOUTON INDIVIDUEL : Transfert direct au panier sans contrôle de taille */}
+                    <button 
+                      onClick={() => ajouterFavoriAuPanier(idProduit)}
+                      className='w-full py-2.5 px-3 bg-stone-900 hover:bg-amber-800 text-white text-xs font-medium tracking-wider uppercase flex items-center justify-center gap-2 transition-colors cursor-pointer'
+                    >
+                      <Plus size={14} />
+                      Ajouter au panier
+                    </button>
+
+                    <Link 
+                      to={`/produit/${item.slug || idProduit}`}
+                      className='text-[11px] font-semibold text-stone-500 hover:text-stone-900 transition-colors underline block text-center'
+                    >
+                      Voir la fiche du bijou
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

@@ -28,16 +28,11 @@ const Login = () => {
   const chargerProfil = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await axios.post(
-        `${backendUrl}/api/utilisateur/profil`, 
-        {}, 
-        { 
-          headers: { 
-            token: token,
-            Authorization: `Bearer ${token}` 
-          } 
-        }
-      );
+      // CORRECTION : axios.get au lieu de axios.post
+      const response = await axios.get(`${backendUrl}/api/utilisateur/profil`, { 
+        headers: { token } 
+      });
+
       if (response.data.success) {
         const u = response.data.utilisateur;
         setProfil(u);
@@ -67,7 +62,7 @@ const Login = () => {
       const response = await axios.post(
         `${backendUrl}/api/utilisateur/modifier-profil`, 
         formProfil, 
-        { headers: { token, Authorization: `Bearer ${token}` } }
+        { headers: { token } }
       );
       if (response.data.success) {
         setProfil(response.data.utilisateur);
@@ -87,6 +82,7 @@ const Login = () => {
   const handleLogout = () => {
     setToken('');
     setProfil(null);
+    setFormProfil({ name: '', telephone: '', adresse: '', ville: 'Lomé' });
     localStorage.removeItem('token');
     setEtatactuel('Connexion'); 
     toast.info("Vous êtes déconnecté(e)", { theme: "dark" });
@@ -307,7 +303,7 @@ const Login = () => {
                     ? 'Inscrivez-vous pour composer votre collection et commander par WhatsApp.' 
                     : etatactuel === 'Connexion' 
                     ? 'Accédez à votre espace pour finaliser vos réservations précieuses.'
-                    : 'Un e-mail vous sera transmis pour créer un nouveau mot de passe.'}
+                    : 'Un e-mail vous sera transmitted pour créer un nouveau mot de passe.'}
                 </p>
               </div>
 

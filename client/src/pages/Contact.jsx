@@ -47,7 +47,7 @@ const Contact = () => {
             <div className="absolute -right-12 -bottom-12 w-36 h-36 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
 
             <h2 className="text-xl font-serif font-bold text-amber-400 tracking-wide border-b border-slate-800 pb-4">
-              Arilona Bijoux
+              Aridona Bijoux
             </h2>
 
             <div className="space-y-6 text-sm">
@@ -72,8 +72,8 @@ const Contact = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-200 text-xs uppercase tracking-wider">Email</h3>
-                  <a href="mailto:contact@aridona.store" className="text-slate-400 text-xs mt-1 block hover:text-amber-400 transition-colors">
-                    contact@aridona.store
+                  <a href="mailto:aridonabijoux@gmail.com" className="text-slate-400 text-xs mt-1 block hover:text-amber-400 transition-colors">
+                    aridonabijoux@gmail.com
                   </a>
                 </div>
               </div>
