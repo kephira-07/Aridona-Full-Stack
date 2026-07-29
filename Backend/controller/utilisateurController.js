@@ -323,7 +323,7 @@ const reinitialiserMotDePasse = async (req, res) => {
 // Récupérer le panier de l'utilisateur connecté
 const getUtilisateurPanier = async (req, res) => {
   try {
-    const userId = req.userId; // Extrait proprement depuis le middleware auth.js
+    const userId = req.userId; 
     const userData = await utilisateurModel.findById(userId);
 
     if (!userData) {
@@ -395,6 +395,34 @@ const updatePanier = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+// Supprimer un article du panier BDD
+const deletePanier = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { itemId, size } = req.body; // ou req.params si tu préfères passer en URL
+
+    const userData = await utilisateurModel.findById(userId);
+    let cartData = userData.cartData || {};
+
+    if (cartData[itemId] && cartData[itemId][size]) {
+      delete cartData[itemId][size];
+
+      // Si plus aucune taille pour ce produit, on supprime complètement la clé
+      if (Object.keys(cartData[itemId]).length === 0) {
+        delete cartData[itemId];
+      }
+
+      await utilisateurModel.findByIdAndUpdate(userId, { cartData });
+      return res.json({ success: true, message: "Article supprimé du panier" });
+    }
+
+    return res.status(404).json({ success: false, message: "Article introuvable dans le panier" });
+  } catch (error) {
+    console.error("Erreur suppression panier BDD :", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 export { 
   registerutilisateur, 
@@ -408,5 +436,6 @@ export {
   listerUtilisateurs,
   getUtilisateurPanier,
   ajouterAuPanier,
-  updatePanier
+  updatePanier,
+  deletePanier  
 };

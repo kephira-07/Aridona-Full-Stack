@@ -18,14 +18,21 @@ import { Bar } from 'react-chartjs-2';
 // Enregistrement des composants requis pour Chart.js
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-export default function DashboardStats() {
+export default function DashboardStats({ token }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${backendUrl}/api/produit/stats-dashboard`);
+      // 2. Ajoutez le header d'autorisation avec le Token
+      const response = await axios.get(`${backendUrl}/api/produit/stats-dashboard`, {
+        headers: { 
+          token: token,
+          Authorization: `Bearer ${token}` 
+        }
+      });
+
       if (response.data.success) {
         setStats(response.data.stats);
       }
@@ -37,8 +44,10 @@ export default function DashboardStats() {
   };
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (token) {
+      fetchStats();
+    }
+  }, [token]);
 
   if (loading) {
     return (

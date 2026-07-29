@@ -12,26 +12,33 @@ const produitSchema = new mongoose.Schema({
     required: true 
   },
   
-  // Matière principale (ex: "Acier Inoxydable 316L", "Or 18k", "Argent 925")
+  // Matière principale
   matiere: { type: String, default: "Acier Inoxydable" }, 
   
-  // Couleurs disponibles sélectionnables par le client
+  // Couleurs disponibles
   couleurs: { 
     type: [String], 
     enum: ["Doré", "Argenté", "Or Rose"],
     default: ["Doré"] 
   },
   
+
+  tags: { 
+    type: [String], 
+    default: [],
+    index: true // Index standard pour les requêtes rapides par tag ex: { tags: "choker" }
+  },
+
   sizes: { type: [String], default: [] },
   slug: { type: String, required: true, unique: true, index: true },
   meilleurVente: { type: Boolean, default: false },
   enStock: { type: Boolean, default: true }
 }, { timestamps: true });
 
-// Indexation pour la recherche plein texte (inclut la couleur)
+// INDEXATION POUR LA RECHERCHE PLEIN TEXTE (Mise à jour avec "tags")
 produitSchema.index(
-  { nom: "text", description: "text", matiere: "text", couleurs: "text" },
-  { weights: { nom: 10, matiere: 5, couleurs: 5, description: 1 } }
+  { nom: "text", tags: "text", matiere: "text", couleurs: "text", description: "text" },
+  { weights: { nom: 10, tags: 8, matiere: 5, couleurs: 5, description: 1 } }
 );
 
 const produitModel = mongoose.models.produit || mongoose.model("produit", produitSchema);

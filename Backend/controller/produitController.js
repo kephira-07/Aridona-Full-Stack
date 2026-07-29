@@ -28,63 +28,6 @@ const cleanLocalFiles = (files) => {
   });
 };
 
-// 1. Ajouter un produit
-const addproduit = async (req, res) => {
-  try {
-    const { nom, description, prix, categorie, matiere, couleurs, sizes, meilleurVente } = req.body;
-
-    if (!nom || !description || !prix || !categorie) {
-      cleanLocalFiles(req.files);
-      return res.status(400).json({ success: false, message: "Les champs nom, description, prix et catégorie sont obligatoires." });
-    }
-
-    const image1 = req.files?.image1?.[0];
-    const image2 = req.files?.image2?.[0];
-    const image3 = req.files?.image3?.[0];
-    const image4 = req.files?.image4?.[0];
-
-    const images = [image1, image2, image3, image4].filter(Boolean);
-
-    let imagesUrl = await Promise.all(
-      images.map(async (item) => {
-        const result = await cloudinary.uploader.upload(item.path, {
-          resource_type: 'image',
-          folder: 'arilona_bijoux'
-        });
-        return result.secure_url;
-      })
-    );
-
-    // Supprimer les fichiers temporaires après upload Cloudinary
-    cleanLocalFiles(req.files);
-
-    const slug = slugify(nom, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
-    const parsedSizes = parseArrayHelper(sizes);
-    const parsedCouleurs = parseArrayHelper(couleurs);
-
-    const produitData = {
-      nom,
-      description,
-      prix: Number(prix),
-      categorie,
-      matiere: matiere || "Acier Inoxydable",
-      couleurs: parsedCouleurs.length > 0 ? parsedCouleurs : ["Doré"],
-      sizes: parsedSizes,
-      meilleurVente: meilleurVente === "true" || meilleurVente === true,
-      image: imagesUrl,
-      slug
-    };
-
-    const produit = new produitModel(produitData);
-    await produit.save();
-
-    return res.status(201).json({ success: true, message: "Produit ajouté avec succès !" });
-  } catch (error) {
-    cleanLocalFiles(req.files);
-    console.error("Erreur ajout produit:", error);
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 const listproduits = async (req, res) => {
   try {
@@ -120,7 +63,72 @@ const getPublicIdFromUrl = (url) => {
   }
 };
 
-// 3. Supprimer un produit
+const parseTagsHelper = (input) => {
+  const rawArray = parseArrayHelper(input);
+  return rawArray.map(tag => tag.trim().toLowerCase()).filter(Boolean);
+};
+
+// 1. Ajouter un produit
+const addproduit = async (req, res) => {
+  try {
+    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente } = req.body;
+
+    if (!nom || !description || !prix || !categorie) {
+      cleanLocalFiles(req.files);
+      return res.status(400).json({ success: false, message: "Les champs nom, description, prix et catégorie sont obligatoires." });
+    }
+
+    const image1 = req.files?.image1?.[0];
+    const image2 = req.files?.image2?.[0];
+    const image3 = req.files?.image3?.[0];
+    const image4 = req.files?.image4?.[0];
+
+    const images = [image1, image2, image3, image4].filter(Boolean);
+
+    let imagesUrl = await Promise.all(
+      images.map(async (item) => {
+        const result = await cloudinary.uploader.upload(item.path, {
+          resource_type: 'image',
+          folder: 'arilona_bijoux'
+        });
+        return result.secure_url;
+      })
+    );
+
+    // Supprimer les fichiers temporaires après upload Cloudinary
+    cleanLocalFiles(req.files);
+
+    const slug = slugify(nom, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
+    const parsedSizes = parseArrayHelper(sizes);
+    const parsedCouleurs = parseArrayHelper(couleurs);
+    const parsedTags = parseTagsHelper(tags); // Traitement des tags
+
+    const produitData = {
+      nom,
+      description,
+      prix: Number(prix),
+      categorie,
+      matiere: matiere || "Acier Inoxydable",
+      couleurs: parsedCouleurs.length > 0 ? parsedCouleurs : ["Doré"],
+      sizes: parsedSizes,
+      tags: parsedTags, // Ajout des tags
+      meilleurVente: meilleurVente === "true" || meilleurVente === true,
+      image: imagesUrl,
+      slug
+    };
+
+    const produit = new produitModel(produitData);
+    await produit.save();
+
+    return res.status(201).json({ success: true, message: "Produit ajouté avec succès !" });
+  } catch (error) {
+    cleanLocalFiles(req.files);
+    console.error("Erreur ajout produit:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 2. Supprimer un produit
 const removeproduit = async (req, res) => {
   try {
     const { id } = req.params;
@@ -146,7 +154,7 @@ const removeproduit = async (req, res) => {
   }
 };
 
-// 4. Produit unique
+// 3. Produit unique
 const singleproduit = async (req, res) => {
   try {
     const { id } = req.params;
@@ -162,11 +170,11 @@ const singleproduit = async (req, res) => {
   }
 };
 
-// 5. Modifier un produit
+// 4. Modifier un produit
 const updateproduit = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nom, description, prix, categorie, matiere, couleurs, sizes, meilleurVente } = req.body;
+    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente } = req.body;
 
     const updateData = {};
     if (nom) {
@@ -178,8 +186,9 @@ const updateproduit = async (req, res) => {
     if (categorie) updateData.categorie = categorie;
     if (matiere) updateData.matiere = matiere;
     if (couleurs) updateData.couleurs = parseArrayHelper(couleurs);
-    if (meilleurVente !== undefined) updateData.meilleurVente = (meilleurVente === "true" || meilleurVente === true);
     if (sizes) updateData.sizes = parseArrayHelper(sizes);
+    if (tags !== undefined) updateData.tags = parseTagsHelper(tags); // Prise en compte de la mise à jour des tags
+    if (meilleurVente !== undefined) updateData.meilleurVente = (meilleurVente === "true" || meilleurVente === true);
 
     if (req.files && Object.keys(req.files).length > 0) {
       const images = [
@@ -221,7 +230,7 @@ const updateproduit = async (req, res) => {
   }
 };
 
-// 6. Rechercher des produits
+// 5. Rechercher des produits
 const searchProduits = async (req, res) => {
   try {
     const { query } = req.query;
@@ -229,6 +238,7 @@ const searchProduits = async (req, res) => {
       return res.status(400).json({ success: false, message: "Veuillez entrer un mot clé" });
     }
 
+    // Grâce à l'index text mis à jour sur le schéma, cette recherche inclura automatiquement les tags !
     const resultats = await produitModel.find(
       { $text: { $search: query } },
       { score: { $meta: "textScore" } }
@@ -241,6 +251,7 @@ const searchProduits = async (req, res) => {
     return res.status(500).json({ success: false, message: "Erreur lors de la recherche" });
   }
 };
+
 
 // 7. Changer le statut du stock
 const changerStatutStock = async (req, res) => {

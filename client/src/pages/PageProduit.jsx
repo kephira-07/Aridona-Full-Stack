@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
-import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send } from 'lucide-react';
+import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send ,ChevronDown,ChevronUp} from 'lucide-react';
 import ApparenteProduit from '../composant/ApparenteProduit';
 import BoutonRetour from '../composant/BoutonRetour';
 import { Helmet } from 'react-helmet-async';
 
 const PageProduit = () => {
-  const { slug } = useParams(); 
+const { slug } = useParams(); 
   const { produits, categories, monnaie, ajouterPanier, whatsappNum } = useContext(ShopContext);
   const [produitData, setProduitData] = useState(null);
   const [image, setImage] = useState('');
@@ -16,6 +16,9 @@ const PageProduit = () => {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [estAjoute, setEstAjoute] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  
+  // --- ÉTAT DU FORMULAIRE D'AVIS DÉROULANT ---
+  const [showFormAvis, setShowFormAvis] = useState(false);
 
   // --- ÉTAT DU SYSTÈME D'AVIS ---
   const [avisListe, setAvisListe] = useState([
@@ -23,16 +26,27 @@ const PageProduit = () => {
       id: 1,
       nom: "Aminata K.",
       note: 5,
-      date: "12/06/2026",
-      commentaire: "Qualité exceptionnelle ! Le bijou ne résiste vraiment à l'eau et ne change pas de couleur.",
+      date: "2026-06-12",
+      dateAffichage: "12/06/2026",
+      commentaire: "Qualité exceptionnelle ! Le bijou résiste vraiment à l'eau et ne change pas de couleur.",
       verifie: true
     },
     {
       id: 2,
       nom: "Sonia T.",
       note: 5,
-      date: "04/07/2026",
+      date: "2026-07-04",
+      dateAffichage: "04/07/2026",
       commentaire: "Sublime rendu en vrai, encore plus beau que sur les photos. Emballage très soigné.",
+      verifie: true
+    },
+    {
+      id: 3,
+      nom: "Clarisse M.",
+      note: 5,
+      date: "2026-07-15",
+      dateAffichage: "15/07/2026",
+      commentaire: "Finition dorée brillante très élégante. Je recommande vivement !",
       verifie: true
     }
   ]);
@@ -85,7 +99,6 @@ const PageProduit = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug, produits, categories]);
 
-  // --- CALCUL DES MOYENNES DES AVIS ---
   const totalAvis = avisListe.length;
   const moyenneNotes = totalAvis > 0 
     ? (avisListe.reduce((acc, curr) => acc + curr.note, 0) / totalAvis).toFixed(1)
@@ -95,19 +108,27 @@ const PageProduit = () => {
     e.preventDefault();
     if (!nouvelAvis.nom || !nouvelAvis.commentaire) return;
 
+    const auj = new Date();
+    const isoDate = auj.toISOString().split('T')[0];
+    const frDate = auj.toLocaleDateString('fr-FR');
+
     const nouveau = {
       id: Date.now(),
       nom: nouvelAvis.nom,
       note: Number(nouvelAvis.note),
-      date: new Date().toLocaleDateString('fr-FR'),
+      date: isoDate,
+      dateAffichage: frDate,
       commentaire: nouvelAvis.commentaire,
-      verifie: true
+      verifie: false
     };
 
     setAvisListe([nouveau, ...avisListe]);
     setNouvelAvis({ nom: '', note: 5, commentaire: '' });
     setAvisEnvoye(true);
-    setTimeout(() => setAvisEnvoye(false), 4000);
+    setTimeout(() => {
+      setAvisEnvoye(false);
+      setShowFormAvis(false);
+    }, 3000);
   };
 
   const notifierSurWhatsApp = () => {
@@ -118,7 +139,6 @@ const PageProduit = () => {
     window.open(url, '_blank');
   };
 
-  // --- DONNÉES STRUCTURÉES SCHEMA.ORG RECTIFIÉES (Google Search Console OK) ---
   const schemaData = produitData ? {
     "@context": "https://schema.org/",
     "@type": "Product",
@@ -127,15 +147,16 @@ const PageProduit = () => {
       ? produitData.image.map(img => getImageUrl(img)) 
       : [getImageUrl(produitData.image)],
     "description": produitData.description,
-    "sku": produitData._id || produitData.id,
+    "sku": String(produitData._id || produitData.id),
     "brand": {
       "@type": "Brand",
       "name": "Aridona Bijoux"
     },
     "offers": {
       "@type": "Offer",
-      "priceCurrency": "XOF", // Code ISO 4217 valide pour le FCFA
+      "priceCurrency": "XOF",
       "price": Number(produitData.prix) || 0,
+      "priceValidUntil": "2027-12-31",
       "availability": produitData.enStock !== false 
         ? "https://schema.org/InStock" 
         : "https://schema.org/OutOfStock",
@@ -158,6 +179,7 @@ const PageProduit = () => {
       }
     }))
   } : null;
+
 
   return produitData ? (
     <div className='mt-5 md:mt-8 transition-opacity ease-in duration-500 opacity-100 bg-white'>
@@ -183,7 +205,7 @@ const PageProduit = () => {
       <div className='flex gap-8 lg:gap-16 flex-col md:flex-row px-4 md:px-10 lg:px-20 mt-6'>
         
         {/* GALERIE IMAGES */}
-        <div className='flex-1 flex flex-col-reverse gap-3 md:flex-row'>
+        <div className='flex-1  flex flex-col-reverse gap-3 md:flex-row'>
           <div className='flex md:flex-col overflow-x-auto md:overflow-y-auto justify-start gap-3 md:w-[20%] w-full no-scrollbar'>
             {produitData.image && produitData.image.map((item, index) => {
               const itemUrl = getImageUrl(item);
@@ -351,122 +373,128 @@ const PageProduit = () => {
           </div>
         </div>
       </div>
+<section className="p-8 mt-12 border-t border-stone-200 bg-gradient-to-b from-white to-stone-50">
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+    <div>
+      <h2 className="font-serif text-3xl text-amber-900 tracking-tight border-b border-amber-200 pb-2">
+        Avis de nos clientes
+      </h2>
+      <p className="text-sm text-stone-600 mt-2">
+        Note moyenne de <span className="font-semibold text-stone-900">{moyenneNotes}/5</span> basée sur {totalAvis} retours d'expérience.
+      </p>
+    </div>
 
-      {/* SECTION AVIS CLIENTS */}
-      <section className="px-4 md:px-10 lg:px-20 mt-20 pt-12 border-t border-stone-200">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-            <div>
-              <h2 className="font-ebgaramond text-2xl md:text-3xl text-stone-800">Avis de nos clientes</h2>
-              <p className="text-stone-500 text-sm mt-1">Ce que disent nos passionnées d'Aridona Héritage</p>
-            </div>
+    {/* Bouton pour dérouler le formulaire */}
+    <button
+      type="button"
+      onClick={() => setShowFormAvis(!showFormAvis)}
+      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-white text-xs font-semibold uppercase tracking-wide rounded-md shadow-sm transition-all"
+    >
+      <span>{showFormAvis ? "Fermer le formulaire" : "Laisser un avis"}</span>
+      {showFormAvis ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+    </button>
+  </div>
 
-            <div className="flex items-center gap-4 bg-amber-50/60 border border-amber-200/60 p-4 rounded-xl">
-              <span className="text-3xl font-bold text-amber-900">{moyenneNotes}</span>
-              <div>
-                <div className="flex text-amber-500">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={18} className={i < Math.round(Number(moyenneNotes)) ? "fill-amber-400 text-amber-400" : "text-stone-300"} />
-                  ))}
-                </div>
-                <p className="text-xs text-amber-800 font-medium mt-0.5">Basé sur {totalAvis} avis vérifiés</p>
-              </div>
-            </div>
+  {/* FORMULAIRE ACCORDÉON (DÉROULANT) */}
+  {showFormAvis && (
+    <div className="mb-10 p-6 bg-white rounded-lg border border-stone-200 shadow-sm animate-in fade-in duration-300">
+      <h3 className="text-sm font-semibold uppercase tracking-wider text-stone-800 mb-4">Votre avis nous intéresse</h3>
+
+      {avisEnvoye && (
+        <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-md flex items-center gap-2 shadow-sm">
+          <CheckCircle size={16} /> Merci ! Votre avis a bien été publié.
+        </div>
+      )}
+
+      <form onSubmit={handleSoumettreAvis} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label className="block text-[11px] font-medium text-stone-700 mb-1">Votre Prénom / Nom</label>
+          <input 
+            type="text" 
+            required
+            placeholder="ex: Aminata K."
+            value={nouvelAvis.nom}
+            onChange={(e) => setNouvelAvis({ ...nouvelAvis, nom: e.target.value })}
+            className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-medium text-stone-700 mb-1">Votre Note</label>
+          <select 
+            value={nouvelAvis.note}
+            onChange={(e) => setNouvelAvis({ ...nouvelAvis, note: e.target.value })}
+            className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+          >
+            <option value="5">⭐⭐⭐⭐⭐ (5/5) Excellent</option>
+            <option value="4">⭐⭐⭐⭐☆ (4/5) Très bien</option>
+            <option value="3">⭐⭐⭐☆☆ (3/5) Moyen</option>
+            <option value="2">⭐⭐☆☆☆ (2/5) Décevant</option>
+            <option value="1">⭐☆☆☆☆ (1/5) Mauvais</option>
+          </select>
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="block text-[11px] font-medium text-stone-700 mb-1">Votre commentaire</label>
+          <textarea 
+            required
+            rows="3"
+            placeholder="Qu'avez-vous pensé de la qualité du bijou, du rendu ou de la livraison ?"
+            value={nouvelAvis.commentaire}
+            onChange={(e) => setNouvelAvis({ ...nouvelAvis, commentaire: e.target.value })}
+            className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+          ></textarea>
+        </div>
+
+        <div className="md:col-span-2">
+          <button 
+            type="submit"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-800 text-white text-xs font-semibold uppercase tracking-wide rounded-md hover:bg-amber-700 shadow-sm transition-all"
+          >
+            <Send size={12} /> Publier mon avis
+          </button>
+        </div>
+      </form>
+    </div>
+  )}
+
+  {/* CARROUSEL DES AVIS EXISTANTS */}
+  <div className="flex gap-5 overflow-x-auto  pt-1 no-scrollbar snap-x snap-mandatory">
+    {avisListe.map((item) => (
+      <div 
+        key={item.id} 
+        className="w-80 shrink-0 snap-start bg-gradient-to-br from-stone-50 to-stone-100 border border-stone-200 p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
+      >
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-semibold text-stone-900 text-xs">{item.nom}</span>
+            <span className="text-[10px] text-stone-400">{item.dateAffichage || item.date}</span>
           </div>
 
-          {/* LISTE DES AVIS */}
-          <div className="space-y-6 mb-12">
-            {avisListe.map((item) => (
-              <div key={item.id} className="p-5 border border-stone-100 bg-stone-50/50 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-stone-800 text-sm">{item.nom}</span>
-                    {item.verifie && (
-                      <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 font-medium px-2 py-0.5 rounded-full">
-                        <CheckCircle size={10} /> Achat vérifié
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs text-stone-400">{item.date}</span>
-                </div>
-
-                <div className="flex text-amber-400 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} className={i < item.note ? "fill-amber-400" : "text-stone-200"} />
-                  ))}
-                </div>
-
-                <p className="text-sm text-stone-600 leading-relaxed font-dmsans">{item.commentaire}</p>
-              </div>
+          <div className="flex text-amber-500 mb-3 drop-shadow-sm">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} size={13} className={i < item.note ? "fill-amber-500" : "text-stone-200"} />
             ))}
           </div>
 
-          {/* FORMULAIRE D'AJOUT D'AVIS */}
-          <div className="bg-stone-50 p-6 md:p-8 rounded-2xl border border-stone-200">
-            <h3 className="text-lg font-semibold text-stone-800 mb-2">Laissez votre avis</h3>
-            <p className="text-xs text-stone-500 mb-6">Partagez votre expérience avec cette création.</p>
-
-            {avisEnvoye && (
-              <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm rounded-lg flex items-center gap-2">
-                <CheckCircle size={18} /> Merci ! Votre avis a bien été publié.
-              </div>
-            )}
-
-            <form onSubmit={handleSoumettreAvis} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-stone-700 mb-1">Votre Prénom / Nom</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="ex: Aminata K."
-                    value={nouvelAvis.nom}
-                    onChange={(e) => setNouvelAvis({ ...nouvelAvis, nom: e.target.value })}
-                    className="w-full px-4 py-2.5 text-sm bg-white border border-stone-200 rounded-lg focus:outline-none focus:border-amber-700"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-stone-700 mb-1">Note</label>
-                  <select 
-                    value={nouvelAvis.note}
-                    onChange={(e) => setNouvelAvis({ ...nouvelAvis, note: e.target.value })}
-                    className="w-full px-4 py-2.5 text-sm bg-white border border-stone-200 rounded-lg focus:outline-none focus:border-amber-700 cursor-pointer"
-                  >
-                    <option value="5">⭐⭐⭐⭐⭐ (5/5) Excellente qualité</option>
-                    <option value="4">⭐⭐⭐⭐☆ (4/5) Très satisfaite</option>
-                    <option value="3">⭐⭐⭐☆☆ (3/5) Correct</option>
-                    <option value="2">⭐⭐☆☆☆ (2/5) Moyen</option>
-                    <option value="1">⭐☆☆☆☆ (1/5) Déçue</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-stone-700 mb-1">Votre avis</label>
-                <textarea 
-                  required
-                  rows="3"
-                  placeholder="Qu'avez-vous pensé de la finition, de la tenue ou de la livraison ?"
-                  value={nouvelAvis.commentaire}
-                  onChange={(e) => setNouvelAvis({ ...nouvelAvis, commentaire: e.target.value })}
-                  className="w-full px-4 py-2.5 text-sm bg-white border border-stone-200 rounded-lg focus:outline-none focus:border-amber-700"
-                ></textarea>
-              </div>
-
-              <button 
-                type="submit"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-amber-900 text-white text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-amber-950 transition-colors cursor-pointer"
-              >
-                <Send size={14} /> Publier mon avis
-              </button>
-            </form>
-          </div>
+          <p className="text-xs text-stone-600 leading-relaxed italic">
+            "{item.commentaire}"
+          </p>
         </div>
-      </section>
+
+        {item.verifie && (
+          <div className="mt-4 pt-3 border-t border-stone-200/60 flex items-center gap-1 text-[10px] text-emerald-800 font-medium">
+            <CheckCircle size={10} /> Achat vérifié
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</section>
+
 
       {/* PRODUITS APPARENTÉS */}
-      <div className='mt-16'>
+      <div className=''>
         <ApparenteProduit 
           categorie={produitData.categorie} 
           matiere={produitData.matiere} 

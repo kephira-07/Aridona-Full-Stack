@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Add from './pages/Add';
-import List from './pages/List';
+
 import Login from './pages/Login';
 import Orders from './pages/Orders';
 import Edit from './pages/Edit';
@@ -45,10 +45,10 @@ const App = () => {
         <main className="w-[82%] p-6 md:p-10 max-h-[calc(100vh-80px)] overflow-y-auto">
           <Routes>
             {/* Redirection automatique de la racine (/) vers la liste des produits */}
-            <Route path="/" element={<Navigate to="/list" replace />} />
+            <Route path="/" element={<Navigate to="/listeProduits" replace />} />
             <Route path='/dashbord' element={<DashboardStats token={token} />} /> 
             <Route path="/add" element={<Add token={token} />} />
-            <Route path="/list" element={<List token={token} />} />
+           
             <Route path="/orders" element={<Orders token={token} />} />
             <Route path="/edit/:id" element={<Edit token={token} />} />
             <Route path="/categories" element={<Categories token={token} />} />
@@ -57,7 +57,7 @@ const App = () => {
             {/* 🌟 PASSAGE DU TOKEN ET DU BACKENDURL POUR CHARGER LES EMAILS SANS ERREUR */}
             <Route path="/utilisateurs" element={<Utilisateurs token={token}  />} />
             
-            <Route path="*" element={<Navigate to="/list" replace />} />
+            <Route path="*" element={<Navigate to="/listeProduits" replace />} />
           </Routes>
         </main>
 

@@ -9,7 +9,7 @@ import BoutonRetour from '../composant/BoutonRetour';
 
 const Panier = () => {
   // 1. Tous les contextes doivent être extraits en haut du composant
-  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier } = useContext(ShopContext);
+  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier, supprimerDuPanier } = useContext(ShopContext);
   
   const [panierData, setPanierData] = useState([]);
   const navigate = useNavigate();
@@ -228,7 +228,7 @@ const Panier = () => {
 
                     <button
                       type="button"
-                      onClick={() => updateQuantity(item._id, item.sizes, 0)}
+                      onClick={() => updateQuantity(item._id, item.sizes, 0), supprimerDuPanier(item._id, item.sizes)}
                       className='p-2 group text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 cursor-pointer'
                       title="Retirer du panier"
                     >

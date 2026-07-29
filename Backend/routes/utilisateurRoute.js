@@ -11,7 +11,8 @@ import {
   listerUtilisateurs,
   getUtilisateurPanier,
   ajouterAuPanier,
-  updatePanier
+  updatePanier,
+  deletePanier
 } from '../controller/utilisateurController.js';
 
 // Importation du middleware d'authentification RBAC
@@ -31,10 +32,10 @@ utilisateurRouter.post('/reinitialiser-mot-de-passe', reinitialiserMotDePasse);
 utilisateurRouter.get('/profil', auth(), getProfilUtilisateur); // Passage en GET recommandé
 utilisateurRouter.post('/profil', auth(), getProfilUtilisateur); // Conservé en POST si votre frontend l'exige
 utilisateurRouter.put('/modifier-profil', auth(), updateProfilUtilisateur); // PUT ou POST selon votre frontend
-utilisateurRouter.post('/panier', auth(), getUtilisateurPanier);
+utilisateurRouter.get('/panier', auth(), getUtilisateurPanier);
 utilisateurRouter.post('/panier/ajouter', auth(), ajouterAuPanier);
 utilisateurRouter.post('/panier/update', auth(), updatePanier);
-
+utilisateurRouter.post('/panier/supprimer', auth(), deletePanier);
 // --- 3. Routes Protégées Administrateur ---
 // Utilisation directe du contrôle de rôle intégré dans auth(['admin'])
 utilisateurRouter.get('/liste', auth(['admin']), listerUtilisateurs);

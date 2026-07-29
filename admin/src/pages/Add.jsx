@@ -29,6 +29,7 @@ const Add = ({ token }) => {
   const [sizes, setSizes] = useState([]);
   const [meilleurVente, setMeilleurVente] = useState(false);
   const [loading, setLoading] = useState(false);
+   const [tagsInput, setTagsInput] = useState(''); 
 
   // Options statiques
   const availableSizes = ["50", "52", "54", "56", "58", "Unique"];
@@ -115,6 +116,7 @@ const Add = ({ token }) => {
       formData.append("categorie", categorie); 
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
+      formData.append("tags", tagsInput); // Trans
 
       // Transmis sous format JSON pour le parseArrayHelper backend
       formData.append("sizes", JSON.stringify(sizes));
@@ -144,6 +146,7 @@ const Add = ({ token }) => {
         setPrix(''); 
         setSizes([]); 
         setCouleurs(['Doré']);
+        setTagsInput('');
         setMeilleurVente(false);
         setImages([null, null, null, null]);
       } else {
@@ -310,6 +313,28 @@ const Add = ({ token }) => {
                 )}
               </select>
             </div>
+              {/* SAISIE DES TAGS (SEO & Recherche) */}
+      <div className="w-full">
+        <p className="mb-1 text-xs font-medium text-stone-700">
+          Tags / Mots-clés SEO <span className="text-stone-400 font-normal">(séparés par des virgules)</span>
+        </p>
+        <input 
+          value={tagsInput} 
+          onChange={(e) => setTagsInput(e.target.value)} 
+          className="w-full px-3 py-2 border border-stone-300 rounded text-sm outline-none focus:border-stone-900" 
+          type="text" 
+          placeholder="ex: collier, double rang, fermoir T, choker, t-bar, doré" 
+        />
+        {tagsInput && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {tagsInput.split(',').map((tag, idx) => tag.trim() && (
+              <span key={idx} className="bg-stone-100 text-stone-700 text-[11px] px-2 py-0.5 rounded border border-stone-200">
+                #{tag.trim()}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">

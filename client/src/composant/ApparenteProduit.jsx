@@ -66,7 +66,7 @@ const ApparenteProduit = ({ categorie, matiere, actuelId }) => {
   if (apparente.length === 0) return null;
 
   return (
-    <section className='my-10 bg-stone-50/40 py-8 border-t border-b border-stone-100/60'>
+    <section className=' bg-stone-50/40  border-t border-b border-stone-100/60'>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         
         {/* En-tête épuré */}

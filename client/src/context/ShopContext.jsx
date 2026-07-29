@@ -278,6 +278,29 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     }
     return totalCount;
   };
+  const supprimerDuPanier = async (produitId, size) => {
+  try {
+    await axios.delete(`${backendUrl}/api/utilisateur/panier/supprimer`, {
+      headers: { token },
+      data: { itemId: produitId, size }
+    });
+
+    let panierData = structuredClone(panierProduits);
+    if (panierData[produitId] && panierData[produitId][size]) {
+      delete panierData[produitId][size];
+      if (Object.keys(panierData[produitId]).length === 0) {
+        delete panierData[produitId];
+      }
+    }
+    setPanierProduits(panierData);
+    toast.success("Article supprimé du panier !");
+  } catch (error) {
+    console.error("Erreur suppression panier BDD :", error);
+    toast.error("Impossible de supprimer l'article du panier.");
+  }
+};
+ // Alias pour la fonction d'ajout au panier depuis les favoris
+
 
   // Mettre à jour la quantité d'un article
   const updateQuantity = async (produitId, size, quantity) => {
@@ -371,6 +394,7 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     toggleFavori, 
     panierOuvert, 
     setPanierOuvert,
+    supprimerDuPanier,
     
   };
 

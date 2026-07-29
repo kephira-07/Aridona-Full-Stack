@@ -6,7 +6,7 @@ import BoutonRetour from '../composant/BoutonRetour'
 import Titre from '../composant/Titre'
 
 const PageFavoris = () => {
-  const { produits, monnaie, favoris, toggleFavori, ajouterFavoriAuPanier, ajouterTousLesFavorisAuPanier } = useContext(ShopContext);
+  const { produits, monnaie, favoris, toggleFavori,  ajouterTousLesFavorisAuPanier } = useContext(ShopContext);
   const navigate = useNavigate();
 
   // Filtrer les produits favoris
@@ -106,14 +106,7 @@ const PageFavoris = () => {
                   </div>
 
                   <div className='space-y-2 pt-2'>
-                    {/* Bouton individuel */}
-                    <button 
-                      onClick={() => ajouterFavoriAuPanier(idProduit)}
-                      className='w-full py-2.5 px-3 bg-stone-900 hover:bg-amber-800 text-white text-xs font-medium tracking-wider uppercase flex items-center justify-center gap-2 transition-colors cursor-pointer'
-                    >
-                      <Plus size={14} />
-                      Ajouter au panier
-                    </button>
+                   
 
                     <Link 
                       to={`/produit/${item.slug || idProduit}`}
