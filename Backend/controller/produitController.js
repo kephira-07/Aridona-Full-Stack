@@ -44,21 +44,15 @@ const listproduits = async (req, res) => {
   }
 };
 
-// Extraire Public ID Cloudinary
 const getPublicIdFromUrl = (url) => {
   try {
     if (!url) return null;
-    const parts = url.split('/upload/');
-    if (parts.length < 2) return null;
-    
-    let publicIdWithExtension = parts[1];
-    if (publicIdWithExtension.startsWith('v')) {
-      const remainingParts = publicIdWithExtension.split('/');
-      remainingParts.shift();
-      publicIdWithExtension = remainingParts.join('/');
-    }
-    return publicIdWithExtension.split('.').slice(0, -1).join('.');
-  } catch (error) {
+    const after = url.split('/upload/')[1];
+    if (!after) return null;
+    const parts = after.split('/');
+    if (/^v\d+$/.test(parts[0])) parts.shift();      // retire le segment de version vNNN
+    return parts.join('/').replace(/\.[^.]+$/, '');  // retire l'extension
+  } catch {
     return null;
   }
 };
@@ -68,10 +62,23 @@ const parseTagsHelper = (input) => {
   return rawArray.map(tag => tag.trim().toLowerCase()).filter(Boolean);
 };
 
+// Génère un slug unique en ajoutant -2, -3... si le slug de base est déjà pris
+// (par un autre produit, ou par ce produit-là si excludeId n'est pas fourni).
+const generateUniqueSlug = async (nom, excludeId = null) => {
+  const baseSlug = slugify(nom, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
+  let slug = baseSlug;
+  let counter = 2;
+  while (await produitModel.exists(excludeId ? { slug, _id: { $ne: excludeId } } : { slug })) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+  return slug;
+};
+
 // 1. Ajouter un produit
 const addproduit = async (req, res) => {
   try {
-    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente } = req.body;
+    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, alts, metaTitle, metaDescription } = req.body;
 
     if (!nom || !description || !prix || !categorie) {
       cleanLocalFiles(req.files);
@@ -84,21 +91,23 @@ const addproduit = async (req, res) => {
     const image4 = req.files?.image4?.[0];
 
     const images = [image1, image2, image3, image4].filter(Boolean);
+    const parsedAlts = parseArrayHelper(alts);
 
-    let imagesUrl = await Promise.all(
-      images.map(async (item) => {
-        const result = await cloudinary.uploader.upload(item.path, {
-          resource_type: 'image',
-          folder: 'arilona_bijoux'
-        });
-        return result.secure_url;
-      })
+    const uploaded = await Promise.all(
+      images.map((item) =>
+        cloudinary.uploader.upload(item.path, { resource_type: 'image', folder: 'aridona/bijoux' })
+      )
     );
+    const imageDocs = uploaded.map((r, i) => ({
+      url: r.secure_url,
+      publicId: r.public_id,
+      alt: (parsedAlts[i] && String(parsedAlts[i]).trim()) || `${nom} - vue ${i + 1}`,
+    }));
 
     // Supprimer les fichiers temporaires après upload Cloudinary
     cleanLocalFiles(req.files);
 
-    const slug = slugify(nom, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
+    const slug = await generateUniqueSlug(nom);
     const parsedSizes = parseArrayHelper(sizes);
     const parsedCouleurs = parseArrayHelper(couleurs);
     const parsedTags = parseTagsHelper(tags); // Traitement des tags
@@ -113,8 +122,10 @@ const addproduit = async (req, res) => {
       sizes: parsedSizes,
       tags: parsedTags, // Ajout des tags
       meilleurVente: meilleurVente === "true" || meilleurVente === true,
-      image: imagesUrl,
-      slug
+      image: imageDocs,
+      slug,
+      metaTitle,
+      metaDescription,
     };
 
     const produit = new produitModel(produitData);
@@ -139,8 +150,8 @@ const removeproduit = async (req, res) => {
     }
 
     if (produit.image && produit.image.length > 0) {
-      for (const imageUrl of produit.image) {
-        const publicId = getPublicIdFromUrl(imageUrl);
+      for (const img of produit.image) {
+        const publicId = img?.publicId || getPublicIdFromUrl(img?.url || img);
         if (publicId) {
           await cloudinary.uploader.destroy(publicId);
         }
@@ -174,12 +185,12 @@ const singleproduit = async (req, res) => {
 const updateproduit = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente } = req.body;
+    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, imagesManifest, metaTitle, metaDescription } = req.body;
 
     const updateData = {};
     if (nom) {
       updateData.nom = nom;
-      updateData.slug = slugify(nom, { lower: true, strict: true });
+      updateData.slug = await generateUniqueSlug(nom, id);
     }
     if (description) updateData.description = description;
     if (prix) updateData.prix = Number(prix);
@@ -189,38 +200,80 @@ const updateproduit = async (req, res) => {
     if (sizes) updateData.sizes = parseArrayHelper(sizes);
     if (tags !== undefined) updateData.tags = parseTagsHelper(tags); // Prise en compte de la mise à jour des tags
     if (meilleurVente !== undefined) updateData.meilleurVente = (meilleurVente === "true" || meilleurVente === true);
+    if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
+    if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
 
-    if (req.files && Object.keys(req.files).length > 0) {
-      const images = [
-        req.files.image1?.[0],
-        req.files.image2?.[0],
-        req.files.image3?.[0],
-        req.files.image4?.[0]
-      ].filter(Boolean);
-
-      if (images.length > 0) {
-        const imagesUrl = await Promise.all(
-          images.map(async (item) => {
-            const result = await cloudinary.uploader.upload(item.path, {
-              resource_type: 'image',
-              folder: 'arilona_bijoux'
-            });
-            return result.secure_url;
-          })
-        );
-        updateData.image = imagesUrl;
+    // Le manifeste décrit l'état voulu de chacun des 4 emplacements (image1..image4) :
+    // { type: 'existing', url, publicId, alt } pour une image conservée (alt éditable),
+    // { type: 'new', alt } pour un emplacement dont le fichier est envoyé à part (imageN),
+    // { type: 'empty' } (ou absent) pour un emplacement vidé.
+    // Sans ce champ, les images ne sont pas touchées (compatibilité des autres appels).
+    let ancienProduit = null;
+    let removedPublicIds = [];
+    if (imagesManifest !== undefined) {
+      const manifest = parseArrayHelper(imagesManifest);
+      ancienProduit = await produitModel.findById(id);
+      if (!ancienProduit) {
+        cleanLocalFiles(req.files);
+        return res.status(404).json({ success: false, message: "Produit introuvable" });
       }
+      const nomPourAlt = nom || ancienProduit.nom || '';
+
+      const finalImages = [];
+      const keptPublicIds = new Set();
+
+      for (let i = 0; i < manifest.length; i++) {
+        const slot = manifest[i];
+        if (!slot || slot.type === 'empty') continue;
+
+        if (slot.type === 'existing' && slot.publicId) {
+          finalImages.push({
+            url: slot.url,
+            publicId: slot.publicId,
+            alt: (slot.alt && String(slot.alt).trim()) || `${nomPourAlt} - vue ${i + 1}`,
+          });
+          keptPublicIds.add(slot.publicId);
+        } else if (slot.type === 'new') {
+          const file = req.files?.[`image${i + 1}`]?.[0];
+          if (file) {
+            const result = await cloudinary.uploader.upload(file.path, { resource_type: 'image', folder: 'aridona/bijoux' });
+            finalImages.push({
+              url: result.secure_url,
+              publicId: result.public_id,
+              alt: (slot.alt && String(slot.alt).trim()) || `${nomPourAlt} - vue ${i + 1}`,
+            });
+          }
+        }
+      }
+
+      cleanLocalFiles(req.files);
+
+      if (finalImages.length === 0) {
+        return res.status(400).json({ success: false, message: "Au moins une image est requise." });
+      }
+
+      updateData.image = finalImages;
+      removedPublicIds = (ancienProduit.image || [])
+        .map((img) => img?.publicId || getPublicIdFromUrl(img?.url || img))
+        .filter((publicId) => publicId && !keptPublicIds.has(publicId));
+    } else {
       cleanLocalFiles(req.files);
     }
 
     const produitModifie = await produitModel.findByIdAndUpdate(
-      id, 
-      updateData, 
-      { new: true }
+      id,
+      updateData,
+      { new: true, runValidators: true }
     ).populate("categorie");
 
     if (!produitModifie) {
       return res.status(404).json({ success: false, message: "Produit introuvable" });
+    }
+
+    // On ne supprime les anciennes images de Cloudinary qu'après confirmation
+    // que le nouveau document est bien enregistré, pour ne rien perdre en cas d'échec.
+    for (const publicId of removedPublicIds) {
+      await cloudinary.uploader.destroy(publicId);
     }
 
     return res.status(200).json({ success: true, message: "Produit modifié avec succès !", produit: produitModifie });
@@ -264,9 +317,9 @@ const changerStatutStock = async (req, res) => {
     }
 
     const produit = await produitModel.findByIdAndUpdate(
-      id, 
+      id,
       { enStock: Boolean(enStock) },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!produit) {

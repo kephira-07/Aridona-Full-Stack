@@ -1,6 +1,7 @@
 import React, { useContext } from 'react'
 import { ShopContext } from '../context/ShopContext'
 import { Link, useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { Trash2, ShoppingBag, Heart, ArrowRight, Plus } from 'lucide-react'
 import BoutonRetour from '../composant/BoutonRetour'
 import Titre from '../composant/Titre'
@@ -12,6 +13,15 @@ const PageFavoris = () => {
   // Filtrer les produits favoris
   const produitsFavoris = produits.filter((item) => favoris.includes(item._id || item.id));
 
+  // --- SÉCURISATION DU FORMAT IMAGE (Gère Strings & Objets {url, publicId, alt}) ---
+  const getFirstImage = (imgData) => {
+    const first = Array.isArray(imgData) ? imgData[0] : imgData;
+    if (!first) return { url: 'https://placehold.co/600x600?text=Aridona+Bijoux', alt: '' };
+    return typeof first === 'object' && first?.url
+      ? { url: first.url, alt: first.alt || '' }
+      : { url: first, alt: '' };
+  };
+
   // 🚀 ACTION GLOBALE : Ajoute tous les favoris en un seul bloc puis redirige
   const commanderTousLesFavoris = async () => {
     await ajouterTousLesFavorisAuPanier(produitsFavoris);
@@ -20,6 +30,11 @@ const PageFavoris = () => {
 
   return (
     <div className='px-4 md:px-10 lg:px-20 min-h-[60vh] bg-white transition-opacity ease-in duration-500 opacity-100'>
+      {/* Contenu personnalisé par visiteur (localStorage) — aucun intérêt à indexer, comme /panier */}
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
       <BoutonRetour />
       
       {/* --- En-tête --- */}
@@ -67,7 +82,8 @@ const PageFavoris = () => {
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 gap-y-10'>
           {produitsFavoris.map((item) => {
             const idProduit = item._id || item.id;
-            
+            const { url: imageUrl, alt: imageAlt } = getFirstImage(item.image);
+
             return (
               <div 
                 key={idProduit} 
@@ -84,9 +100,9 @@ const PageFavoris = () => {
 
                 {/* Image */}
                 <Link to={`/produit/${item.slug || idProduit}`} className='aspect-square overflow-hidden bg-stone-50 block'>
-                  <img 
-                    src={Array.isArray(item.image) ? item.image[0] : item.image} 
-                    alt={item.name || item.nom} 
+                  <img
+                    src={imageUrl}
+                    alt={imageAlt || item.name || item.nom}
                     className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
                   />
                 </Link>

@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import axios from 'axios';
 import { ShopContext } from '../context/ShopContext';
 import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send ,ChevronDown,ChevronUp} from 'lucide-react';
 import ApparenteProduit from '../composant/ApparenteProduit';
@@ -7,58 +8,44 @@ import BoutonRetour from '../composant/BoutonRetour';
 import { Helmet } from 'react-helmet-async';
 
 const PageProduit = () => {
-const { slug } = useParams(); 
-  const { produits, categories, monnaie, ajouterPanier, whatsappNum } = useContext(ShopContext);
+const { slug } = useParams();
+  const { produits, categories, monnaie, ajouterPanier, whatsappNum, backendUrl } = useContext(ShopContext);
   const [produitData, setProduitData] = useState(null);
   const [image, setImage] = useState('');
+  const [imageAlt, setImageAlt] = useState('');
   const [nomCategorie, setNomCategorie] = useState('');
-  
+
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [estAjoute, setEstAjoute] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  
+
   // --- ÉTAT DU FORMULAIRE D'AVIS DÉROULANT ---
   const [showFormAvis, setShowFormAvis] = useState(false);
 
-  // --- ÉTAT DU SYSTÈME D'AVIS ---
-  const [avisListe, setAvisListe] = useState([
-    {
-      id: 1,
-      nom: "Aminata K.",
-      note: 5,
-      date: "2026-06-12",
-      dateAffichage: "12/06/2026",
-      commentaire: "Qualité exceptionnelle ! Le bijou résiste vraiment à l'eau et ne change pas de couleur.",
-      verifie: true
-    },
-    {
-      id: 2,
-      nom: "Sonia T.",
-      note: 5,
-      date: "2026-07-04",
-      dateAffichage: "04/07/2026",
-      commentaire: "Sublime rendu en vrai, encore plus beau que sur les photos. Emballage très soigné.",
-      verifie: true
-    },
-    {
-      id: 3,
-      nom: "Clarisse M.",
-      note: 5,
-      date: "2026-07-15",
-      dateAffichage: "15/07/2026",
-      commentaire: "Finition dorée brillante très élégante. Je recommande vivement !",
-      verifie: true
-    }
-  ]);
+  // --- ÉTAT DU SYSTÈME D'AVIS (avis réels, approuvés par un admin) ---
+  const [avisListe, setAvisListe] = useState([]);
+  const [avisLoading, setAvisLoading] = useState(false);
 
   const [nouvelAvis, setNouvelAvis] = useState({ nom: '', note: 5, commentaire: '' });
   const [avisEnvoye, setAvisEnvoye] = useState(false);
+  const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
   const NUMERO_WHATSAPP = whatsappNum || "22891253109";
 
   const getImageUrl = (imgItem) => {
     if (!imgItem) return 'https://placehold.co/600x600?text=Aridona+Bijoux';
     return typeof imgItem === 'object' && imgItem?.url ? imgItem.url : imgItem;
+  };
+
+  const getImageAlt = (imgItem, fallback) => {
+    return (typeof imgItem === 'object' && imgItem?.alt) || fallback || 'Aridona Bijoux';
+  };
+
+  // Tronque un texte à n caractères sur une limite de mot, pour les fallbacks meta description.
+  const truncate = (str, n) => {
+    if (!str) return '';
+    if (str.length <= n) return str;
+    return `${str.slice(0, n - 1).trimEnd()}…`;
   };
 
   const handleSizeToggle = (item) => {
@@ -79,8 +66,10 @@ const { slug } = useParams();
         
         if (produitTrouve.image && produitTrouve.image.length > 0) {
           setImage(getImageUrl(produitTrouve.image[0]));
+          setImageAlt(getImageAlt(produitTrouve.image[0], produitTrouve.nom));
         } else {
           setImage('');
+          setImageAlt('');
         }
 
         if (produitTrouve.sizes && produitTrouve.sizes.length === 1) {
@@ -99,36 +88,66 @@ const { slug } = useParams();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug, produits, categories]);
 
-  const totalAvis = avisListe.length;
-  const moyenneNotes = totalAvis > 0 
-    ? (avisListe.reduce((acc, curr) => acc + curr.note, 0) / totalAvis).toFixed(1)
-    : "5.0";
+  // Charge les avis réellement approuvés pour ce produit (aucune donnée mock)
+  useEffect(() => {
+    const produitId = produitData?._id || produitData?.id;
+    if (!produitId) {
+      setAvisListe([]);
+      return;
+    }
 
-  const handleSoumettreAvis = (e) => {
+    const fetchAvis = async () => {
+      try {
+        setAvisLoading(true);
+        const response = await axios.get(`${backendUrl}/api/avis/produit/${produitId}`);
+        if (response.data.success) {
+          setAvisListe(response.data.avis);
+        }
+      } catch (error) {
+        console.error("Erreur chargement des avis :", error);
+      } finally {
+        setAvisLoading(false);
+      }
+    };
+
+    fetchAvis();
+  }, [produitData, backendUrl]);
+
+  const totalAvis = avisListe.length;
+  const moyenneNotes = totalAvis > 0
+    ? (avisListe.reduce((acc, curr) => acc + curr.note, 0) / totalAvis).toFixed(1)
+    : null;
+
+  const handleSoumettreAvis = async (e) => {
     e.preventDefault();
     if (!nouvelAvis.nom || !nouvelAvis.commentaire) return;
 
-    const auj = new Date();
-    const isoDate = auj.toISOString().split('T')[0];
-    const frDate = auj.toLocaleDateString('fr-FR');
+    const produitId = produitData?._id || produitData?.id;
+    if (!produitId) return;
 
-    const nouveau = {
-      id: Date.now(),
-      nom: nouvelAvis.nom,
-      note: Number(nouvelAvis.note),
-      date: isoDate,
-      dateAffichage: frDate,
-      commentaire: nouvelAvis.commentaire,
-      verifie: false
-    };
+    setEnvoiEnCours(true);
+    try {
+      const response = await axios.post(`${backendUrl}/api/avis/ajouter`, {
+        produitId,
+        nom: nouvelAvis.nom,
+        note: Number(nouvelAvis.note),
+        commentaire: nouvelAvis.commentaire,
+      });
 
-    setAvisListe([nouveau, ...avisListe]);
-    setNouvelAvis({ nom: '', note: 5, commentaire: '' });
-    setAvisEnvoye(true);
-    setTimeout(() => {
-      setAvisEnvoye(false);
-      setShowFormAvis(false);
-    }, 3000);
+      if (response.data.success) {
+        // L'avis reste invisible tant qu'un admin ne l'a pas approuvé — pas d'ajout local optimiste.
+        setNouvelAvis({ nom: '', note: 5, commentaire: '' });
+        setAvisEnvoye(true);
+        setTimeout(() => {
+          setAvisEnvoye(false);
+          setShowFormAvis(false);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Erreur soumission avis :", error);
+    } finally {
+      setEnvoiEnCours(false);
+    }
   };
 
   const notifierSurWhatsApp = () => {
@@ -162,34 +181,51 @@ const { slug } = useParams();
         : "https://schema.org/OutOfStock",
       "itemCondition": "https://schema.org/NewCondition"
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": moyenneNotes,
-      "reviewCount": totalAvis
-    },
-    "review": avisListe.map(a => ({
-      "@type": "Review",
-      "author": { "@type": "Person", "name": a.nom },
-      "datePublished": a.date,
-      "reviewBody": a.commentaire,
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": a.note,
-        "bestRating": "5"
-      }
-    }))
+    // aggregateRating/review ne sont envoyés à Google que s'il existe de vrais avis approuvés,
+    // pour ne jamais déclarer de données structurées fabriquées (règles Google sur les faux avis).
+    ...(totalAvis > 0 ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": moyenneNotes,
+        "reviewCount": totalAvis
+      },
+      "review": avisListe.map(a => ({
+        "@type": "Review",
+        "author": { "@type": "Person", "name": a.nom },
+        "datePublished": a.createdAt,
+        "reviewBody": a.commentaire,
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": a.note,
+          "bestRating": "5"
+        }
+      }))
+    } : {})
   } : null;
 
+  const pageTitle = produitData
+    ? (produitData.metaTitle || `${produitData.nom} - Bijoux en Acier Inoxydable | Aridona Bijoux`)
+    : '';
+  const pageDescription = produitData
+    ? (produitData.metaDescription
+      || truncate(produitData.description, 160)
+      || `Découvrez ${produitData.nom}. Bijou en acier inoxydable waterproof et hypoallergénique par Aridona Bijoux.`)
+    : '';
+  const canonicalUrl = produitData && typeof window !== 'undefined'
+    ? `${window.location.origin}/produit/${produitData.slug || produitData._id || produitData.id}`
+    : undefined;
 
   return produitData ? (
     <div className='mt-5 md:mt-8 transition-opacity ease-in duration-500 opacity-100 bg-white'>
-  
+
       <Helmet>
-        <title>{`${produitData.nom} - Bijoux en Acier Inoxydable | Aridona Bijoux`}</title>
-        <meta name="description" content={`Découvrez ${produitData.nom}. Bijou en acier inoxydable waterproof et hypoallergénique par Aridona Bijoux.`} />
-        <meta property="og:title" content={`${produitData.nom} | Aridona Bijoux`} />
-        <meta property="og:description" content={`Découvrez ${produitData.nom}. Bijou waterproof et élégant.`} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
         <meta property="og:image" content={image} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="product" />
 
         {schemaData && (
@@ -211,13 +247,13 @@ const { slug } = useParams();
               const itemUrl = getImageUrl(item);
               const isActive = image === itemUrl;
               return (
-                <div 
+                <div
                   key={index}
-                  onClick={() => setImage(itemUrl)}
+                  onClick={() => { setImage(itemUrl); setImageAlt(getImageAlt(item, `${produitData.nom} - vue ${index + 1}`)); }}
                   className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-full aspect-square cursor-pointer border-2 transition-all duration-300 rounded-md overflow-hidden
                     ${isActive ? 'border-amber-600 shadow-sm' : 'border-transparent hover:border-amber-200'}`}
                 >
-                  <img src={itemUrl} className='w-full h-full object-cover' alt={`${produitData.nom} ${index + 1}`} />
+                  <img src={itemUrl} className='w-full h-full object-cover' alt={getImageAlt(item, `${produitData.nom} - vue ${index + 1}`)} />
                 </div>
               );
             })}
@@ -229,7 +265,7 @@ const { slug } = useParams();
               className='aspect-square w-full overflow-hidden bg-stone-50 border border-stone-100 cursor-zoom-in group relative'
             >
               {image ? (
-                <img src={image} alt={produitData.nom} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105' />
+                <img src={image} alt={imageAlt} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105' />
               ) : (
                 <div className='w-full h-full flex items-center justify-center text-stone-300'>Image non disponible</div>
               )}
@@ -247,7 +283,7 @@ const { slug } = useParams();
               <button type="button" className="absolute top-5 right-5 text-white hover:text-amber-500 transition-colors" onClick={() => setShowModal(false)}>
                 <X size={40} strokeWidth={1.5} />
               </button>
-              <img src={image} alt={produitData.nom} className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
+              <img src={image} alt={imageAlt} className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
             </div>
           )}
         </div>
@@ -262,20 +298,22 @@ const { slug } = useParams();
 
           <h1 className='font-ebgaramond text-3xl md:text-4xl text-stone-800 tracking-tight'>{produitData.nom}</h1>
 
-          {/* ÉTOILES ET AVIS AU-DESSUS DU PRIX */}
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex text-amber-500">
-              {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i} 
-                  size={16} 
-                  className={i < Math.round(Number(moyenneNotes)) ? "fill-amber-400 text-amber-400" : "text-stone-300"} 
-                />
-              ))}
+          {/* ÉTOILES ET AVIS AU-DESSUS DU PRIX (uniquement s'il existe de vrais avis approuvés) */}
+          {totalAvis > 0 && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex text-amber-500">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={16}
+                    className={i < Math.round(Number(moyenneNotes)) ? "fill-amber-400 text-amber-400" : "text-stone-300"}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-semibold text-stone-700">{moyenneNotes}</span>
+              <span className="text-xs text-stone-400">({totalAvis} avis)</span>
             </div>
-            <span className="text-xs font-semibold text-stone-700">{moyenneNotes}</span>
-            <span className="text-xs text-stone-400">({totalAvis} avis)</span>
-          </div>
+          )}
 
           <div className="flex items-center gap-4 mt-4">
             <p className='text-3xl font-light text-amber-900'>
@@ -380,7 +418,9 @@ const { slug } = useParams();
         Avis de nos clientes
       </h2>
       <p className="text-sm text-stone-600 mt-2">
-        Note moyenne de <span className="font-semibold text-stone-900">{moyenneNotes}/5</span> basée sur {totalAvis} retours d'expérience.
+        {totalAvis > 0
+          ? <>Note moyenne de <span className="font-semibold text-stone-900">{moyenneNotes}/5</span> basée sur {totalAvis} retour{totalAvis > 1 ? 's' : ''} d'expérience.</>
+          : "Soyez la première à partager votre expérience sur ce bijou."}
       </p>
     </div>
 
@@ -402,7 +442,7 @@ const { slug } = useParams();
 
       {avisEnvoye && (
         <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-md flex items-center gap-2 shadow-sm">
-          <CheckCircle size={16} /> Merci ! Votre avis a bien été publié.
+          <CheckCircle size={16} /> Merci ! Votre avis a été envoyé et sera visible après vérification.
         </div>
       )}
 
@@ -447,28 +487,32 @@ const { slug } = useParams();
         </div>
 
         <div className="md:col-span-2">
-          <button 
+          <button
             type="submit"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-800 text-white text-xs font-semibold uppercase tracking-wide rounded-md hover:bg-amber-700 shadow-sm transition-all"
+            disabled={envoiEnCours}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-800 text-white text-xs font-semibold uppercase tracking-wide rounded-md hover:bg-amber-700 shadow-sm transition-all disabled:opacity-60"
           >
-            <Send size={12} /> Publier mon avis
+            <Send size={12} /> {envoiEnCours ? "Envoi..." : "Publier mon avis"}
           </button>
         </div>
       </form>
     </div>
   )}
 
-  {/* CARROUSEL DES AVIS EXISTANTS */}
+  {/* CARROUSEL DES AVIS EXISTANTS (uniquement les avis réels approuvés) */}
+  {!avisLoading && avisListe.length === 0 && (
+    <p className="text-sm text-stone-400 italic">Aucun avis publié pour le moment.</p>
+  )}
   <div className="flex gap-5 overflow-x-auto  pt-1 no-scrollbar snap-x snap-mandatory">
     {avisListe.map((item) => (
-      <div 
-        key={item.id} 
+      <div
+        key={item._id}
         className="w-80 shrink-0 snap-start bg-gradient-to-br from-stone-50 to-stone-100 border border-stone-200 p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
       >
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="font-semibold text-stone-900 text-xs">{item.nom}</span>
-            <span className="text-[10px] text-stone-400">{item.dateAffichage || item.date}</span>
+            <span className="text-[10px] text-stone-400">{new Date(item.createdAt).toLocaleDateString('fr-FR')}</span>
           </div>
 
           <div className="flex text-amber-500 mb-3 drop-shadow-sm">

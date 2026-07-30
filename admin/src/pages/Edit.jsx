@@ -37,6 +37,12 @@ const Edit = ({ token }) => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
+  // Alt-text des nouvelles photos (une par emplacement, laissé vide = fallback backend)
+  const [newAlts, setNewAlts] = useState(['', '', '', '']);
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
+  const [tagsInput, setTagsInput] = useState('');
+
   // Options statiques (Alignées avec le composant Add)
   const availableSizes = ["50", "52", "54", "56", "58", "Unique"];
   const availableColors = ["Doré", "Argenté", "Or Rose"];
@@ -78,10 +84,19 @@ const Edit = ({ token }) => {
           setCouleurs(Array.isArray(p.couleurs) && p.couleurs.length > 0 ? p.couleurs : ['Doré']);
           setSizes(Array.isArray(p.sizes) ? p.sizes : []);
           setMeilleurVente(Boolean(p.meilleurVente));
-          
-          // Formatage des images existantes (extraire les URLs si ce sont des objets Cloudinary)
-          const rawImages = p.image || [];
-          const formattedImages = rawImages.map(img => typeof img === 'object' && img?.url ? img.url : img);
+          setMetaTitle(p.metaTitle || '');
+          setMetaDescription(p.metaDescription || '');
+          setTagsInput(Array.isArray(p.tags) ? p.tags.join(', ') : '');
+
+          // On garde url/publicId/alt de chaque image (nécessaires pour conserver ou éditer l'alt-text)
+          const rawImages = Array.isArray(p.image) ? p.image : [];
+          const formattedImages = [0, 1, 2, 3].map((i) => {
+            const img = rawImages[i];
+            if (!img) return null;
+            return typeof img === 'object' && img?.url
+              ? { url: img.url, publicId: img.publicId, alt: img.alt || '' }
+              : { url: img, publicId: null, alt: '' };
+          });
           setExistingImages(formattedImages);
         } else {
           toast.error(prodResponse.data.message || "Impossible de charger le produit.");
@@ -116,6 +131,18 @@ const Edit = ({ token }) => {
     setExistingImages(updated);
   };
 
+  const handleExistingAltChange = (index, value) => {
+    const updated = [...existingImages];
+    if (updated[index]) updated[index] = { ...updated[index], alt: value };
+    setExistingImages(updated);
+  };
+
+  const handleNewAltChange = (index, value) => {
+    const updated = [...newAlts];
+    updated[index] = value;
+    setNewAlts(updated);
+  };
+
   // Toggle Tailles & Couleurs
   const handleSizeToggle = (size) => {
     setSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
@@ -144,6 +171,17 @@ const Edit = ({ token }) => {
       return;
     }
 
+    const manifest = [0, 1, 2, 3].map((i) => {
+      if (images[i]) return { type: 'new', alt: newAlts[i] || '' };
+      if (existingImages[i]) return { type: 'existing', ...existingImages[i] };
+      return { type: 'empty' };
+    });
+
+    if (manifest.every((slot) => slot.type === 'empty')) {
+      toast.error("Veuillez conserver ou fournir au moins une photo pour le bijou.");
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
@@ -153,13 +191,15 @@ const Edit = ({ token }) => {
       formData.append("categorie", categorie);
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
+      formData.append("metaTitle", metaTitle);
+      formData.append("metaDescription", metaDescription);
+      formData.append("tags", tagsInput);
 
       formData.append("sizes", JSON.stringify(sizes));
       formData.append("couleurs", JSON.stringify(couleurs));
 
-      // URLs des images existantes toujours conservées
-      const cleanedExistingImages = existingImages.filter(img => Boolean(img));
-      formData.append("existingImages", JSON.stringify(cleanedExistingImages));
+      // Décrit l'état voulu de chacun des 4 emplacements (conservé / remplacé / vidé) — voir updateproduit
+      formData.append("imagesManifest", JSON.stringify(manifest));
 
       // Nouveaux fichiers d'images ajoutés (image1, image2, image3, image4)
       images.forEach((img, idx) => {
@@ -244,57 +284,75 @@ const Edit = ({ token }) => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[0, 1, 2, 3].map((index) => {
               const newFile = images[index];
-              const existingUrl = existingImages[index];
+              const existingImg = existingImages[index];
 
               return (
-                <div key={index} className="relative aspect-square">
+                <div key={index} className="relative">
                   {/* Prévisualisation d'une nouvelle photo sélectionnée */}
                   {newFile ? (
-                    <div className="relative w-full h-full rounded-xl overflow-hidden border border-amber-600/50 group">
-                      <img 
-                        src={URL.createObjectURL(newFile)} 
-                        alt={`Nouveau ${index + 1}`} 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeNewImage(index)}
-                        className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md cursor-pointer"
-                        title="Annuler le remplacement"
-                      >
-                        <X size={14} />
-                      </button>
-                      <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-amber-800 text-white text-[9px] font-medium tracking-wider uppercase rounded">
-                        Nouveau
-                      </span>
-                    </div>
-                  ) : existingUrl ? (
-                    /* Image déjà enregistrée en BDD */
-                    <div className="relative w-full h-full rounded-xl overflow-hidden border border-stone-200 group">
-                      <img 
-                        src={existingUrl} 
-                        alt={`Existante ${index + 1}`} 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeExistingImage(index)}
-                        className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md cursor-pointer"
-                        title="Retirer la photo"
-                      >
-                        <X size={14} />
-                      </button>
-                      {index === 0 && (
-                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-stone-900/90 text-white text-[9px] font-medium tracking-wider uppercase rounded">
-                          Couverture
+                    <div className="space-y-1.5">
+                      <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-amber-600/50 group">
+                        <img
+                          src={URL.createObjectURL(newFile)}
+                          alt={`Nouveau ${index + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(index)}
+                          className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md cursor-pointer"
+                          title="Annuler le remplacement"
+                        >
+                          <X size={14} />
+                        </button>
+                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-amber-800 text-white text-[9px] font-medium tracking-wider uppercase rounded">
+                          Nouveau
                         </span>
-                      )}
+                      </div>
+                      <input
+                        value={newAlts[index]}
+                        onChange={(e) => handleNewAltChange(index, e.target.value)}
+                        className="w-full border border-stone-200 bg-stone-50/30 rounded-lg px-2 py-1 text-[10px] outline-none focus:bg-white focus:border-stone-900 transition-all"
+                        type="text"
+                        placeholder={`Texte alternatif (SEO), ex: ${nom || 'Bijou'} - vue ${index + 1}`}
+                      />
+                    </div>
+                  ) : existingImg ? (
+                    /* Image déjà enregistrée en BDD */
+                    <div className="space-y-1.5">
+                      <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-stone-200 group">
+                        <img
+                          src={existingImg.url}
+                          alt={existingImg.alt || `Existante ${index + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md cursor-pointer"
+                          title="Retirer la photo"
+                        >
+                          <X size={14} />
+                        </button>
+                        {index === 0 && (
+                          <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-stone-900/90 text-white text-[9px] font-medium tracking-wider uppercase rounded">
+                            Couverture
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        value={existingImg.alt}
+                        onChange={(e) => handleExistingAltChange(index, e.target.value)}
+                        className="w-full border border-stone-200 bg-stone-50/30 rounded-lg px-2 py-1 text-[10px] outline-none focus:bg-white focus:border-stone-900 transition-all"
+                        type="text"
+                        placeholder={`Texte alternatif (SEO), ex: ${nom || 'Bijou'} - vue ${index + 1}`}
+                      />
                     </div>
                   ) : (
                     /* Slot vide pour ajouter une photo */
-                    <label 
-                      htmlFor={`edit-image${index + 1}`} 
-                      className="w-full h-full border-2 border-dashed border-stone-200 hover:border-amber-700/60 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-stone-50/50 hover:bg-amber-50/20 transition-all text-center p-2 group"
+                    <label
+                      htmlFor={`edit-image${index + 1}`}
+                      className="w-full aspect-square border-2 border-dashed border-stone-200 hover:border-amber-700/60 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-stone-50/50 hover:bg-amber-50/20 transition-all text-center p-2 group"
                     >
                       <div className="p-2.5 rounded-full bg-white border border-stone-200 group-hover:border-amber-600/40 text-stone-400 group-hover:text-amber-700 transition-all mb-1 shadow-xs">
                         <Plus size={16} />
@@ -404,6 +462,61 @@ const Edit = ({ token }) => {
                   <option key={mat} value={mat}>{mat}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          {/* Tags / Mots-clés SEO */}
+          <div className="w-full">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+              Tags / Mots-clés SEO <span className="text-stone-400 font-normal normal-case">(séparés par des virgules)</span>
+            </label>
+            <input
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+              type="text"
+              placeholder="ex: collier, double rang, fermoir T, choker, t-bar, doré"
+            />
+            {tagsInput && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {tagsInput.split(',').map((tag, idx) => tag.trim() && (
+                  <span key={idx} className="bg-stone-100 text-stone-700 text-[11px] px-2 py-0.5 rounded border border-stone-200">
+                    #{tag.trim()}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Surcharges SEO (optionnelles) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Titre SEO <span className="text-stone-400 font-normal normal-case">(optionnel, sinon le nom est utilisé)</span>
+              </label>
+              <input
+                onChange={(e) => setMetaTitle(e.target.value)}
+                value={metaTitle}
+                maxLength={70}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                type="text"
+                placeholder="Ex: Collier Pendeloque Aura | Aridona"
+              />
+              <span className="text-[10px] text-stone-400">{metaTitle.length}/70</span>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Meta Description <span className="text-stone-400 font-normal normal-case">(optionnel, sinon la description est tronquée)</span>
+              </label>
+              <input
+                onChange={(e) => setMetaDescription(e.target.value)}
+                value={metaDescription}
+                maxLength={160}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                type="text"
+                placeholder="Résumé accrocheur affiché dans les résultats Google"
+              />
+              <span className="text-[10px] text-stone-400">{metaDescription.length}/160</span>
             </div>
           </div>
         </div>

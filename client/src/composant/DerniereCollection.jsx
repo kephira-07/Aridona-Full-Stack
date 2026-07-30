@@ -35,9 +35,10 @@ const DerniereCollection = () => {
               key={item._id || index} 
               id={item._id} 
               slug={item.slug}    
-              image={item.image}  
-              nom={item.nom} 
-              prix={item.prix} 
+              image={item.image}
+              nom={item.nom}
+              prix={item.prix}
+              enStock={item.enStock}
             />
           ))
         }

@@ -21,10 +21,15 @@ const addressSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
     
-    userId: { type: mongoose.Schema.Types.Mixed, required: true, default: "guest_order" },
+    // null = commande passée en tant qu'invité (pas de compte au moment de l'achat)
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'utilisateur', default: null, index: true },
     items: { type: [itemSchema], required: true },
+    // addressSchema était défini mais jamais attaché ici — en mode strict (par défaut),
+    // Mongoose supprimait silencieusement le champ à l'enregistrement : aucune commande
+    // n'a jamais stocké le nom/téléphone/adresse du client malgré la validation en amont.
+    address: { type: addressSchema, required: true },
     amount: { type: Number, required: true, min: 0 },
-    paymentMethod: { type: String, required: true, default: "Manuel" },
+    paymentMethod: { type: String, required: true, enum: ["COD", "Mobile Money", "Manuel"], default: "Manuel" },
     payment: { type: Boolean, required: true, default: false },
     status: { 
         type: String, 

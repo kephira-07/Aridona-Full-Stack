@@ -59,9 +59,9 @@ const Login = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await axios.post(
-        `${backendUrl}/api/utilisateur/modifier-profil`, 
-        formProfil, 
+      const response = await axios.put(
+        `${backendUrl}/api/utilisateur/modifier-profil`,
+        formProfil,
         { headers: { token } }
       );
       if (response.data.success) {
@@ -303,7 +303,7 @@ const Login = () => {
                     ? 'Inscrivez-vous pour composer votre collection et commander par WhatsApp.' 
                     : etatactuel === 'Connexion' 
                     ? 'Accédez à votre espace pour finaliser vos réservations précieuses.'
-                    : 'Un e-mail vous sera transmitted pour créer un nouveau mot de passe.'}
+                    : 'Un e-mail vous sera transmis pour créer un nouveau mot de passe.'}
                 </p>
               </div>
 

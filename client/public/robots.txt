@@ -6,6 +6,7 @@ Disallow: /panier
 Disallow: /commander
 Disallow: /login
 Disallow: /reset-password
+Disallow: /favoris
 
 
 # Emplacement officiel du Sitemap

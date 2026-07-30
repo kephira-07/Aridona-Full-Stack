@@ -36,6 +36,7 @@ utilisateurRouter.get('/panier', auth(), getUtilisateurPanier);
 utilisateurRouter.post('/panier/ajouter', auth(), ajouterAuPanier);
 utilisateurRouter.post('/panier/update', auth(), updatePanier);
 utilisateurRouter.post('/panier/supprimer', auth(), deletePanier);
+utilisateurRouter.delete('/panier/supprimer', auth(), deletePanier); // Le client appelle axios.delete() sur cette route
 // --- 3. Routes Protégées Administrateur ---
 // Utilisation directe du contrôle de rôle intégré dans auth(['admin'])
 utilisateurRouter.get('/liste', auth(['admin']), listerUtilisateurs);

@@ -3,11 +3,15 @@ import userModel from '../models/utilisateurModel.js';
 import produitModel from '../models/produitModel.js';
 import jwt from 'jsonwebtoken';
 
+// Frais de livraison forfaitaire — doit rester synchronisé avec `delivery_free`
+// dans client/src/context/ShopContext.jsx. Recalculé ici, jamais fait confiance au client.
+const FRAIS_LIVRAISON = 500;
+
 // 1. Placer une commande (Authentifié OU Invité)
 const placeOrder = async (req, res) => {
     try {
         const { items, address, paymentMethod } = req.body;
-        let userId = "guest_order";
+        let userId = null; // null = commande invité
 
         // Extraction sécurisée du userId depuis le Token JWT (si présent)
         const token = req.headers.token || req.headers.authorization?.split(" ")[1];
@@ -43,22 +47,33 @@ const placeOrder = async (req, res) => {
             const quantity = Number(item.quantity) || 1;
             calculatedAmount += itemPrice * quantity;
 
+            // orderModel attend image: [String] — produitModel stocke désormais des objets
+            // {url, publicId, alt}, donc on n'en extrait que l'URL pour l'instantané de commande.
+            const imageUrls = (productDB.image || []).map((img) =>
+                typeof img === 'object' && img?.url ? img.url : img
+            );
+
             verifiedItems.push({
                 _id: productDB._id,
                 nom: productDB.nom || productDB.name,
                 prix: itemPrice,
                 // Supporte 'size' ou 'sizes' selon l'objet envoyé par le Frontend
-                size: item.size || item.sizes || "Standard", 
+                size: item.size || item.sizes || "Standard",
                 quantity,
-                image: productDB.image
+                image: imageUrls
             });
         }
+
+        // Le sous-total seul ne reflète pas ce que le client voit/paie réellement (WhatsApp
+        // affiche sous-total + frais de livraison) — il faut inclure les frais ici aussi.
+        const fraisLivraison = calculatedAmount > 0 ? FRAIS_LIVRAISON : 0;
+        const montantTotal = calculatedAmount + fraisLivraison;
 
         const orderData = {
             userId,
             items: verifiedItems,
             address,
-            amount: calculatedAmount, // Prix recalculé côté serveur
+            amount: montantTotal, // Prix recalculé côté serveur, frais de livraison inclus
             paymentMethod: paymentMethod || "Manuel",
             payment: false,
             status: "Commande passée"
@@ -68,7 +83,7 @@ const placeOrder = async (req, res) => {
         await newOrder.save();
 
         // Réinitialiser le panier BDD si l'utilisateur est authentifié
-        if (userId !== "guest_order") {
+        if (userId) {
             await userModel.findByIdAndUpdate(userId, { $set: { cartData: {} } });
         }
 

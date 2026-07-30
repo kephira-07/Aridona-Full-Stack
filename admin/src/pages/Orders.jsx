@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { backendUrl } from '../config';
 
 const Orders = ({ token }) => {
@@ -23,11 +24,11 @@ const Orders = ({ token }) => {
         const listeCommandes = response.data.orders || [];
         setOrders([...listeCommandes]);
       } else {
-        alert(response.data.message);
+        toast.error(response.data.message);
       }
     } catch (error) {
       console.error("Erreur fetchAllOrders:", error);
-      alert(error.response?.data?.message || "Impossible de charger les commandes : " + error.message);
+      toast.error(error.response?.data?.message || "Impossible de charger les commandes.");
     } finally {
       setLoading(false);
     }
@@ -44,13 +45,14 @@ const Orders = ({ token }) => {
       );
       
       if (response.data.success) {
+        toast.success("Statut mis à jour");
         await fetchAllOrders();
       } else {
-        alert(response.data.message);
+        toast.error(response.data.message);
       }
     } catch (error) {
       console.error("Erreur statusHandler:", error);
-      alert(error.response?.data?.message || "Erreur lors du changement de statut.");
+      toast.error(error.response?.data?.message || "Erreur lors du changement de statut.");
     }
   };
 
@@ -120,7 +122,14 @@ const Orders = ({ token }) => {
 
               {/* 📍 Colonne 2 : Infos Client & Livraison */}
               <div className="text-sm space-y-1">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Livraison</p>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Livraison</p>
+                  {order.createdAt && (
+                    <span className="text-[10px] text-gray-400 font-medium">
+                      {new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
                 {order.address ? (
                   <>
                     <p className="font-semibold text-slate-900">{order.address.firstName} {order.address.lastName}</p>
@@ -160,6 +169,7 @@ const Orders = ({ token }) => {
                   <option value="En cours de préparation">En cours de préparation</option>
                   <option value="Expédié">Expédié</option>
                   <option value="Livré">Livré</option>
+                  <option value="Annulé">Annulé</option>
                 </select>
               </div>
 

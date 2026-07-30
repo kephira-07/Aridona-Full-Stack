@@ -15,8 +15,8 @@ const ResetPassword = () => {
   const handleReset = async (e) => {
     e.preventDefault();
 
-    if (nouveauPassword.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères.", { theme: "dark" });
+    if (nouveauPassword.length < 8) {
+      toast.error("Le mot de passe doit contenir au moins 8 caractères.", { theme: "dark" });
       return;
     }
     if (nouveauPassword !== confirmPassword) {

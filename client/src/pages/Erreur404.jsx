@@ -1,12 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import BoutonRetour from '../composant/BoutonRetour';
 
 const Erreur404 = () => {
   return (
     <div className='min-h-[70vh] flex flex-col items-center justify-center text-center px-4 mt-10'>
+      {/* Route SPA "catch-all" servie en HTTP 200 par le serveur — noindex évite un soft-404 aux yeux de Google */}
+      <Helmet>
+        <title>Page Introuvable | ARIDONA Bijoux</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
 
-      
+
       {/* Le chiffre 404 avec un style épuré */}
       <h1 className='text-9xl font-serif text-gray-200 tracking-tighter'>
         404

@@ -20,6 +20,12 @@ const ListeProduits = ({ token }) => {
     return typeof first === 'object' && first?.url ? first.url : (first || '/placeholder.png');
   };
 
+  // Helper pour extraire le texte alternatif de l'image de couverture (rempli côté backend)
+  const getImageAlt = (imgData, fallback) => {
+    const first = Array.isArray(imgData) ? imgData[0] : imgData;
+    return (typeof first === 'object' && first?.alt) || fallback;
+  };
+
   // Helper pour extraire le nom de la catégorie (compatible string ou objet Populate)
   const getCategorieNom = (catData) => {
     if (!catData) return 'Non catégorisé';
@@ -166,10 +172,10 @@ const ListeProduits = ({ token }) => {
             className='grid grid-cols-[1fr_2fr_1.2fr] md:grid-cols-[1fr_2.5fr_1fr_1fr_1.2fr_1.5fr] items-center gap-2 py-3 px-4 border border-stone-200 bg-white text-sm rounded-xl hover:bg-stone-50/50 transition-colors shadow-sm'
           >
             {/* Image */}
-            <img 
-              className='w-12 h-12 object-cover rounded-md border border-stone-200' 
-              src={getImageUrl(item.image)} 
-              alt={item.nom} 
+            <img
+              className='w-12 h-12 object-cover rounded-md border border-stone-200'
+              src={getImageUrl(item.image)}
+              alt={getImageAlt(item.image, item.nom)}
             />
             
             {/* Nom */}

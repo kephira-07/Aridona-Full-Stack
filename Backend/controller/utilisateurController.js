@@ -33,11 +33,11 @@ const googleLogin = async (req, res) => {
     const { email, name, picture, sub: googleId } = googleRes.data;
 
     // Chercher l'utilisateur dans MongoDB
-    let user = await userModel.findOne({ email });
+    let user = await utilisateurModel.findOne({ email });
 
     if (!user) {
       // Création du compte Google dans MongoDB
-      user = await userModel.create({
+      user = await utilisateurModel.create({
         name,
         email,
         googleId,
@@ -238,7 +238,7 @@ const motDePasseOublie = async (req, res) => {
     await user.save();
 
     const frontendUrl = process.env.FRONTEND_URL;
-    const resetLink = `${frontendUrl}/reinitialiser-mot-de-passe/${rawToken}`;
+    const resetLink = `${frontendUrl}/reset-password/${rawToken}`;
 
     const { error } = await resend.emails.send({
       from: 'Maison Aridona <onboarding@resend.dev>',
@@ -369,10 +369,16 @@ const ajouterAuPanier = async (req, res) => {
 const updatePanier = async (req, res) => {
   try {
     const userId = req.userId;
-    const { itemId, size, quantity } = req.body;
+    const { itemId, size, quantity, oldSize } = req.body;
 
     const userData = await utilisateurModel.findById(userId);
     let cartData = userData.cartData || {};
+
+    // Changement de taille (modifierTaillePanier côté client) : on retire l'ancienne clé,
+    // sinon elle reste orpheline en BDD et réapparaît au prochain chargement du panier.
+    if (oldSize && oldSize !== size && cartData[itemId]) {
+      delete cartData[itemId][oldSize];
+    }
 
     if (quantity <= 0) {
       if (cartData[itemId]) {

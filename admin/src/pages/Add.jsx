@@ -29,7 +29,13 @@ const Add = ({ token }) => {
   const [sizes, setSizes] = useState([]);
   const [meilleurVente, setMeilleurVente] = useState(false);
   const [loading, setLoading] = useState(false);
-   const [tagsInput, setTagsInput] = useState(''); 
+   const [tagsInput, setTagsInput] = useState('');
+
+  // Texte alternatif par image (SEO/accessibilité) — laissé vide, le backend
+  // retombe alors sur "{nom} - vue {n}" automatiquement.
+  const [alts, setAlts] = useState(['', '', '', '']);
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
 
   // Options statiques
   const availableSizes = ["50", "52", "54", "56", "58", "Unique"];
@@ -75,6 +81,12 @@ const Add = ({ token }) => {
     setImages(newImages);
   };
 
+  const handleAltChange = (index, value) => {
+    const newAlts = [...alts];
+    newAlts[index] = value;
+    setAlts(newAlts);
+  };
+
   // Toggle Tailles & Couleurs
   const handleSizeToggle = (size) => {
     setSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
@@ -117,10 +129,14 @@ const Add = ({ token }) => {
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
       formData.append("tags", tagsInput); // Trans
+      formData.append("metaTitle", metaTitle);
+      formData.append("metaDescription", metaDescription);
 
       // Transmis sous format JSON pour le parseArrayHelper backend
       formData.append("sizes", JSON.stringify(sizes));
       formData.append("couleurs", JSON.stringify(couleurs));
+      // Alignés positionnellement avec image1..image4 (alts[i] correspond à imageN, N = i+1)
+      formData.append("alts", JSON.stringify(alts));
 
       // Append des images (image1, image2, image3, image4)
       images.forEach((img, idx) => {
@@ -149,6 +165,9 @@ const Add = ({ token }) => {
         setTagsInput('');
         setMeilleurVente(false);
         setImages([null, null, null, null]);
+        setAlts(['', '', '', '']);
+        setMetaTitle('');
+        setMetaDescription('');
       } else {
         toast.error(response.data.message || "Erreur lors de la création.");
       }
@@ -191,32 +210,41 @@ const Add = ({ token }) => {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {images.map((img, index) => (
-              <div key={index} className="relative aspect-square">
+              <div key={index} className="relative">
                 {img ? (
-                  <div className="relative w-full h-full rounded-xl overflow-hidden border border-stone-200 group">
-                    <img 
-                      src={URL.createObjectURL(img)} 
-                      alt={`Preview ${index + 1}`} 
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                  <div className="space-y-1.5">
+                    <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-stone-200 group">
+                      <img
+                        src={URL.createObjectURL(img)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md"
+                        title="Supprimer la photo"
+                      >
+                        <X size={14} />
+                      </button>
+                      {index === 0 && (
+                        <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-amber-900/90 text-white text-[9px] font-medium tracking-wider uppercase rounded">
+                          Couverture
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      value={alts[index]}
+                      onChange={(e) => handleAltChange(index, e.target.value)}
+                      className="w-full border border-stone-200 bg-stone-50/30 rounded-lg px-2 py-1 text-[10px] outline-none focus:bg-white focus:border-stone-900 transition-all"
+                      type="text"
+                      placeholder={`Texte alternatif (SEO), ex: ${nom || 'Bijou'} - vue ${index + 1}`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md"
-                      title="Supprimer la photo"
-                    >
-                      <X size={14} />
-                    </button>
-                    {index === 0 && (
-                      <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-amber-900/90 text-white text-[9px] font-medium tracking-wider uppercase rounded">
-                        Couverture
-                      </span>
-                    )}
                   </div>
                 ) : (
-                  <label 
-                    htmlFor={`image${index + 1}`} 
-                    className="w-full h-full border-2 border-dashed border-stone-200 hover:border-amber-700/60 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-stone-50/50 hover:bg-amber-50/20 transition-all text-center p-2 group"
+                  <label
+                    htmlFor={`image${index + 1}`}
+                    className="w-full aspect-square border-2 border-dashed border-stone-200 hover:border-amber-700/60 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-stone-50/50 hover:bg-amber-50/20 transition-all text-center p-2 group"
                   >
                     <div className="p-2.5 rounded-full bg-white border border-stone-200 group-hover:border-amber-600/40 text-stone-400 group-hover:text-amber-700 transition-all mb-1 shadow-xs">
                       <Plus size={16} />
@@ -349,6 +377,38 @@ const Add = ({ token }) => {
                   <option key={mat} value={mat}>{mat}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          {/* Surcharges SEO (optionnelles) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Titre SEO <span className="text-stone-400 font-normal normal-case">(optionnel, sinon le nom est utilisé)</span>
+              </label>
+              <input
+                onChange={(e) => setMetaTitle(e.target.value)}
+                value={metaTitle}
+                maxLength={70}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                type="text"
+                placeholder="Ex: Collier Pendeloque Aura | Aridona"
+              />
+              <span className="text-[10px] text-stone-400">{metaTitle.length}/70</span>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Meta Description <span className="text-stone-400 font-normal normal-case">(optionnel, sinon la description est tronquée)</span>
+              </label>
+              <input
+                onChange={(e) => setMetaDescription(e.target.value)}
+                value={metaDescription}
+                maxLength={160}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                type="text"
+                placeholder="Résumé accrocheur affiché dans les résultats Google"
+              />
+              <span className="text-[10px] text-stone-400">{metaDescription.length}/160</span>
             </div>
           </div>
         </div>

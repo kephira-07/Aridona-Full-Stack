@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Mail, Phone, MapPin, Send, MessageCircle, Clock } from 'lucide-react';
 
 const Contact = () => {
@@ -25,6 +26,11 @@ const Contact = () => {
 
   return (
     <div className="bg-slate-950 text-slate-100 min-h-screen py-16 px-6 md:px-12 font-sans selection:bg-amber-500 selection:text-slate-950">
+      <Helmet>
+        <title>Contact | ARIDONA Bijoux</title>
+        <meta name="description" content="Contactez Aridona Bijoux pour toute question sur une pièce, une commande sur-mesure ou le suivi de votre livraison à Lomé." />
+        <link rel="canonical" href="https://aridona.store/contact" />
+      </Helmet>
       <div className="max-w-6xl mx-auto space-y-12">
         
         {/* En-tête de la page */}
@@ -97,7 +103,7 @@ const Contact = () => {
             <div className="pt-6 border-t border-slate-800 space-y-3">
               <p className="text-xs text-slate-400">Pour une assistance instantanée :</p>
               <a
-                href="https://wa.me/22800000000" // Remplace avec ton numéro WhatsApp officiel
+                href="https://wa.me/22891253109"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 w-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-600 hover:text-white py-3 px-4 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all duration-300 shadow-lg"

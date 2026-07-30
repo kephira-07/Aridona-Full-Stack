@@ -1,41 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { backendUrl } from '../config'; 
+import React, { useContext, useEffect, useState } from 'react';
+import { ShopContext } from '../context/ShopContext';
 import Titre from './Titre';
-import { default as ProduitItem } from './ProduitItem'; 
+import { default as ProduitItem } from './ProduitItem';
 
 const MeilleurVente = () => {
+  const { produits } = useContext(ShopContext);
   const [meilleurVente, setMeilleurVente] = useState([]);
-  const [loading, setLoading] = useState(true);
 
+  // Filtre les pièces coups de cœur à partir des produits déjà chargés dans le contexte
+  // (évite un second appel réseau vers /api/produit/list en plus de celui du contexte).
   useEffect(() => {
-    const fetchMeilleuresVentes = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${backendUrl}/api/produit/list`);
-        
-        if (response.data.success) {
-          const produitsBruts = response.data.produits || response.data.products || [];
-          
-          // Filtrage côté client pour récupérer les pièces coups de cœur
-          const topProduits = produitsBruts.filter(p => 
-            p.bestseller === true || 
-            p.bestseller === "true" || 
-            p.meilleurVente === true || 
-            p.meilleurVente === "true"
-          );
-          
-          setMeilleurVente(topProduits.slice(0, 8));
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération des meilleures ventes:", error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const topProduits = (produits || []).filter(p =>
+      p.bestseller === true ||
+      p.bestseller === "true" ||
+      p.meilleurVente === true ||
+      p.meilleurVente === "true"
+    );
+    setMeilleurVente(topProduits.slice(0, 8));
+  }, [produits]);
 
-    fetchMeilleuresVentes();
-  }, []);
+  const loading = produits.length === 0;
 
   return (
     <section className="bg-white py-10">
@@ -69,9 +53,10 @@ const MeilleurVente = () => {
                   key={item._id || index} 
                   id={item._id}      
                   slug={item.slug}    
-                  image={item.image}  
-                  nom={item.nom || item.name} 
-                  prix={item.prix || item.price}   
+                  image={item.image}
+                  nom={item.nom || item.name}
+                  prix={item.prix || item.price}
+                  enStock={item.enStock}
                 />
               ))
             )}

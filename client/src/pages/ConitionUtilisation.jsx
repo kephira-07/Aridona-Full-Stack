@@ -1,52 +1,32 @@
-import React, { useState } from 'react';
-
-/**
- * Design plan — light variant of the "brushed steel" identity
- * -------------------------------------------------------------
- * Same signature as the privacy policy (brushed-metal header band, hallmark-style
- * stamped article numbers) but inverted to a light, polished-steel palette so the
- * two legal pages read as one family without being a copy-paste dark theme.
- *
- * Palette:
- *   - mist-50    #F4F6F8   page background (cool, silvery white — not warm cream)
- *   - white-100  #FFFFFF   card background
- *   - ink-900    #1C2126   primary text
- *   - steel-500  #667685   secondary text
- *   - steel-300  #C7D0D8   hairlines / borders
- *   - blue-steel #3E6C93   single accent — deep gunmetal-blue, legible on light bg
- * Type: Space Grotesk (display) + Inter (body) + JetBrains Mono (article index / labels) —
- *   unchanged from the privacy policy, keeps the two documents visually related.
- * Signature: brushed-steel header band (now light highlights on pale steel) + hallmark
- *   article numbers §01…
- */
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
+import BoutonRetour from '../composant/BoutonRetour';
+import Titre from '../composant/Titre';
 
 const articles = [
   {
-    id: '01',
     title: 'Objet',
     body: (
       <p>
         Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et
-        l'utilisation du site et du catalogue en ligne d'<strong className="text-ink-900">Aridona Bijoux</strong>,
-        boutique de bijoux en acier inoxydable basée à Lomé, Togo. En naviguant sur le
+        l'utilisation du site et du catalogue en ligne d'<strong className="text-stone-900">Aridona Bijoux</strong>,
+        boutique de bijoux en acier inoxydable basée à Lomé, au Togo. En naviguant sur le
         site, en créant un compte ou en passant commande, vous acceptez sans réserve les
         présentes conditions.
       </p>
     ),
   },
   {
-    id: '02',
     title: 'Définitions',
     body: (
       <ul className="space-y-2">
-        <li><span className="text-blue-steel font-medium">« Le Site »</span> — la plateforme en ligne d'Aridona Bijoux et son catalogue de produits.</li>
-        <li><span className="text-blue-steel font-medium">« Le Client »</span> — toute personne qui consulte le site ou y passe commande.</li>
-        <li><span className="text-blue-steel font-medium">« La Commande »</span> — toute demande d'achat validée sur le site ou confirmée via WhatsApp.</li>
+        <li><span className="text-amber-800 font-medium">« Le Site »</span> — la plateforme en ligne d'Aridona Bijoux et son catalogue de produits.</li>
+        <li><span className="text-amber-800 font-medium">« Le Client »</span> — toute personne qui consulte le site ou y passe commande.</li>
+        <li><span className="text-amber-800 font-medium">« La Commande »</span> — toute demande d'achat validée sur le site ou confirmée via WhatsApp.</li>
       </ul>
     ),
   },
   {
-    id: '03',
     title: 'Produits et disponibilité',
     body: (
       <p>
@@ -60,7 +40,6 @@ const articles = [
     ),
   },
   {
-    id: '04',
     title: 'Prix',
     body: (
       <p>
@@ -72,7 +51,6 @@ const articles = [
     ),
   },
   {
-    id: '05',
     title: 'Commande et confirmation sur WhatsApp',
     body: (
       <>
@@ -91,18 +69,16 @@ const articles = [
     ),
   },
   {
-    id: '06',
     title: 'Modalités de paiement',
     body: (
       <ul className="space-y-2">
-        <li><span className="text-blue-steel font-medium">Paiement à la livraison —</span> réglé en espèces à réception, selon la zone couverte.</li>
-        <li><span className="text-blue-steel font-medium">Mobile Money / Transfert —</span> selon les modalités convenues lors de la confirmation WhatsApp.</li>
+        <li><span className="text-amber-800 font-medium">Paiement à la livraison —</span> réglé en espèces à réception, selon la zone couverte.</li>
+        <li><span className="text-amber-800 font-medium">Mobile Money / Transfert —</span> selon les modalités convenues lors de la confirmation WhatsApp.</li>
         <li>Toute commande est réputée payée une fois le règlement confirmé par nos soins.</li>
       </ul>
     ),
   },
   {
-    id: '07',
     title: 'Livraison',
     body: (
       <p>
@@ -115,7 +91,6 @@ const articles = [
     ),
   },
   {
-    id: '08',
     title: 'Retours et échanges',
     body: (
       <p>
@@ -127,7 +102,6 @@ const articles = [
     ),
   },
   {
-    id: '09',
     title: 'Garantie des produits',
     body: (
       <p>
@@ -138,7 +112,30 @@ const articles = [
     ),
   },
   {
-    id: '10',
+    title: 'Compte client',
+    body: (
+      <p>
+        La création d'un compte (par email ou via Google) vous permet de suivre vos commandes
+        et de retrouver vos informations plus rapidement. Vous êtes responsable de la
+        confidentialité de votre mot de passe et de l'exactitude des informations renseignées
+        dans votre espace client. Toute activité effectuée depuis votre compte est présumée
+        provenir de vous ; contactez-nous sans délai en cas de doute sur son accès.
+      </p>
+    ),
+  },
+  {
+    title: 'Avis clients',
+    body: (
+      <p>
+        Les avis laissés sur nos créations sont modérés avant publication et doivent refléter
+        une expérience sincère avec le produit ou le service. Aridona Bijoux se réserve le
+        droit de refuser ou de retirer tout avis mensonger, injurieux, hors sujet ou contraire
+        à la loi. Un avis peut être supprimé à la demande de son auteur, dans les conditions
+        de l'article 11 de notre politique de confidentialité.
+      </p>
+    ),
+  },
+  {
     title: 'Responsabilité',
     body: (
       <p>
@@ -150,19 +147,17 @@ const articles = [
     ),
   },
   {
-    id: '11',
     title: 'Propriété intellectuelle',
     body: (
       <p>
         L'ensemble des éléments du site (textes, visuels des bijoux, logos, éléments
-        graphiques) reste la propriété exclusive d'<strong className="text-ink-900">Aridona Bijoux</strong>.
+        graphiques) reste la propriété exclusive d'<strong className="text-stone-900">Aridona Bijoux</strong>.
         Toute reproduction, extraction ou réutilisation non autorisée, totale ou partielle,
         est strictement interdite sans accord écrit préalable.
       </p>
     ),
   },
   {
-    id: '12',
     title: 'Droit applicable et litiges',
     body: (
       <p>
@@ -173,7 +168,6 @@ const articles = [
     ),
   },
   {
-    id: '13',
     title: 'Modification des présentes CGU',
     body: (
       <p>
@@ -184,7 +178,6 @@ const articles = [
     ),
   },
   {
-    id: '14',
     title: 'Contact',
     body: (
       <>
@@ -193,17 +186,17 @@ const articles = [
           service client reste accessible :
         </p>
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className="rounded-lg border border-steel-300 bg-mist-50 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-widest text-steel-500 font-mono">Email</p>
-            <p className="text-ink-900 mt-1">contact@aridona.com</p>
+          <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-widest text-amber-700 font-semibold">Email</p>
+            <p className="text-stone-800 mt-1 text-sm">aridonabijoux@gmail.com</p>
           </div>
-          <div className="rounded-lg border border-steel-300 bg-mist-50 px-4 py-3">
-            <p className="text-[11px] uppercase tracking-widest text-steel-500 font-mono">WhatsApp</p>
-            <p className="text-ink-900 mt-1">Sur simple message, via le site</p>
+          <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
+            <p className="text-[11px] uppercase tracking-widest text-amber-700 font-semibold">WhatsApp</p>
+            <p className="text-stone-800 mt-1 text-sm">+228 91 25 31 09</p>
           </div>
-          <div className="rounded-lg border border-steel-300 bg-mist-50 px-4 py-3 sm:col-span-2">
-            <p className="text-[11px] uppercase tracking-widest text-steel-500 font-mono">Adresse</p>
-            <p className="text-ink-900 mt-1">Lomé, Togo</p>
+          <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 sm:col-span-2">
+            <p className="text-[11px] uppercase tracking-widest text-amber-700 font-semibold">Adresse</p>
+            <p className="text-stone-800 mt-1 text-sm">Lomé, Togo</p>
           </div>
         </div>
       </>
@@ -215,88 +208,56 @@ const ConditionUtilisation = () => {
   const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-mist-50 text-ink-900 font-sans">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-        .font-display { font-family: 'Space Grotesk', sans-serif; }
-        .font-sans { font-family: 'Inter', sans-serif; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        .text-ink-900 { color: #1C2126; }
-        .text-steel-500 { color: #667685; }
-        .text-steel-300 { color: #C7D0D8; }
-        .text-blue-steel { color: #3E6C93; }
-        .bg-mist-50 { background-color: #F4F6F8; }
-        .bg-white-100 { background-color: #FFFFFF; }
-        .border-steel-300 { border-color: #D7DEE4; }
-        .brushed-light {
-          background:
-            repeating-linear-gradient(
-              115deg,
-              rgba(255,255,255,0.9) 0px,
-              rgba(255,255,255,0.9) 1px,
-              transparent 1px,
-              transparent 6px
-            ),
-            linear-gradient(135deg, #E9EDF1 0%, #DCE2E7 55%, #CFD7DD 100%);
-        }
-      `}</style>
+    <div className="min-h-screen bg-white font-dmsans">
+      <Helmet>
+        <title>Conditions Générales d'Utilisation | ARIDONA Bijoux</title>
+        <meta name="description" content="Conditions Générales d'Utilisation d'Aridona Bijoux : accès au site, commandes, livraison et responsabilités." />
+        <link rel="canonical" href="https://aridona.store/conditions-utilisation" />
+      </Helmet>
 
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-14">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+        <BoutonRetour />
 
-        {/* Header — brushed-steel plate, light finish */}
-        <header className="brushed-light rounded-2xl border border-steel-300 px-8 py-10 md:px-12 md:py-12 mb-10 relative overflow-hidden shadow-sm">
-          <p className="font-mono text-[11px] tracking-[0.25em] uppercase text-blue-steel mb-4">
-            Aridona Bijoux · Acier inoxydable · Lomé
-          </p>
-          <h1 className="font-display font-bold text-3xl md:text-[2.6rem] leading-tight uppercase tracking-wide text-ink-900">
-            Conditions Générales<br className="hidden md:block" /> d'Utilisation
-          </h1>
-          <p className="mt-5 text-sm text-steel-500 font-mono">
-            En vigueur au&nbsp;: {today}
-          </p>
+        <header className="text-center mt-8 mb-12">
+          <Titre text1="Aridona Bijoux" text2="Conditions Générales d'Utilisation" />
+          <p className="text-xs text-stone-400 mt-3">En vigueur au : {today}</p>
         </header>
 
-        {/* Table of contents — hallmark index */}
-        <nav aria-label="Sommaire" className="mb-10">
-          <p className="font-mono text-[11px] uppercase tracking-widest text-steel-500 mb-3">Sommaire</p>
-          <div className="flex flex-wrap gap-2">
-            {articles.map((a) => (
-              <a
-                key={a.id}
-                href={`#article-${a.id}`}
-                className="font-mono text-xs px-3 py-1.5 rounded-full border border-steel-300 text-steel-500 hover:text-ink-900 hover:border-blue-steel/60 transition-colors bg-white-100"
-              >
-                §{a.id}
-              </a>
-            ))}
-          </div>
+        {/* Sommaire */}
+        <nav aria-label="Sommaire" className="mb-12 flex flex-wrap justify-center gap-2">
+          {articles.map((a, idx) => (
+            <a
+              key={idx}
+              href={`#article-${idx + 1}`}
+              className="text-[11px] font-medium uppercase tracking-wider px-3 py-1.5 rounded-full border border-stone-200 text-stone-500 hover:text-amber-800 hover:border-amber-300 transition-colors"
+            >
+              {idx + 1}. {a.title}
+            </a>
+          ))}
         </nav>
 
         {/* Articles */}
-        <div className="space-y-4">
-          {articles.map((a) => (
-            <section
-              key={a.id}
-              id={`article-${a.id}`}
-              className="bg-white-100 border border-steel-300 rounded-xl px-6 py-6 md:px-8 md:py-7 scroll-mt-6 shadow-sm"
-            >
-              <div className="flex items-baseline gap-4 mb-3">
-                <span className="font-mono text-blue-steel text-sm shrink-0">§{a.id}</span>
-                <h2 className="font-display font-bold text-lg md:text-xl uppercase tracking-wide text-ink-900">
+        <div className="space-y-8">
+          {articles.map((a, idx) => (
+            <section key={idx} id={`article-${idx + 1}`} className="scroll-mt-24 flex items-start gap-4">
+              <span className="shrink-0 w-8 h-8 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-ebgaramond font-semibold text-sm flex items-center justify-center mt-1">
+                {idx + 1}
+              </span>
+              <div className="flex-1 pb-8 border-b border-stone-100 last:border-none last:pb-0">
+                <h2 className="font-ebgaramond text-xl md:text-2xl text-stone-900 tracking-wide mb-3">
                   {a.title}
                 </h2>
-              </div>
-              <div className="text-sm md:text-[15px] leading-relaxed text-steel-500 pl-0 md:pl-9">
-                {a.body}
+                <div className="text-sm md:text-[15px] leading-relaxed text-stone-600">
+                  {a.body}
+                </div>
               </div>
             </section>
           ))}
         </div>
 
-        <footer className="mt-12 pt-8 border-t border-steel-300 text-center">
-          <p className="font-mono text-[11px] uppercase tracking-widest text-steel-300">
-            Aridona Bijoux — Acier inoxydable, sans compromis.
-          </p>
+        <footer className="mt-14 pt-8 border-t border-stone-100 text-center">
+          <p className="font-caveat text-2xl text-amber-700">Aridona Bijoux</p>
+          <p className="text-[11px] uppercase tracking-widest text-stone-400 mt-1">Acier inoxydable · Lomé, Togo</p>
         </footer>
       </div>
     </div>

@@ -72,13 +72,24 @@ const Collection = () => {
         fetchCategories();
     }, []);
 
-    // Intercepter la catégorie cliquée sur la Home Page
+    // Intercepter la catégorie cliquée depuis la Home Page (Categorybar → id direct)
+    // ou depuis la barre de recherche (BarRecherche → slug, à résoudre une fois les
+    // catégories chargées).
     useEffect(() => {
-        if (location.state && location.state.initialCategory) {
+        if (!location.state) return;
+
+        if (location.state.initialCategory) {
             setSelectedCategories([location.state.initialCategory]);
             window.history.replaceState({}, document.title);
+            return;
         }
-    }, [location.state]);
+
+        if (location.state.initialCategorySlug && categoriesList.length > 0) {
+            const cat = categoriesList.find((c) => c.slug === location.state.initialCategorySlug);
+            if (cat) setSelectedCategories([cat._id]);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state, categoriesList]);
 
     const toggleCategorie = (id) => {
         if (selectedCategories.includes(id)) {
@@ -211,8 +222,9 @@ const Collection = () => {
                             id={item._id} 
                             slug={item.slug}
                             nom={item.nom} 
-                            prix={item.prix} 
-                            image={item.image} 
+                            prix={item.prix}
+                            image={item.image}
+                            enStock={item.enStock}
                         />
                     ))}
                 </div>

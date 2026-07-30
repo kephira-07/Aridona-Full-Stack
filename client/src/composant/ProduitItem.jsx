@@ -3,23 +3,22 @@ import { ShopContext } from '../context/ShopContext';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Check } from "lucide-react"; 
 
-const ProduitItem = ({ id, slug, image, nom, prix }) => {
+const ProduitItem = ({ id, slug, image, nom, prix, enStock }) => {
     const { monnaie, ajouterPanier, favoris, toggleFavori } = useContext(ShopContext);
     const [isAdded, setIsAdded] = useState(false);
 
     const isFavorite = favoris ? favoris.includes(id) : false;
 
     // --- SÉCURISATION DU FORMAT IMAGE (Gère Strings & Objets MongoDB) ---
-    const getFirstImageUrl = (imgData) => {
-        if (!imgData) return 'https://placehold.co/600x600?text=Aridona+Bijoux';
-        if (Array.isArray(imgData) && imgData.length > 0) {
-            const first = imgData[0];
-            return typeof first === 'object' && first?.url ? first.url : first;
-        }
-        return typeof imgData === 'object' && imgData?.url ? imgData.url : imgData;
+    const getFirstImage = (imgData) => {
+        const first = Array.isArray(imgData) ? imgData[0] : imgData;
+        if (!first) return { url: 'https://placehold.co/600x600?text=Aridona+Bijoux', alt: '' };
+        return typeof first === 'object' && first?.url
+            ? { url: first.url, alt: first.alt || '' }
+            : { url: first, alt: '' };
     };
 
-    const imageUrl = getFirstImageUrl(image);
+    const { url: imageUrl, alt: imageAlt } = getFirstImage(image);
     const itemSlug = slug || id;
 
     const handleFavoriteClick = (e) => {
@@ -44,15 +43,19 @@ const ProduitItem = ({ id, slug, image, nom, prix }) => {
         "@type": "Product",
         "name": nom || "Création Aridona Bijoux",
         "image": imageUrl,
+        "sku": String(id || ''),
         "brand": {
             "@type": "Brand",
             "name": "Aridona Bijoux"
         },
         "offers": {
             "@type": "Offer",
+            "url": typeof window !== 'undefined' ? `${window.location.origin}/produit/${itemSlug}` : undefined,
             "priceCurrency": monnaie === "FCFA" ? "XOF" : "EUR",
             "price": Number(prix) || 0,
-            "availability": "https://schema.org/InStock"
+            "availability": enStock === false
+                ? "https://schema.org/OutOfStock"
+                : "https://schema.org/InStock"
         }
     };
 
@@ -69,8 +72,8 @@ const ProduitItem = ({ id, slug, image, nom, prix }) => {
                 <div className="relative overflow-hidden aspect-square bg-stone-50"> 
                     <img 
                         className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
-                        src={imageUrl} 
-                        alt={`${nom || 'Bijou'} - Aridona Bijoux`}
+                        src={imageUrl}
+                        alt={imageAlt || `${nom || 'Bijou'} - Aridona Bijoux`}
                         loading="lazy"
                         width="300"
                         height="300"

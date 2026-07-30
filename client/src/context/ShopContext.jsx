@@ -280,11 +280,6 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
   };
   const supprimerDuPanier = async (produitId, size) => {
   try {
-    await axios.delete(`${backendUrl}/api/utilisateur/panier/supprimer`, {
-      headers: { token },
-      data: { itemId: produitId, size }
-    });
-
     let panierData = structuredClone(panierProduits);
     if (panierData[produitId] && panierData[produitId][size]) {
       delete panierData[produitId][size];
@@ -294,9 +289,18 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     }
     setPanierProduits(panierData);
     toast.success("Article supprimé du panier !");
+
+    // Synchronisation BDD uniquement pour les utilisateurs connectés (un invité n'a pas de panier serveur)
+    if (token) {
+      await axios.delete(`${backendUrl}/api/utilisateur/panier/supprimer`, {
+        headers: { token },
+        data: { itemId: produitId, size }
+      });
+    }
   } catch (error) {
+    // L'article est déjà retiré localement à ce stade — seule la synchro BDD a échoué,
+    // pas la peine d'alarmer l'utilisateur pour un souci purement serveur.
     console.error("Erreur suppression panier BDD :", error);
-    toast.error("Impossible de supprimer l'article du panier.");
   }
 };
  // Alias pour la fonction d'ajout au panier depuis les favoris

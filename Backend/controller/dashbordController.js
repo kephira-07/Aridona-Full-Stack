@@ -6,10 +6,10 @@ export const getDashboardStats = async (req, res) => {
     try {
         // 1. CALCULS PARALLÈLES SUR LA BDD
         const [
-            totalProduits, 
-            totalCategories, 
-            rupturesStock, 
-            totalCoupsDeCoeur,
+            totalProduits,
+            totalCategories,
+            rupturesStock,
+            totalProduitsVedette,
             commandesStats,
             bestSellersAggregation,
             zonesAggregation
@@ -18,6 +18,9 @@ export const getDashboardStats = async (req, res) => {
             produitModel.countDocuments({}),
             categorieModel.countDocuments({}),
             produitModel.countDocuments({ enStock: false }),
+            // "Vedette" = flag éditorial posé par l'admin (meilleurVente), pas un vrai
+            // compteur de favoris client — le système de favoris n'existe qu'en localStorage
+            // côté client et n'est jamais synchronisé au backend.
             produitModel.countDocuments({ meilleurVente: true }),
 
             // Chiffre d'Affaires & Nombre de commandes validées (exclut les "Annulé")
@@ -33,18 +36,20 @@ export const getDashboardStats = async (req, res) => {
             ]),
 
             // Top 5 des bijoux les plus vendus (Aggregation sur `items`)
+            // Le $lookup/$unwind doit précéder $sort+$limit : sinon un produit supprimé
+            // du catalogue mais présent dans le top 5 brut disparaît après coup (via
+            // $unwind sur un tableau vide), et le classement perd un rang au lieu de
+            // remonter le 6ᵉ produit réellement éligible.
             orderModel.aggregate([
                 { $match: { status: { $ne: "Annulé" } } },
                 { $unwind: "$items" },
-                { 
-                    $group: { 
-                        _id: "$items._id", 
+                {
+                    $group: {
+                        _id: "$items._id",
                         totalVentes: { $sum: "$items.quantity" },
                         totalGenere: { $sum: { $multiply: ["$items.quantity", "$items.prix"] } }
-                    } 
+                    }
                 },
-                { $sort: { totalVentes: -1 } },
-                { $limit: 5 },
                 {
                     $lookup: {
                         from: "produits", // Assure-toi que la collection s'appelle "produits" dans MongoDB
@@ -53,7 +58,9 @@ export const getDashboardStats = async (req, res) => {
                         as: "details"
                     }
                 },
-                { $unwind: "$details" }
+                { $unwind: "$details" },
+                { $sort: { totalVentes: -1 } },
+                { $limit: 5 }
             ]),
 
             // Top zones / villes de livraison (`address.city`)
@@ -81,16 +88,15 @@ export const getDashboardStats = async (req, res) => {
             totalGenere: item.totalGenere
         }));
 
-        // 4. RÉCUPÉRATION DES COUPS DE CŒUR DU CATALOGUE
-        const coupsDeCoeurList = await produitModel.find({ meilleurVente: true })
+        // 4. RÉCUPÉRATION DES PRODUITS VEDETTE (flag éditorial admin, pas des favoris client)
+        const produitsVedetteList = await produitModel.find({ meilleurVente: true })
             .limit(5)
             .select("nom categorie")
             .populate("categorie", "nom");
 
-        const produitsPlusFavoris = coupsDeCoeurList.map(p => ({
+        const produitsVedette = produitsVedetteList.map(p => ({
             nom: p.nom,
-            categorie: p.categorie?.nom || "Bijoux",
-            favorisCount: "Vedette"
+            categorie: p.categorie?.nom || "Bijoux"
         }));
 
         // 5. FORMATAGE DU CLASSEMENT DES VILLES
@@ -106,11 +112,11 @@ export const getDashboardStats = async (req, res) => {
             success: true,
             stats: {
                 chiffreAffairesTotal,
-                totalCoupsDeCoeur,
+                totalProduitsVedette,
                 totalCommandes,
                 zoneTop,
                 produitsPlusVendus,
-                produitsPlusFavoris,
+                produitsVedette,
                 zonesPlusDemandees,
                 totalProduits,
                 totalCategories,

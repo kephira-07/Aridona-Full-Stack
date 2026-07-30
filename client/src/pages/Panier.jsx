@@ -228,7 +228,7 @@ const Panier = () => {
 
                     <button
                       type="button"
-                      onClick={() => updateQuantity(item._id, item.sizes, 0), supprimerDuPanier(item._id, item.sizes)}
+                      onClick={() => supprimerDuPanier(item._id, item.sizes)}
                       className='p-2 group text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 cursor-pointer'
                       title="Retirer du panier"
                     >

@@ -58,7 +58,7 @@ export const addCategorie = async (req, res) => {
 
         // Upload sur Cloudinary
         const uploadResult = await cloudinary.uploader.upload(imageFile.path, {
-            folder: 'arilona_bijoux/categories',
+            folder: 'aridona/categories',
             resource_type: "image"
         });
 
@@ -113,15 +113,25 @@ export const updateCategorie = async (req, res) => {
 
         // Mise à jour du nom et du slug
         if (nom && nom.trim() !== categorie.nom) {
-            donneesMiseAJour.nom = nom.trim();
-            donneesMiseAJour.slug = slugify(nom, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
+            const nomNettoye = nom.trim();
+
+            // Vérification des doublons (manquait ici, contrairement à addCategorie) — évite
+            // une erreur Mongo brute (E11000) si le nouveau nom est déjà pris par une autre catégorie.
+            const doublon = await categorieModel.findOne({ nom: nomNettoye, _id: { $ne: id } });
+            if (doublon) {
+                cleanLocalFile(imageFile);
+                return res.status(400).json({ success: false, message: "Une catégorie avec ce nom existe déjà" });
+            }
+
+            donneesMiseAJour.nom = nomNettoye;
+            donneesMiseAJour.slug = slugify(nomNettoye, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
         }
 
         // Si une NOUVELLE image est fournie
         if (imageFile) {
             // Upload de la nouvelle image
             const uploadResult = await cloudinary.uploader.upload(imageFile.path, {
-                folder: 'arilona_bijoux/categories',
+                folder: 'aridona/categories',
                 resource_type: "image"
             });
             donneesMiseAJour.image = uploadResult.secure_url;
@@ -160,7 +170,18 @@ export const deleteCategorie = async (req, res) => {
             return res.status(404).json({ success: false, message: "Catégorie introuvable" });
         }
 
-        // 1. Suppression de l'image sur Cloudinary
+        // 1. Vérification des produits associés pour éviter les objets orphelins —
+        // DOIT précéder toute suppression Cloudinary, sinon l'image est perdue même
+        // quand la catégorie elle-même est conservée (suppression refusée).
+        const nombreProduits = await produitModel.countDocuments({ categorie: id });
+        if (nombreProduits > 0) {
+            return res.status(400).json({
+                success: false,
+                message: `Impossible de supprimer : ${nombreProduits} bijou(x) sont encore associés à cette catégorie.`
+            });
+        }
+
+        // 2. Suppression de l'image sur Cloudinary
         if (categorie.image) {
             const publicId = getPublicIdFromUrl(categorie.image);
             if (publicId) {
@@ -168,15 +189,6 @@ export const deleteCategorie = async (req, res) => {
             }
         }
 
-        // 2. Vérification des produits associés pour éviter les objets orphelins
-        const nombreProduits = await produitModel.countDocuments({ categorie: id });
-        if (nombreProduits > 0) {
-            return res.status(400).json({ 
-                success: false, 
-                message: `Impossible de supprimer : ${nombreProduits} bijou(x) sont encore associés à cette catégorie.` 
-            });
-        }
-        
         // 3. Suppression dans MongoDB
         await categorieModel.findByIdAndDelete(id);
         

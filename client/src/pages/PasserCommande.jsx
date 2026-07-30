@@ -3,9 +3,10 @@ import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
-import { MessageSquare, MapPin, Loader2 } from 'lucide-react';
+import { MessageSquare, MapPin, Loader2, UserPlus, X } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import axios from 'axios';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const PasserCommande = () => {
   const {
@@ -16,11 +17,17 @@ const PasserCommande = () => {
     delivery_free = 0,
     backendUrl,
     token,
+    setToken,
     setPanierProduits
   } = useContext(ShopContext);
 
   const [methode, setMethode] = useState('cod');
   const [loading, setLoading] = useState(false);
+
+  // Invite optionnelle à créer un compte après une commande passée en invité —
+  // n'affecte jamais la commande déjà enregistrée, juste un raccourci pour la prochaine fois.
+  const [pendingWhatsappUrl, setPendingWhatsappUrl] = useState(null);
+  const [creatingAccount, setCreatingAccount] = useState(false);
 
   const WHATSAPP_NUMBER = "22891253109";
 
@@ -159,15 +166,22 @@ const PasserCommande = () => {
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
-        toast.success("Commande enregistrée ! Redirection vers WhatsApp...", { theme: "dark", autoClose: 2000 });
-
         if (typeof setPanierProduits === 'function') {
           setPanierProduits({});
         }
 
-        setTimeout(() => {
-          window.location.href = whatsappUrl;
-        }, 1000);
+        // Client déjà connecté : rien à proposer, on file directement sur WhatsApp comme avant.
+        // Client invité : on propose (sans bloquer) de créer un compte avant de continuer.
+        const estInvite = !token || token === "null" || token === "undefined";
+        if (estInvite) {
+          toast.success("Commande enregistrée !", { theme: "dark", autoClose: 2000 });
+          setPendingWhatsappUrl(whatsappUrl);
+        } else {
+          toast.success("Commande enregistrée ! Redirection vers WhatsApp...", { theme: "dark", autoClose: 2000 });
+          setTimeout(() => {
+            window.location.href = whatsappUrl;
+          }, 1000);
+        }
 
       } else {
         toast.error(response.data?.message || "Erreur lors de l'enregistrement.", { theme: "dark" });
@@ -183,6 +197,40 @@ const PasserCommande = () => {
       setLoading(false);
     }
   };
+
+  // Redirige vers WhatsApp — appelé soit en cliquant "Non merci", soit après création de compte.
+  const continuerVersWhatsapp = () => {
+    if (pendingWhatsappUrl) window.location.href = pendingWhatsappUrl;
+  };
+
+  // Crée un compte via Google juste après la commande, sans bloquer ni relier rétroactivement
+  // cette commande (déjà enregistrée en tant qu'invité) — juste un raccourci pour la prochaine fois.
+  const creerCompteApresCommande = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setCreatingAccount(true);
+        const res = await axios.post(`${backendUrl}/api/utilisateur/google-login`, {
+          access_token: tokenResponse.access_token,
+        });
+        if (res.data.success) {
+          setToken(res.data.token);
+          localStorage.setItem('token', res.data.token);
+          toast.success("Compte créé ! Vous retrouverez vos prochaines commandes plus facilement.", { theme: "dark" });
+        } else {
+          toast.error(res.data.message, { theme: "dark" });
+        }
+      } catch (error) {
+        console.error("Erreur création de compte post-commande:", error);
+        toast.error("Impossible de créer le compte pour le moment.", { theme: "dark" });
+      } finally {
+        setCreatingAccount(false);
+        continuerVersWhatsapp();
+      }
+    },
+    onError: () => {
+      toast.error("La connexion Google a échoué.", { theme: "dark" });
+    },
+  });
 
   if (!produits || produits.length === 0) {
     return (
@@ -348,6 +396,61 @@ const PasserCommande = () => {
           </div>
         </div>
       </form>
+
+      {/* Invite optionnelle à créer un compte, affichée après une commande passée en invité.
+          La commande est déjà enregistrée à ce stade — "Non merci" continue simplement vers WhatsApp. */}
+      {pendingWhatsappUrl && (
+        <div className="fixed inset-0 z-[1000] bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white max-w-sm w-full rounded-2xl p-8 text-center space-y-5 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={continuerVersWhatsapp}
+              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 cursor-pointer"
+              title="Continuer sans créer de compte"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-800">
+              <UserPlus size={26} />
+            </div>
+
+            <div>
+              <h3 className="font-serif text-xl text-stone-900">Créer votre compte Aridona ?</h3>
+              <p className="text-xs text-stone-500 mt-2 leading-relaxed">
+                Votre commande est enregistrée. Créez un compte pour retrouver vos prochaines commandes plus facilement — totalement facultatif.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={creatingAccount}
+              onClick={() => creerCompteApresCommande()}
+              className="w-full flex items-center justify-center gap-2 bg-white border border-stone-300 text-stone-700 py-3 px-6 rounded-full text-[10px] font-bold tracking-widest uppercase hover:bg-stone-50 hover:border-amber-800/30 transition-all duration-300 active:scale-[0.98] cursor-pointer disabled:opacity-60"
+            >
+              {creatingAccount ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.51 15 0 12 0 7.35 0 3.37 2.67 1.48 6.56l3.87 3a7.18 7.18 0 0 1 6.65-4.52z" />
+                  <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46a5.54 5.54 0 0 1-2.4 3.64l3.73 2.9c2.18-2.01 3.7-4.97 3.7-8.69z" />
+                  <path fill="#FBBC05" d="M5.35 14.56a7.12 7.12 0 0 1 0-4.12l-3.87-3A11.95 11.95 0 0 0 0 12c0 1.9.44 3.7 1.23 5.32l4.12-3.12l-.01-.64z" />
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.73-2.9a7.14 7.14 0 0 1-11.02-3.84l-3.95 3.06C3.17 21.31 7.21 24 12 24z" />
+                </svg>
+              )}
+              <span>{creatingAccount ? 'Création...' : 'Continuer avec Google'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={continuerVersWhatsapp}
+              className="w-full text-[11px] font-semibold uppercase tracking-wider text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+            >
+              Non merci, continuer vers WhatsApp
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

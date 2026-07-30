@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../config';
-import { 
-  Package, 
-  Heart, 
-  Trophy, 
-  MapPin, 
-  RefreshCw, 
-  TrendingUp, 
+import {
+  Package,
+  Star,
+  Trophy,
+  MapPin,
+  RefreshCw,
+  TrendingUp,
   Sparkles,
   BarChart3,
-  Layers
+  Layers,
+  Gem,
+  AlertTriangle
 } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -159,18 +161,18 @@ export default function DashboardStats({ token }) {
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all" />
         </div>
 
-        {/* Métrique 2 : Total Favoris cumulés */}
-        <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-rose-500/30 transition-all">
+        {/* Métrique 2 : Produits marqués "Coup de Cœur / Vedette" par l'admin (pas des favoris client) */}
+        <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-violet-500/30 transition-all">
           <div className="space-y-1.5 z-10">
-            <span className="text-[10px] uppercase font-semibold tracking-widest text-rose-400/80">Intérêt Client</span>
+            <span className="text-[10px] uppercase font-semibold tracking-widest text-violet-400/80">Sélection Boutique</span>
             <h3 className="text-2xl font-bold font-serif text-white tracking-tight">
-              {stats.totalCoupsDeCoeur} <span className="text-xs text-rose-400 font-sans font-normal">Favoris</span>
+              {stats.totalProduitsVedette} <span className="text-xs text-violet-400 font-sans font-normal">Vedette{stats.totalProduitsVedette > 1 ? 's' : ''}</span>
             </h3>
           </div>
-          <div className="p-3.5 bg-rose-500/10 text-rose-400 rounded-xl border border-rose-500/20 z-10">
-            <Heart size={22} strokeWidth={1.5} />
+          <div className="p-3.5 bg-violet-500/10 text-violet-400 rounded-xl border border-violet-500/20 z-10">
+            <Star size={22} strokeWidth={1.5} />
           </div>
-          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/10 transition-all" />
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-violet-500/5 rounded-full blur-2xl group-hover:bg-violet-500/10 transition-all" />
         </div>
 
         {/* Métrique 3 : Total Commandes Validées */}
@@ -201,6 +203,41 @@ export default function DashboardStats({ token }) {
           <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-all" />
         </div>
 
+      </div>
+
+      {/* LIGNE SECONDAIRE : État du catalogue */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="flex items-center gap-3.5 bg-stone-900/60 border border-stone-800/60 p-4 rounded-2xl">
+          <div className="p-2.5 bg-stone-800 text-stone-300 rounded-lg shrink-0">
+            <Gem size={18} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-semibold tracking-widest text-stone-500">Total Produits</p>
+            <p className="text-lg font-bold font-serif text-white">{stats.totalProduits}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3.5 bg-stone-900/60 border border-stone-800/60 p-4 rounded-2xl">
+          <div className="p-2.5 bg-stone-800 text-stone-300 rounded-lg shrink-0">
+            <Layers size={18} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-semibold tracking-widest text-stone-500">Total Catégories</p>
+            <p className="text-lg font-bold font-serif text-white">{stats.totalCategories}</p>
+          </div>
+        </div>
+
+        <div className={`flex items-center gap-3.5 p-4 rounded-2xl border ${
+          stats.rupturesStock > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-stone-900/60 border-stone-800/60'
+        }`}>
+          <div className={`p-2.5 rounded-lg shrink-0 ${stats.rupturesStock > 0 ? 'bg-red-500/15 text-red-400' : 'bg-stone-800 text-stone-300'}`}>
+            <AlertTriangle size={18} strokeWidth={1.5} />
+          </div>
+          <div>
+            <p className={`text-[10px] uppercase font-semibold tracking-widest ${stats.rupturesStock > 0 ? 'text-red-400/90' : 'text-stone-500'}`}>Ruptures de Stock</p>
+            <p className={`text-lg font-bold font-serif ${stats.rupturesStock > 0 ? 'text-red-300' : 'text-white'}`}>{stats.rupturesStock}</p>
+          </div>
+        </div>
       </div>
 
       {/* BLOCS DE GRAPHIQUES & CLASSEMENTS */}
@@ -242,34 +279,33 @@ export default function DashboardStats({ token }) {
             </div>
           </div>
 
-          {/* Section : Les plus mis en favoris */}
+          {/* Section : Produits marqués "Vedette" par l'admin (flag éditorial, pas des favoris client) */}
           <div className="pt-2">
             <div className="flex items-center gap-2 mb-4 pb-2 border-b border-stone-800/60">
-              <Heart size={16} className="text-rose-400" />
+              <Star size={16} className="text-violet-400" />
               <h2 className="text-xs uppercase font-semibold tracking-wider text-stone-300">
-                Coups de Cœur & Listes d'envies
+                Produits Vedette de la Boutique
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {stats.produitsPlusFavoris.map((bijou, idx) => (
-                <div 
-                  key={idx} 
-                  className="flex items-center space-x-3.5 bg-stone-950/80 p-3 rounded-xl border border-stone-800/80 hover:border-rose-500/30 transition-all group"
+              {stats.produitsVedette.map((bijou, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center space-x-3.5 bg-stone-950/80 p-3 rounded-xl border border-stone-800/80 hover:border-violet-500/30 transition-all group"
                 >
-                  <span className="font-serif text-base font-bold text-rose-500/50 w-5 text-center">
+                  <span className="font-serif text-base font-bold text-violet-500/50 w-5 text-center">
                     #{idx + 1}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-stone-200 truncate group-hover:text-rose-300 transition-colors">
+                    <p className="text-xs font-medium text-stone-200 truncate group-hover:text-violet-300 transition-colors">
                       {bijou.nom}
                     </p>
                     <p className="text-[11px] text-stone-500 mt-0.5">
                       {bijou.categorie}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-rose-500/20">
-                    <span>{bijou.favorisCount}</span>
-                    <Heart size={11} fill="currentColor" />
+                  <div className="flex items-center gap-1 text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-violet-500/20">
+                    <Star size={11} fill="currentColor" />
                   </div>
                 </div>
               ))}

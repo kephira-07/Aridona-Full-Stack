@@ -3,18 +3,25 @@ import { ShopContext } from '../context/ShopContext';
 import { Search, X, FolderOpen, Loader2,ShoppingBag, ArrowLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Fuse from 'fuse.js';
-import axios from 'axios';
-import { backendUrl } from '../config';
+
+// --- SÉCURISATION DU FORMAT IMAGE (Gère Strings & Objets {url, publicId, alt}) ---
+const getFirstImage = (imgData) => {
+  const first = Array.isArray(imgData) ? imgData[0] : imgData;
+  if (!first) return { url: 'https://placehold.co/600x600?text=Bijou', alt: '' };
+  return typeof first === 'object' && first?.url
+    ? { url: first.url, alt: first.alt || '' }
+    : { url: first, alt: '' };
+};
 
 export default function BarRecherche({ isNavbar }) {
   const {
     recherche, setRecherche,
     montreRecherche, setMontreRecherche,
     showSuggestions, setShowSuggestions,
-    produits
+    produits,
+    categories
   } = useContext(ShopContext);
 
-  const [categories, setCategories] = useState([]);
   const [suggestionsFiltrees, setSuggestionsFiltrees] = useState({ categories: [], produits: [] });
   const [activeIndex, setActiveIndex] = useState(-1);
   const [estEnChargement, setEstEnChargement] = useState(false);
@@ -26,24 +33,7 @@ export default function BarRecherche({ isNavbar }) {
   const inputRefDesktop = useRef(null);
   const containerRef = useRef(null);
 
-  // 1. Charger les catégories API
-  useEffect(() => {
-    let isMounted = true;
-    const fetchCategories = async () => {
-      try {
-        const response = await axios.get(`${backendUrl}/api/categorie`);
-        if (response.data.success && isMounted) {
-          setCategories(response.data.data);
-        }
-      } catch (err) {
-        console.error("Erreur chargement catégories:", err.message);
-      }
-    };
-    fetchCategories();
-    return () => { isMounted = false; };
-  }, []);
-
-  // 2. Synchronisation avec le bouton Loupe de la Navbar Mobile
+  // 1. Synchronisation avec le bouton Loupe de la Navbar Mobile
   useEffect(() => {
     // Si l'utilisateur clique sur la loupe dans la Navbar mobile (montreRecherche = true)
     if (!isNavbar && montreRecherche && window.innerWidth < 768) {
@@ -51,7 +41,7 @@ export default function BarRecherche({ isNavbar }) {
     }
   }, [montreRecherche, isNavbar]);
 
-  // 3. Gestion du verrouillage du scroll en mode Overlay Mobile
+  // 2. Gestion du verrouillage du scroll en mode Overlay Mobile
   useEffect(() => {
     if (isMobileModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -65,11 +55,11 @@ export default function BarRecherche({ isNavbar }) {
     return () => { document.body.style.overflow = 'unset'; };
   }, [isMobileModalOpen]);
 
-  // 4. Mémorisation de l'indexation Fuse.js
+  // 3. Mémorisation de l'indexation Fuse.js
   const fuseCat = useMemo(() => new Fuse(categories || [], { keys: ['nom'], threshold: 0.4 }), [categories]);
   const fuseProd = useMemo(() => new Fuse(produits || [], { keys: ['nom', 'description'], threshold: 0.4 }), [produits]);
 
-  // 5. Traitement dynamique des requêtes avec effet d'analyse "Debounce"
+  // 4. Traitement dynamique des requêtes avec effet d'analyse "Debounce"
   useEffect(() => {
     if (recherche.trim().length < 2) {
       setSuggestionsFiltrees({ categories: [], produits: [] });
@@ -455,6 +445,7 @@ function ContenuSuggestions({
           {suggestionsFiltrees.produits.map((p, index) => {
             const globalIndex = suggestionsFiltrees.categories.length + index;
             const isCurrentActive = activeIndex === globalIndex;
+            const { url: imageUrl, alt: imageAlt } = getFirstImage(p.image);
             return (
               <li
                 key={p._id || p.id}
@@ -465,8 +456,8 @@ function ContenuSuggestions({
                 }`}
               >
                 <img
-                  src={p.image && p.image[0] ? p.image[0] : 'https://placehold.co/600x600?text=Bijou'}
-                  alt={p.nom}
+                  src={imageUrl}
+                  alt={imageAlt || p.nom}
                   className="w-12 h-12 md:w-10 md:h-10 object-cover rounded-xl border border-stone-200/60 flex-shrink-0"
                 />
                 <div className="flex flex-col min-w-0 flex-1">
