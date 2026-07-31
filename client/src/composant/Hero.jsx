@@ -115,15 +115,11 @@ const StructuredData = () => {
       "@type": "City",
       "name": "Lomé"
     },
-    "priceRange": "$$",
-    "makesOffer": {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Product",
-        "category": "Bijoux en acier inoxydable",
-        "name": "Bijoux ARIDONA (bagues, colliers, bracelets, boucles d'oreilles)"
-      }
-    }
+    "priceRange": "$$"
+    // Pas de "makesOffer" ici : Google traitait son "itemOffered" (Product générique sans
+    // prix ni avis) comme un élément Product à part entière, ce qui le faisait échouer à la
+    // validation des résultats enrichis ("il faut indiquer offers, review, ou aggregateRating").
+    // Les vraies fiches produit (PageProduit.jsx) déclarent déjà leur propre Product complet.
   };
 
   return (
