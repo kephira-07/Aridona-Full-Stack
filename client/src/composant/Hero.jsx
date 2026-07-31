@@ -104,7 +104,7 @@ const StructuredData = () => {
     "@context": "https://schema.org",
     "@type": "Store",
     "name": "ARIDONA Bijoux",
-    "description": "Boutique e-commerce spécialisée dans la vente de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets, boucles d'oreilles hypoallergéniques et waterproof, livrés en moins de 30 minutes sur Lomé.",
+    "description": "Boutique e-commerce spécialisée dans la vente de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets, boucles d'oreilles hypoallergéniques et waterproof, avec une livraison rapide à Lomé.",
     "image": [Heroimg1, Heroimg2, Heroimg3],
     "address": {
       "@type": "PostalAddress",
@@ -175,7 +175,7 @@ export default function Hero() {
     <main className="w-full bg-[#fffaf5] overflow-hidden" itemScope itemType="https://schema.org/Store">
       <StructuredData />
       <meta itemProp="name" content="ARIDONA Bijoux" />
-      <meta itemProp="description" content="Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets et boucles d'oreilles, hypoallergéniques et waterproof, livrés en moins de 30 minutes." />
+      <meta itemProp="description" content="Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets et boucles d'oreilles, hypoallergéniques et waterproof, avec une livraison rapide à Lomé." />
 
       <div className="max-w-10xl mx-auto">
     
@@ -202,7 +202,7 @@ export default function Hero() {
 
               {/* Description enrichie : activité claire pour Google + argumentaire marketing */}
               <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
-                <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme et homme : bagues, colliers, bracelets et boucles d'oreilles hypoallergéniques, waterproof et inoxydables. Parcourez nos catégories, commandez en quelques clics et recevez vos bijoux à <strong className="text-amber-300 font-medium">Lomé en moins de 30 minutes</strong>.
+                <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme et homme : bagues, colliers, bracelets et boucles d'oreilles hypoallergéniques, waterproof et inoxydables. Parcourez nos catégories, commandez en quelques clics et recevez vos bijoux <strong className="text-amber-300 font-medium">rapidement à Lomé</strong>.
               </p>
               
               <Link 
@@ -284,16 +284,18 @@ export default function Hero() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent pointer-events-none"></div>
 
           <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col items-center text-center z-10">
-            <h1 
-              key={activeMobileIndex} 
+            {/* h2, pas h1 : le titre desktop statique plus haut porte déjà le seul h1 de la page —
+                celui-ci change à chaque slide du carrousel, ce n'est pas le titre principal du site. */}
+            <h2
+              key={activeMobileIndex}
               className="text-xl font-serif text-white mb-2 tracking-wide leading-tight animate-[fadeInUp_0.5s_ease-out]"
             >
               {images[activeMobileIndex].title}
-            </h1>
+            </h2>
 
             {/* Description enrichie mobile : activité claire pour Google + argumentaire marketing */}
             <p className="text-stone-200 font-light text-[11px] max-w-xs mb-4 leading-relaxed">
-              ARIDONA Bijoux : vente en ligne de bijoux en acier inoxydable 316L (bagues, colliers, bracelets, boucles d'oreilles), hypoallergéniques et waterproof. Commandez et recevez à Lomé en <strong>moins de 30 minutes</strong>.
+              ARIDONA Bijoux : vente en ligne de bijoux en acier inoxydable 316L (bagues, colliers, bracelets, boucles d'oreilles), hypoallergéniques et waterproof. Commandez et recevez <strong>rapidement à Lomé</strong>.
             </p>
             
             <Link 

@@ -23,7 +23,7 @@ const DerniereCollection = () => {
         {/* 🎯 PARAGRAPHE CLÉ OPTIMISÉ POUR LA CONFORMITÉ GOOGLE OAUTH */}
         <p className='max-w-2xl mx-auto text-xs sm:text-sm font-dmsans text-stone-600 mt-2 leading-relaxed'>
           Explorez nos derniers <strong className='font-medium text-stone-800'>bijoux en acier inoxydable 316L</strong>. 
-          Commandez vos bagues, colliers et bracelets directement en ligne et bénéficiez de notre <strong className='font-medium text-amber-700'>livraison express en moins de 30 minutes</strong>.
+          Commandez vos bagues, colliers et bracelets directement en ligne et bénéficiez de notre <strong className='font-medium text-amber-700'>livraison rapide à domicile</strong>.
         </p>
       </div>
 
