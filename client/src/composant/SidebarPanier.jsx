@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { X, Trash, ShoppingBag, ArrowRight } from 'lucide-react';
 
 const SidebarPanier = () => {
@@ -11,7 +12,8 @@ const SidebarPanier = () => {
     produits,
     monnaie,
     updateQuantity,
-    getPanierMontant
+    getPanierMontant,
+    panierNecessiteChoixTaille
   } = useContext(ShopContext);
 
   const navigate = useNavigate();
@@ -34,6 +36,11 @@ const SidebarPanier = () => {
 
   const allerACommande = () => {
     setPanierOuvert(false);
+    if (panierNecessiteChoixTaille && panierNecessiteChoixTaille()) {
+      toast.error("Veuillez d'abord choisir une taille pour chaque bijou concerné.");
+      navigate('/panier');
+      return;
+    }
     navigate('/commander');
   };
 

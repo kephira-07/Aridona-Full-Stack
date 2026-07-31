@@ -70,16 +70,11 @@ const Panier = () => {
         }
 
         const declinaisons = produitInfo.sizes || produitInfo.tailles || [];
-        const aPlusieursTailles = declinaisons.length > 0;
+        // La taille enregistrée doit être une vraie déclinaison du produit — pas juste
+        // "non vide" (sinon le repli "Unique" posé par la fiche produit passerait à travers).
+        const tailleInvalide = declinaisons.length > 0 && !declinaisons.includes(item.sizes);
 
-        const tailleInvalide =
-          !item.sizes ||
-          item.sizes.trim() === "" ||
-          item.sizes === '""' ||
-          item.sizes === 'undefined' ||
-          item.sizes === 'Choisir';
-
-        if (aPlusieursTailles && tailleInvalide) {
+        if (tailleInvalide) {
           erreurTaille = true;
           nomDuBijouErreur = produitInfo.nom || produitInfo.name || "Création Aridona";
           break;
@@ -146,7 +141,9 @@ const Panier = () => {
               const estEnStock = produitsData.enStock !== false;
 
               const valeurTailleActuelle = item.sizes ? item.sizes.trim().replace(/"/g, '') : "";
-              const estTailleManquante = (!valeurTailleActuelle || valeurTailleActuelle === "" || valeurTailleActuelle === "Choisir") && taillesDisponibles.length > 0;
+              // Même règle que verifierTaillesEtProceder : une taille n'est valable que si
+              // elle fait réellement partie des déclinaisons du produit.
+              const estTailleManquante = taillesDisponibles.length > 0 && !taillesDisponibles.includes(valeurTailleActuelle);
 
               return (
                 <div

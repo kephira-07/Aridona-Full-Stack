@@ -339,6 +339,28 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     }
   };
 
+  // Un article a besoin d'une taille choisie si le produit a de vraies déclinaisons
+  // mais que la clé enregistrée dans le panier n'en fait pas partie (ex: "Unique" laissé
+  // par défaut quand le choix n'a pas été fait sur la fiche produit). Utilisé par Panier.jsx
+  // et SidebarPanier.jsx pour imposer le choix avant la caisse — logique centralisée ici pour
+  // que les deux restent toujours d'accord sur la même règle.
+  const panierNecessiteChoixTaille = () => {
+    for (const produitId in panierProduits) {
+      const produitInfo = produits.find((p) => String(p._id || p.id) === String(produitId));
+      if (!produitInfo) continue;
+
+      const taillesDisponibles = produitInfo.sizes || produitInfo.tailles || [];
+      if (taillesDisponibles.length === 0) continue;
+
+      for (const taille in panierProduits[produitId]) {
+        if (panierProduits[produitId][taille] > 0 && !taillesDisponibles.includes(taille)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   // Vider le panier
   const viderPanier = () => {
     setPanierProduits({});
@@ -383,9 +405,10 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     ajouterPanier, 
     ajouterTousLesFavorisAuPanier, 
     modifierTaillePanier,
-    getPanierCount, 
-    updateQuantity, 
-    getPanierMontant, 
+    getPanierCount,
+    updateQuantity,
+    getPanierMontant,
+    panierNecessiteChoixTaille,
     viderPanier,
     showSuggestions, 
     setShowSuggestions,
