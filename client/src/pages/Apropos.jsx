@@ -5,7 +5,7 @@ import BoutonRetour from '../composant/BoutonRetour';
 
 const APropos = () => {
   // CONFIGURATION DES CONTACTS
-  const NUMERO_WHATSAPP = "22891253109";
+  const NUMERO_WHATSAPP = "22872656485";
   const EMAIL_CONTACT = "aridonabijoux@gmail.com";
   const ADRESSE = "Lomé, Togo";
 

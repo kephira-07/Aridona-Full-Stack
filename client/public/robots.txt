@@ -4,6 +4,7 @@ Allow: /
 # Interdire l'indexation des pages privées et processus d'achat
 Disallow: /panier
 Disallow: /commander
+Disallow: /commande-confirmee
 Disallow: /login
 Disallow: /reset-password
 Disallow: /favoris

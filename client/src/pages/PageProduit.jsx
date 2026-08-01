@@ -30,7 +30,7 @@ const { slug } = useParams();
   const [avisEnvoye, setAvisEnvoye] = useState(false);
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
-  const NUMERO_WHATSAPP = whatsappNum || "22891253109";
+  const NUMERO_WHATSAPP = whatsappNum || "22872656485";
 
   const getImageUrl = (imgItem) => {
     if (!imgItem) return 'https://placehold.co/600x600?text=Aridona+Bijoux';

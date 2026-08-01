@@ -192,7 +192,7 @@ const articles = [
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
             <p className="text-[11px] uppercase tracking-widest text-amber-700 font-semibold">WhatsApp</p>
-            <p className="text-stone-800 mt-1 text-sm">+228 91 25 31 09</p>
+            <p className="text-stone-800 mt-1 text-sm">+228 72 65 64 85</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 sm:col-span-2">
             <p className="text-[11px] uppercase tracking-widest text-amber-700 font-semibold">Adresse</p>

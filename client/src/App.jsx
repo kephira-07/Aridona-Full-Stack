@@ -15,6 +15,7 @@ const Collection = lazy(() => import('./pages/Collection'));
 const PageProduit = lazy(() => import('./pages/PageProduit'));
 const Panier = lazy(() => import('./pages/Panier'));
 const PasserCommande = lazy(() => import('./pages/PasserCommande'));
+const CommandeConfirmee = lazy(() => import('./pages/CommandeConfirmee'));
 const Login = lazy(() => import('./pages/Login'));
 const PageFavoris = lazy(() => import('./pages/PageFavoris'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -57,6 +58,7 @@ function App() {
             
             <Route path="/panier" element={<Panier />} />
             <Route path="/commander" element={<PasserCommande />} />
+            <Route path="/commande-confirmee" element={<CommandeConfirmee />} />
             
             <Route path="/login" element={<Login />} />
             <Route path="/favoris" element={<PageFavoris />} />

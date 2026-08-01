@@ -103,7 +103,7 @@ const Contact = () => {
             <div className="pt-6 border-t border-slate-800 space-y-3">
               <p className="text-xs text-slate-400">Pour une assistance instantanée :</p>
               <a
-                href="https://wa.me/22891253109"
+                href="https://wa.me/22872656485"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 w-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-600 hover:text-white py-3 px-4 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all duration-300 shadow-lg"
