@@ -24,6 +24,7 @@ const BACKEND_URL = process.env.VITE_BACKEND_URL || readEnvVar('VITE_BACKEND_URL
 const STATIC_PAGES = [
   { loc: '/', changefreq: 'daily', priority: '1.0' },
   { loc: '/collection', changefreq: 'daily', priority: '0.8' },
+  { loc: '/blog', changefreq: 'weekly', priority: '0.6' },
   { loc: '/a-propos', changefreq: 'monthly', priority: '0.5' },
   { loc: '/contact', changefreq: 'monthly', priority: '0.4' },
   { loc: '/conditions-utilisation', changefreq: 'yearly', priority: '0.2' },
@@ -64,8 +65,27 @@ const fetchProduitEntries = async () => {
   }
 };
 
+const fetchArticleEntries = async () => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/article/list`);
+    const data = await response.json();
+    if (!data.success || !Array.isArray(data.articles)) return [];
+
+    return data.articles.map((a) => ({
+      loc: `/blog/${a.slug}`,
+      changefreq: 'monthly',
+      priority: '0.5',
+      lastmod: a.updatedAt ? new Date(a.updatedAt).toISOString().split('T')[0] : undefined,
+    }));
+  } catch (error) {
+    console.warn(`[sitemap] Impossible de récupérer les articles (${BACKEND_URL}) : ${error.message}.`);
+    return [];
+  }
+};
+
 const produitEntries = await fetchProduitEntries();
-const xml = buildXml([...STATIC_PAGES, ...produitEntries]);
+const articleEntries = await fetchArticleEntries();
+const xml = buildXml([...STATIC_PAGES, ...produitEntries, ...articleEntries]);
 
 writeFileSync(join(clientRoot, 'public', 'sitemap.xml'), xml, 'utf-8');
 
@@ -73,4 +93,5 @@ writeFileSync(join(clientRoot, 'public', 'sitemap.xml'), xml, 'utf-8');
 const oldSitemapTxt = join(clientRoot, 'public', 'sitemap.txt');
 if (existsSync(oldSitemapTxt)) unlinkSync(oldSitemapTxt);
 
-console.log(`[sitemap] sitemap.xml généré avec ${STATIC_PAGES.length + produitEntries.length} URLs (${produitEntries.length} produits).`);
+const total = STATIC_PAGES.length + produitEntries.length + articleEntries.length;
+console.log(`[sitemap] sitemap.xml généré avec ${total} URLs (${produitEntries.length} produits, ${articleEntries.length} articles).`);

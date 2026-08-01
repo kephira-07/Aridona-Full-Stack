@@ -93,6 +93,19 @@ const Sidebar = () => {
   <span>Avis Clients</span>
 </NavLink>
 
+<NavLink to="/articles" className={({ isActive }) => `
+            flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group
+            ${isActive
+              ? 'bg-slate-950 text-white shadow-sm font-semibold'
+              : 'text-gray-500 hover:text-slate-900 hover:bg-gray-50'
+            }
+          `}>
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l6 6v10a2 2 0 0 1-2 2ZM9 13h6M9 17h6M9 9h1" />
+  </svg>
+  <span>Journal / Blog</span>
+</NavLink>
+
       </div>
 
       {/* Partie Basse : Informations de session ou copyright discret */}

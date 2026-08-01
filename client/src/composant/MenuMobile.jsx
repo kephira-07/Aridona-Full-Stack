@@ -4,15 +4,16 @@ import axios from 'axios';
 import { backendUrl } from '../config';
 import logo from '../assets/logo.png';
 import { ShopContext } from '../context/ShopContext';
-import { 
-  X, 
-  ChevronRight, 
-  User, 
- 
-  Gem, 
-  Info, 
-  ShieldCheck, 
-  PhoneCall 
+import {
+  X,
+  ChevronRight,
+  User,
+
+  Gem,
+  Info,
+  Newspaper,
+  ShieldCheck,
+  PhoneCall
 } from 'lucide-react';
 
 const MenuMobile = ({ visible, setVisible, logo2 }) => {
@@ -125,13 +126,22 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
             </div>
 
             <nav className="space-y-1 py-1">
-              <NavLink 
-                to="/a-propos" 
+              <NavLink
+                to="/a-propos"
                 onClick={() => setVisible(false)}
                 className="flex items-center gap-3 px-6 py-3 text-xs font-medium text-stone-700 hover:text-amber-800 transition-colors hover:bg-stone-50"
               >
                 <Info className="w-4 h-4 text-stone-400" />
                 <span>Notre Histoire & Savoir-faire</span>
+              </NavLink>
+
+              <NavLink
+                to="/blog"
+                onClick={() => setVisible(false)}
+                className="flex items-center gap-3 px-6 py-3 text-xs font-medium text-stone-700 hover:text-amber-800 transition-colors hover:bg-stone-50"
+              >
+                <Newspaper className="w-4 h-4 text-stone-400" />
+                <span>Le Journal</span>
               </NavLink>
 
               <div className="px-6 py-2 space-y-2 mt-2">

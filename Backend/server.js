@@ -11,7 +11,9 @@ import produitRouter from './routes/produitRoute.js';
 import orderRouter from './routes/orderRoute.js';
 import categorieRouter from './routes/categorieRoute.js';
 import avisRouter from './routes/avisRoute.js';
+import articleRouter from './routes/articleRoute.js';
 import produitModel from './models/produitModel.js';
+import articleModel from './models/articleModel.js';
 
 // ⚠️ TODO : ce bump MASQUE un MaxListenersExceededWarning au lieu de le régler.
 // Le warning t'indique quel émetteur et quel événement s'accumulent — c'est
@@ -40,6 +42,7 @@ app.use('/api/produit', produitRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/categorie', categorieRouter);
 app.use('/api/avis', avisRouter);
+app.use('/api/article', articleRouter);
 
 app.get('/', (req, res) => {
   res.send("L'API d'Arilona Shop fonctionne parfaitement !");
@@ -71,6 +74,7 @@ connectDB()
     // Aligne les index Mongo sur le schéma courant (ex : langue de l'index texte).
     // Idempotent — ne fait rien si les index sont déjà à jour.
     await produitModel.syncIndexes();
+    await articleModel.syncIndexes();
     app.listen(PORT, () => console.log(`🚀 Serveur actif sur : http://localhost:${PORT}`));
   })
   .catch((err) => {

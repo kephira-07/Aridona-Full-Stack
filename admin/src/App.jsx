@@ -12,6 +12,7 @@ import DashboardStats from './pages/DashboardStats';
 import Utilisateurs from './pages/Utilisateurs';
 import ListeProduits from './pages/ListeProduits';
 import Avis from './pages/Avis';
+import Articles from './pages/Articles';
 
 const App = () => {
   // Récupération du token sauvegardé dans le navigateur pour éviter de se reconnecter après un F5
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="/categories" element={<Categories token={token} />} />
             <Route path="/listeProduits" element={<ListeProduits token={token} />} />
             <Route path="/avis" element={<Avis token={token} />} />
+            <Route path="/articles" element={<Articles token={token} />} />
             
             {/* 🌟 PASSAGE DU TOKEN ET DU BACKENDURL POUR CHARGER LES EMAILS SANS ERREUR */}
             <Route path="/utilisateurs" element={<Utilisateurs token={token}  />} />

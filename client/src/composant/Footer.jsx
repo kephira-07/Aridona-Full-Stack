@@ -86,6 +86,7 @@ const Footer = () => {
             <h3 className="text-[12px] font-bold tracking-[0.25em] uppercase mb-6 text-stone-100">La Maison</h3>
             <ul className="space-y-3.5 text-sm font-light text-stone-400">
               <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Notre Histoire</Link></li>
+              <li><Link onClick={scrollToTop} to="/blog" className="hover:text-amber-500 transition-colors duration-200">Journal</Link></li>
               <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Prendre rendez-vous</Link></li>
               <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Guide des Tailles</Link></li>
               <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Contact & Conciergerie</Link></li>

@@ -23,6 +23,8 @@ const Erreur404 = lazy(() => import('./pages/Erreur404'));
 const ConditionUtilisation = lazy(() => import('./pages/ConitionUtilisation'));
 const Contact = lazy(() => import('./pages/Contact'));
 const PolitiqueConfidentialite = lazy(() => import('./pages/PolitiqueConfidentialite'));
+const Blog = lazy(() => import('./pages/Blog'));
+const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
 
 // Composant de chargement pendant le passage d'une page à une autre
 const PageLoader = () => (
@@ -64,6 +66,8 @@ function App() {
             <Route path="/conditions-utilisation" element={<ConditionUtilisation />} />
             <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<ArticleDetail />} />
             
             {/* Capture des URLs inconnues */}
             <Route path="*" element={<Erreur404 />} />
