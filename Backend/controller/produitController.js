@@ -336,4 +336,65 @@ const changerStatutStock = async (req, res) => {
   }
 };
 
-export { addproduit, listproduits, removeproduit, singleproduit, updateproduit, searchProduits, changerStatutStock };
+// 8. Flux produits pour Google Merchant Center (RSS 2.0 + espace de noms Google Shopping)
+// Généré en direct depuis la base à chaque requête (contrairement au sitemap, construit au
+// build) : Merchant Center exige un prix/stock à jour, pas un instantané figé au dernier déploiement.
+const SITE_URL = 'https://aridona.store';
+
+const escapeXml = (str) => String(str ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&apos;');
+
+const getProductFeed = async (req, res) => {
+  try {
+    const produits = await produitModel.find({}).populate('categorie', 'nom');
+
+    const items = produits.map((p) => {
+      const images = Array.isArray(p.image) ? p.image : [];
+      const [imagePrincipale, ...imagesSupplementaires] = images;
+      const lien = `${SITE_URL}/produit/${p.slug || p._id}`;
+
+      const additionalImages = imagesSupplementaires
+        .slice(0, 10) // limite Google
+        .map((img) => `      <g:additional_image_link>${escapeXml(img.url)}</g:additional_image_link>`)
+        .join('\n');
+
+      return `    <item>
+      <g:id>${p._id}</g:id>
+      <title>${escapeXml(p.nom)}</title>
+      <description>${escapeXml(p.description)}</description>
+      <link>${escapeXml(lien)}</link>
+      <g:image_link>${escapeXml(imagePrincipale?.url)}</g:image_link>
+${additionalImages}
+      <g:availability>${p.enStock !== false ? 'in stock' : 'out of stock'}</g:availability>
+      <g:price>${Number(p.prix) || 0} XOF</g:price>
+      <g:brand>Aridona Bijoux</g:brand>
+      <g:condition>new</g:condition>
+      <g:identifier_exists>no</g:identifier_exists>
+      <g:google_product_category>Apparel & Accessories &gt; Jewelry</g:google_product_category>
+      ${p.categorie?.nom ? `<g:product_type>${escapeXml(p.categorie.nom)}</g:product_type>` : ''}
+    </item>`;
+    });
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+  <channel>
+    <title>Aridona Bijoux — Catalogue</title>
+    <link>${SITE_URL}</link>
+    <description>Flux produits Aridona Bijoux pour Google Merchant Center</description>
+${items.join('\n')}
+  </channel>
+</rss>`;
+
+    res.set('Content-Type', 'application/xml; charset=UTF-8');
+    return res.status(200).send(xml);
+  } catch (error) {
+    console.error("Erreur génération flux Merchant Center:", error);
+    return res.status(500).send('Erreur lors de la génération du flux.');
+  }
+};
+
+export { addproduit, listproduits, removeproduit, singleproduit, updateproduit, searchProduits, changerStatutStock, getProductFeed };

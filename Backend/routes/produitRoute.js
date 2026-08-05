@@ -1,12 +1,13 @@
 import express from 'express';
-import { 
-  addproduit, 
-  listproduits, 
-  removeproduit, 
-  singleproduit, 
-  updateproduit, 
-  searchProduits, 
-  changerStatutStock 
+import {
+  addproduit,
+  listproduits,
+  removeproduit,
+  singleproduit,
+  updateproduit,
+  searchProduits,
+  changerStatutStock,
+  getProductFeed
 } from '../controller/produitController.js';
 import { getDashboardStats } from "../controller/dashbordController.js";
 import upload from '../middleware/multer.js';
@@ -25,6 +26,7 @@ const uploadFields = upload.fields([
 produitRouter.get('/list', listproduits);
 produitRouter.get('/single/:id', singleproduit);
 produitRouter.get('/search', searchProduits);
+produitRouter.get('/feed.xml', getProductFeed); // Google Merchant Center
 
 // --- Routes Protégées Administrateur ---
 // L'appel auth(['admin']) vérifie le JWT + le rôle 'admin' + l'email administrateur
