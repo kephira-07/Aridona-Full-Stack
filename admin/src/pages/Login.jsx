@@ -18,11 +18,9 @@ const Login = ({ setToken }) => {
       
       if (response.data.success) {
         const tokenRecu = response.data.token;
-        
-        // Stockage du token pour maintenir la session après rafraîchissement
-        localStorage.setItem('admin_token', tokenRecu); 
-        
-        // Mise à jour du state d'authentification global
+
+        // Mise à jour du state d'authentification global — App.jsx se charge de le
+        // persister dans localStorage (clé "token", seule clé relue au démarrage).
         setToken(tokenRecu);
       } else {
         setError(response.data.message || 'Identifiants invalides');

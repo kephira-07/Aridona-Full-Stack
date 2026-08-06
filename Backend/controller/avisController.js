@@ -1,7 +1,9 @@
 import avisModel from '../models/avisModel.js';
 import produitModel from '../models/produitModel.js';
 
-// 1. Soumettre un avis (public) — reste invisible tant qu'un admin ne l'a pas approuvé
+// 1. Soumettre un avis (public) — publié immédiatement, sans validation admin préalable.
+// L'admin garde la main a posteriori : /api/avis/admin liste tout, /supprimer/:id retire
+// un avis inapproprié après coup (voir admin/src/pages/Avis.jsx).
 const ajouterAvis = async (req, res) => {
   try {
     const { produitId, nom, note, commentaire } = req.body;
@@ -20,16 +22,18 @@ const ajouterAvis = async (req, res) => {
       return res.status(404).json({ success: false, message: "Produit introuvable." });
     }
 
-    await avisModel.create({
+    const avis = await avisModel.create({
       produit: produitId,
       nom: nom.trim(),
       note: noteNum,
       commentaire: commentaire.trim(),
+      approuve: true,
     });
 
     return res.status(201).json({
       success: true,
-      message: "Merci ! Votre avis a été envoyé et sera publié après vérification.",
+      message: "Merci pour votre avis !",
+      avis,
     });
   } catch (error) {
     console.error("Erreur ajout avis :", error);

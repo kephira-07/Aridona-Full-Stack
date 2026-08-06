@@ -170,8 +170,8 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
             <span>Mon Espace Privé</span>
           </NavLink>
 
-          <a 
-            href="https://wa.me/22872656485"
+          <a
+            href={`https://wa.me/${context?.whatsappNum || '22872656485'}`}
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 py-2.5 px-4  text-[11px] font-medium tracking-wider uppercase transition-all"

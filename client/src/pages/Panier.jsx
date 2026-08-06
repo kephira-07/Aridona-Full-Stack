@@ -9,7 +9,7 @@ import BoutonRetour from '../composant/BoutonRetour';
 
 const Panier = () => {
   // 1. Tous les contextes doivent être extraits en haut du composant
-  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier, supprimerDuPanier } = useContext(ShopContext);
+  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier, supprimerDuPanier, estTailleValidePourProduit } = useContext(ShopContext);
   
   const [panierData, setPanierData] = useState([]);
   const navigate = useNavigate();
@@ -69,12 +69,7 @@ const Panier = () => {
           break;
         }
 
-        const declinaisons = produitInfo.sizes || produitInfo.tailles || [];
-        // La taille enregistrée doit être une vraie déclinaison du produit — pas juste
-        // "non vide" (sinon le repli "Unique" posé par la fiche produit passerait à travers).
-        const tailleInvalide = declinaisons.length > 0 && !declinaisons.includes(item.sizes);
-
-        if (tailleInvalide) {
+        if (!estTailleValidePourProduit(produitInfo, item.sizes)) {
           erreurTaille = true;
           nomDuBijouErreur = produitInfo.nom || produitInfo.name || "Création Aridona";
           break;
@@ -141,9 +136,8 @@ const Panier = () => {
               const estEnStock = produitsData.enStock !== false;
 
               const valeurTailleActuelle = item.sizes ? item.sizes.trim().replace(/"/g, '') : "";
-              // Même règle que verifierTaillesEtProceder : une taille n'est valable que si
-              // elle fait réellement partie des déclinaisons du produit.
-              const estTailleManquante = taillesDisponibles.length > 0 && !taillesDisponibles.includes(valeurTailleActuelle);
+              // Même règle que verifierTaillesEtProceder (ShopContext.estTailleValidePourProduit).
+              const estTailleManquante = !estTailleValidePourProduit(produitsData, valeurTailleActuelle);
 
               return (
                 <div

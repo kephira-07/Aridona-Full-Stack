@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { ShopContext } from '../context/ShopContext';
 import { useLocation } from 'react-router-dom';
 import { SlidersHorizontal, X, ArrowUpDown } from "lucide-react";
@@ -100,10 +100,19 @@ const Collection = () => {
     };
 
     const toggleMatiere = (val) => {
-        setSelectedMatieres(prev => 
+        setSelectedMatieres(prev =>
             prev.includes(val) ? prev.filter(item => item !== val) : [...prev, val]
         );
     };
+
+    // Liste dérivée des vraies valeurs `matiere` présentes dans le catalogue — les anciennes
+    // options codées en dur ("Dore", "Argenter", "Perle") ne correspondaient à aucune valeur
+    // réelle (ex: "Acier Inoxydable", "Or 18k"), donc cocher n'importe quelle case renvoyait
+    // toujours zéro résultat.
+    const matieresDisponibles = useMemo(() => {
+        const set = new Set((produits || []).map((p) => p.matiere).filter(Boolean));
+        return Array.from(set).sort();
+    }, [produits]);
 
     // --- LOGIQUE DE FILTRAGE ET TRI ---
     useEffect(() => {
@@ -303,29 +312,27 @@ const Collection = () => {
                         </div>
 
                         {/* SECTION MATIÈRES */}
-                        <div>
-                            <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-3">Par Matière</h4>
-                            <div className="flex flex-col gap-2">
-                                {[
-                                    { id: "Dore", label: "Doré à l'Or Fin" },
-                                    { id: "Argenter", label: "Argenté Scintillant" },
-                                    { id: "Perle", label: "Perles d'Eau Douce" }
-                                ].map((mat) => {
-                                    const isChecked = selectedMatieres.includes(mat.id);
-                                    return (
-                                        <label key={mat.id} className="flex items-center justify-between p-3 border border-gray-200 bg-gray-50/50 cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <span className="text-xs font-medium text-slate-700">{mat.label}</span>
-                                            <input 
-                                                type="checkbox" 
-                                                checked={isChecked}
-                                                onChange={() => toggleMatiere(mat.id)}
-                                                className="w-4 h-4 rounded-sm accent-amber-600 cursor-pointer" 
-                                            />
-                                        </label>
-                                    );
-                                })}
+                        {matieresDisponibles.length > 0 && (
+                            <div>
+                                <h4 className="text-xs font-bold text-amber-600 tracking-wider uppercase mb-3">Par Matière</h4>
+                                <div className="flex flex-col gap-2">
+                                    {matieresDisponibles.map((mat) => {
+                                        const isChecked = selectedMatieres.includes(mat);
+                                        return (
+                                            <label key={mat} className="flex items-center justify-between p-3 border border-gray-200 bg-gray-50/50 cursor-pointer hover:bg-gray-50 transition-colors">
+                                                <span className="text-xs font-medium text-slate-700">{mat}</span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => toggleMatiere(mat)}
+                                                    className="w-4 h-4 rounded-sm accent-amber-600 cursor-pointer"
+                                                />
+                                            </label>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                     </div>
 

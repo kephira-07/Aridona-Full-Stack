@@ -2,10 +2,7 @@ import orderModel from '../models/orderModel.js';
 import userModel from '../models/utilisateurModel.js';
 import produitModel from '../models/produitModel.js';
 import jwt from 'jsonwebtoken';
-
-// Frais de livraison forfaitaire — doit rester synchronisé avec `delivery_free`
-// dans client/src/context/ShopContext.jsx. Recalculé ici, jamais fait confiance au client.
-const FRAIS_LIVRAISON = 500;
+import { FRAIS_LIVRAISON } from '../config/siteConfig.js';
 
 // 1. Placer une commande (Authentifié OU Invité)
 const placeOrder = async (req, res) => {

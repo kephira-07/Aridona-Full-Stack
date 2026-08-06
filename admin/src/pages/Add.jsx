@@ -12,6 +12,7 @@ import {
   Palette
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { availableSizes, availableColors, availableMatieres } from '../constants/produit';
 
 const Add = ({ token }) => {
   // --- ÉTATS FORMULAIRE ---
@@ -36,18 +37,6 @@ const Add = ({ token }) => {
   const [alts, setAlts] = useState(['', '', '', '']);
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
-
-  // Options statiques
-  const availableSizes = ["50", "52", "54", "56", "58", "Unique"];
-  const availableColors = ["Doré", "Argenté", "Or Rose"];
-  const availableMatieres = [
-    "Acier Inoxydable",
-    "Or 18k",
-    "Or Blanc 18k",
-    "Or Rose 18k",
-    "Argent 925",
-    "Plaqué Or"
-  ];
 
   // Charger la liste des catégories depuis le serveur
   useEffect(() => {

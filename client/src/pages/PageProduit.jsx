@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { ShopContext } from '../context/ShopContext';
@@ -88,30 +88,30 @@ const { slug } = useParams();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [slug, produits, categories]);
 
-  // Charge les avis réellement approuvés pour ce produit (aucune donnée mock)
-  useEffect(() => {
-    const produitId = produitData?._id || produitData?.id;
+  // Charge les avis du produit (publiés immédiatement, aucune donnée mock)
+  const produitId = produitData?._id || produitData?.id;
+
+  const fetchAvis = useCallback(async () => {
     if (!produitId) {
       setAvisListe([]);
       return;
     }
-
-    const fetchAvis = async () => {
-      try {
-        setAvisLoading(true);
-        const response = await axios.get(`${backendUrl}/api/avis/produit/${produitId}`);
-        if (response.data.success) {
-          setAvisListe(response.data.avis);
-        }
-      } catch (error) {
-        console.error("Erreur chargement des avis :", error);
-      } finally {
-        setAvisLoading(false);
+    try {
+      setAvisLoading(true);
+      const response = await axios.get(`${backendUrl}/api/avis/produit/${produitId}`);
+      if (response.data.success) {
+        setAvisListe(response.data.avis);
       }
-    };
+    } catch (error) {
+      console.error("Erreur chargement des avis :", error);
+    } finally {
+      setAvisLoading(false);
+    }
+  }, [produitId, backendUrl]);
 
+  useEffect(() => {
     fetchAvis();
-  }, [produitData, backendUrl]);
+  }, [fetchAvis]);
 
   const totalAvis = avisListe.length;
   const moyenneNotes = totalAvis > 0
@@ -121,8 +121,6 @@ const { slug } = useParams();
   const handleSoumettreAvis = async (e) => {
     e.preventDefault();
     if (!nouvelAvis.nom || !nouvelAvis.commentaire) return;
-
-    const produitId = produitData?._id || produitData?.id;
     if (!produitId) return;
 
     setEnvoiEnCours(true);
@@ -135,7 +133,8 @@ const { slug } = useParams();
       });
 
       if (response.data.success) {
-        // L'avis reste invisible tant qu'un admin ne l'a pas approuvé — pas d'ajout local optimiste.
+        // Publié immédiatement : on recharge la liste pour l'afficher tout de suite.
+        await fetchAvis();
         setNouvelAvis({ nom: '', note: 5, commentaire: '' });
         setAvisEnvoye(true);
         setTimeout(() => {
@@ -411,128 +410,185 @@ const { slug } = useParams();
           </div>
         </div>
       </div>
-<section className="p-8 mt-12 border-t border-stone-200 bg-gradient-to-b from-white to-stone-50">
-  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
-    <div>
-      <h2 className="font-serif text-3xl text-amber-900 tracking-tight border-b border-amber-200 pb-2">
-        Avis de nos clientes
-      </h2>
-      <p className="text-sm text-stone-600 mt-2">
-        {totalAvis > 0
-          ? <>Note moyenne de <span className="font-semibold text-stone-900">{moyenneNotes}/5</span> basée sur {totalAvis} retour{totalAvis > 1 ? 's' : ''} d'expérience.</>
-          : "Soyez la première à partager votre expérience sur ce bijou."}
-      </p>
-    </div>
+<section className="mt-16 md:mt-20 pt-12 border-t border-stone-200 px-4 md:px-10 lg:px-20">
+  <div className="max-w-5xl mx-auto">
 
-    {/* Bouton pour dérouler le formulaire */}
-    <button
-      type="button"
-      onClick={() => setShowFormAvis(!showFormAvis)}
-      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-700 text-white text-xs font-semibold uppercase tracking-wide rounded-md shadow-sm transition-all"
-    >
-      <span>{showFormAvis ? "Fermer le formulaire" : "Laisser un avis"}</span>
-      {showFormAvis ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-    </button>
-  </div>
+    {/* EN-TÊTE + RÉSUMÉ DES NOTES */}
+    <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
+      <div>
+        <span className="text-xs uppercase tracking-[0.3em] text-amber-700 font-semibold">Retours clients</span>
+        <h2 className="font-ebgaramond text-3xl md:text-4xl text-stone-900 tracking-wide mt-1.5">
+          Avis de nos clientes
+        </h2>
+        <p className="text-sm text-stone-500 mt-3 max-w-md leading-relaxed">
+          {totalAvis > 0
+            ? `Basé sur ${totalAvis} retour${totalAvis > 1 ? 's' : ''} d'expérience.`
+            : "Soyez la première à partager votre expérience sur ce bijou."}
+        </p>
 
-  {/* FORMULAIRE ACCORDÉON (DÉROULANT) */}
-  {showFormAvis && (
-    <div className="mb-10 p-6 bg-white rounded-lg border border-stone-200 shadow-sm animate-in fade-in duration-300">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-stone-800 mb-4">Votre avis nous intéresse</h3>
+        <button
+          type="button"
+          onClick={() => setShowFormAvis(!showFormAvis)}
+          className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-stone-900 hover:bg-amber-900 text-white text-xs font-semibold uppercase tracking-widest transition-all rounded-full shadow-sm active:scale-[0.98] cursor-pointer"
+        >
+          <span>{showFormAvis ? "Fermer le formulaire" : "Laisser un avis"}</span>
+          {showFormAvis ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+      </div>
 
-      {avisEnvoye && (
-        <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-md flex items-center gap-2 shadow-sm">
-          <CheckCircle size={16} /> Merci ! Votre avis a été envoyé et sera visible après vérification.
+      {/* Carte résumé : note moyenne + répartition par étoile */}
+      {totalAvis > 0 && (
+        <div className="w-full md:w-80 shrink-0 bg-stone-50/80 border border-stone-200/80 rounded-2xl p-6">
+          <div className="flex items-center gap-4 mb-5">
+            <span className="font-ebgaramond text-4xl text-stone-900">{moyenneNotes}</span>
+            <div>
+              <div className="flex text-amber-500">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} className={i < Math.round(Number(moyenneNotes)) ? "fill-amber-500" : "text-stone-200"} />
+                ))}
+              </div>
+              <p className="text-[11px] text-stone-500 mt-1">{totalAvis} avis</p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            {[5, 4, 3, 2, 1].map((n) => {
+              const count = avisListe.filter((a) => a.note === n).length;
+              const pct = totalAvis > 0 ? Math.round((count / totalAvis) * 100) : 0;
+              return (
+                <div key={n} className="flex items-center gap-2 text-[11px] text-stone-500">
+                  <span className="w-2.5 shrink-0">{n}</span>
+                  <Star size={10} className="text-amber-400 fill-amber-400 shrink-0" />
+                  <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="w-6 shrink-0 text-right text-stone-400">{count}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
+    </div>
 
-      <form onSubmit={handleSoumettreAvis} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <div>
-          <label className="block text-[11px] font-medium text-stone-700 mb-1">Votre Prénom / Nom</label>
-          <input 
-            type="text" 
-            required
-            placeholder="ex: Aminata K."
-            value={nouvelAvis.nom}
-            onChange={(e) => setNouvelAvis({ ...nouvelAvis, nom: e.target.value })}
-            className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
-        </div>
+    {/* FORMULAIRE ACCORDÉON (DÉROULANT) */}
+    {showFormAvis && (
+      <div className="mb-12 p-6 sm:p-8 bg-white rounded-2xl border border-stone-200/80 shadow-sm animate-in fade-in duration-300">
+        <h3 className="font-ebgaramond text-xl text-stone-900 mb-5">Partagez votre expérience</h3>
 
-        <div>
-          <label className="block text-[11px] font-medium text-stone-700 mb-1">Votre Note</label>
-          <select 
-            value={nouvelAvis.note}
-            onChange={(e) => setNouvelAvis({ ...nouvelAvis, note: e.target.value })}
-            className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
-          >
-            <option value="5">⭐⭐⭐⭐⭐ (5/5) Excellent</option>
-            <option value="4">⭐⭐⭐⭐☆ (4/5) Très bien</option>
-            <option value="3">⭐⭐⭐☆☆ (3/5) Moyen</option>
-            <option value="2">⭐⭐☆☆☆ (2/5) Décevant</option>
-            <option value="1">⭐☆☆☆☆ (1/5) Mauvais</option>
-          </select>
-        </div>
+        {avisEnvoye && (
+          <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+            <CheckCircle size={16} /> Merci ! Votre avis a été publié.
+          </div>
+        )}
 
-        <div className="md:col-span-2">
-          <label className="block text-[11px] font-medium text-stone-700 mb-1">Votre commentaire</label>
-          <textarea 
-            required
-            rows="3"
-            placeholder="Qu'avez-vous pensé de la qualité du bijou, du rendu ou de la livraison ?"
-            value={nouvelAvis.commentaire}
-            onChange={(e) => setNouvelAvis({ ...nouvelAvis, commentaire: e.target.value })}
-            className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-          ></textarea>
-        </div>
+        <form onSubmit={handleSoumettreAvis} className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Votre prénom / nom
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="ex: Aminata K."
+                value={nouvelAvis.nom}
+                onChange={(e) => setNouvelAvis({ ...nouvelAvis, nom: e.target.value })}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+              />
+            </div>
 
-        <div className="md:col-span-2">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Votre note
+              </label>
+              <div className="flex items-center gap-1.5 h-[42px]">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setNouvelAvis({ ...nouvelAvis, note: n })}
+                    aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
+                    className="p-0.5 cursor-pointer"
+                  >
+                    <Star
+                      size={22}
+                      className={n <= Number(nouvelAvis.note) ? "fill-amber-500 text-amber-500" : "text-stone-300"}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+              Votre commentaire
+            </label>
+            <textarea
+              required
+              rows="3"
+              placeholder="Qu'avez-vous pensé de la qualité du bijou, du rendu ou de la livraison ?"
+              value={nouvelAvis.commentaire}
+              onChange={(e) => setNouvelAvis({ ...nouvelAvis, commentaire: e.target.value })}
+              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all resize-none"
+            ></textarea>
+          </div>
+
           <button
             type="submit"
             disabled={envoiEnCours}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-amber-800 text-white text-xs font-semibold uppercase tracking-wide rounded-md hover:bg-amber-700 shadow-sm transition-all disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-7 py-3 bg-stone-900 hover:bg-amber-900 text-white text-xs font-semibold uppercase tracking-widest rounded-full shadow-sm transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
           >
-            <Send size={12} /> {envoiEnCours ? "Envoi..." : "Publier mon avis"}
+            <Send size={13} /> {envoiEnCours ? "Envoi..." : "Publier mon avis"}
           </button>
-        </div>
-      </form>
-    </div>
-  )}
-
-  {/* CARROUSEL DES AVIS EXISTANTS (uniquement les avis réels approuvés) */}
-  {!avisLoading && avisListe.length === 0 && (
-    <p className="text-sm text-stone-400 italic">Aucun avis publié pour le moment.</p>
-  )}
-  <div className="flex gap-5 overflow-x-auto  pt-1 no-scrollbar snap-x snap-mandatory">
-    {avisListe.map((item) => (
-      <div
-        key={item._id}
-        className="w-80 shrink-0 snap-start bg-gradient-to-br from-stone-50 to-stone-100 border border-stone-200 p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
-      >
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-semibold text-stone-900 text-xs">{item.nom}</span>
-            <span className="text-[10px] text-stone-400">{new Date(item.createdAt).toLocaleDateString('fr-FR')}</span>
-          </div>
-
-          <div className="flex text-amber-500 mb-3 drop-shadow-sm">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={13} className={i < item.note ? "fill-amber-500" : "text-stone-200"} />
-            ))}
-          </div>
-
-          <p className="text-xs text-stone-600 leading-relaxed italic">
-            "{item.commentaire}"
-          </p>
-        </div>
-
-        {item.verifie && (
-          <div className="mt-4 pt-3 border-t border-stone-200/60 flex items-center gap-1 text-[10px] text-emerald-800 font-medium">
-            <CheckCircle size={10} /> Achat vérifié
-          </div>
-        )}
+        </form>
       </div>
-    ))}
+    )}
+
+    {/* GRILLE DES AVIS */}
+    {!avisLoading && avisListe.length === 0 && (
+      <p className="text-sm text-stone-400 italic text-center py-12 border border-dashed border-stone-200 rounded-2xl">
+        Aucun avis publié pour le moment.
+      </p>
+    )}
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {avisListe.map((item) => (
+        <div
+          key={item._id}
+          className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-ebgaramond font-semibold text-sm shrink-0">
+                {item.nom?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-stone-900 truncate">{item.nom}</p>
+                <p className="text-[11px] text-stone-400">
+                  {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+            </div>
+            <div className="flex text-amber-500 shrink-0">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} size={12} className={i < item.note ? "fill-amber-500" : "text-stone-200"} />
+              ))}
+            </div>
+          </div>
+
+          <p className="text-sm text-stone-600 leading-relaxed">{item.commentaire}</p>
+
+          {item.verifie && (
+            <div className="mt-4 pt-3 border-t border-stone-100 flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium">
+              <CheckCircle size={12} /> Achat vérifié
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+
   </div>
 </section>
 

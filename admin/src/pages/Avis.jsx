@@ -8,7 +8,9 @@ const Avis = ({ token }) => {
   const [avisListe, setAvisListe] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
-  const [filtre, setFiltre] = useState('attente'); // 'attente' | 'tous'
+  // 'tous' par défaut : les avis sont publiés immédiatement, la file "en attente" ne sert
+  // plus que de filtre secondaire (cas résiduel où approuve serait remis à false à la main).
+  const [filtre, setFiltre] = useState('tous'); // 'attente' | 'tous'
 
   const fetchAvis = async () => {
     try {
@@ -91,10 +93,10 @@ const Avis = ({ token }) => {
           <span>Atelier & Réputation</span>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
-          Modération des Avis
+          Avis Clients
         </h1>
         <p className="text-xs text-stone-500 mt-1">
-          Un avis n'est visible sur la fiche produit et dans les données Google qu'après approbation.
+          Les avis sont publiés immédiatement sur la fiche produit. Supprimez ici ceux qui sont inappropriés.
         </p>
       </div>
 

@@ -241,7 +241,7 @@ const motDePasseOublie = async (req, res) => {
     const resetLink = `${frontendUrl}/reset-password/${rawToken}`;
 
     const { error } = await resend.emails.send({
-      from: 'Maison Aridona <onboarding@resend.dev>',
+      from: 'Maison Aridona <contact@aridona.store>',
       to: [user.email],
       subject: 'Réinitialisation de votre mot de passe — Aridona Héritage',
       html: `

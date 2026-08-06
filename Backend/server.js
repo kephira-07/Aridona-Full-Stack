@@ -12,6 +12,8 @@ import orderRouter from './routes/orderRoute.js';
 import categorieRouter from './routes/categorieRoute.js';
 import avisRouter from './routes/avisRoute.js';
 import articleRouter from './routes/articleRoute.js';
+import contactRouter from './routes/contactRoute.js';
+import configRouter from './routes/configRoute.js';
 import produitModel from './models/produitModel.js';
 import articleModel from './models/articleModel.js';
 
@@ -31,10 +33,24 @@ connectCloudinary();
 // Middlewares
 app.use(express.json());
 
-// DEV : ouvert à toutes les origines.
-app.use(cors());
-// PROD : restreins aux origines de confiance (tu fais transiter des tokens) —
-// app.use(cors({ origin: ['https://ton-domaine.com', 'http://localhost:5173'], credentials: true }));
+// Origines autorisées : domaine de prod (client + admin servi sous /admin sur le même domaine)
+// + ports de dev locaux. Personnalisable via CORS_ORIGIN (liste séparée par des virgules) sans
+// avoir à retoucher le code si l'admin finit un jour sur un sous-domaine séparé.
+const defaultOrigins = ['https://aridona.store', 'http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : defaultOrigins;
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Requêtes sans en-tête Origin (ex: appels serveur-à-serveur, curl, Merchant Center) : autorisées.
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origine non autorisée par CORS.'));
+  },
+  credentials: true,
+}));
 
 // Routes API
 app.use('/api/utilisateur', utilisateurRouter);
@@ -43,6 +59,8 @@ app.use('/api/order', orderRouter);
 app.use('/api/categorie', categorieRouter);
 app.use('/api/avis', avisRouter);
 app.use('/api/article', articleRouter);
+app.use('/api/contact', contactRouter);
+app.use('/api/config', configRouter);
 
 app.get('/', (req, res) => {
   res.send("L'API d'Arilona Shop fonctionne parfaitement !");

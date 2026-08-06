@@ -17,14 +17,15 @@ const PasserCommande = () => {
     delivery_free = 0,
     backendUrl,
     token,
-    setPanierProduits
+    setPanierProduits,
+    whatsappNum
   } = useContext(ShopContext);
 
   const navigate = useNavigate();
   const [methode, setMethode] = useState('cod');
   const [loading, setLoading] = useState(false);
 
-  const WHATSAPP_NUMBER = "22872656485";
+  const WHATSAPP_NUMBER = whatsappNum || "22872656485";
 
   const [formData, setFormData] = useState({
     fullName: '',

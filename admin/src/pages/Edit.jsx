@@ -14,6 +14,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { availableSizes, availableColors, availableMatieres } from '../constants/produit';
 
 const Edit = ({ token }) => {
   const { id } = useParams();
@@ -43,17 +44,6 @@ const Edit = ({ token }) => {
   const [metaDescription, setMetaDescription] = useState('');
   const [tagsInput, setTagsInput] = useState('');
 
-  // Options statiques (Alignées avec le composant Add)
-  const availableSizes = ["50", "52", "54", "56", "58", "Unique"];
-  const availableColors = ["Doré", "Argenté", "Or Rose"];
-  const availableMatieres = [
-    "Acier Inoxydable",
-    "Or 18k",
-    "Or Blanc 18k",
-    "Or Rose 18k",
-    "Argent 925",
-    "Plaqué Or"
-  ];
 
   // 1. Charger les catégories et les détails du produit
   useEffect(() => {
@@ -220,7 +210,7 @@ const Edit = ({ token }) => {
 
       if (response.data.success) {
         toast.success("✨ Bijou mis à jour avec succès !");
-        navigate('/list');
+        navigate('/listeProduits');
       } else {
         toast.error(response.data.message || "Erreur lors de la mise à jour.");
       }
@@ -261,7 +251,7 @@ const Edit = ({ token }) => {
 
         <button
           type="button"
-          onClick={() => navigate('/list')}
+          onClick={() => navigate('/listeProduits')}
           className="flex items-center gap-2 px-4 py-2 border border-stone-200 bg-white text-stone-700 hover:bg-stone-50 text-xs font-medium rounded-xl transition-all shadow-xs cursor-pointer"
         >
           <ArrowLeft size={14} />
@@ -628,7 +618,7 @@ const Edit = ({ token }) => {
 
           <button 
             type="button" 
-            onClick={() => navigate('/list')}
+            onClick={() => navigate('/listeProduits')}
             className="w-full sm:w-auto px-6 py-3.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer text-center"
           >
             Annuler

@@ -1,27 +1,45 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, CheckCircle2, Award, HeartHandshake } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, CheckCircle2, Award, HeartHandshake, Loader2 } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
+import { ShopContext } from '../context/ShopContext';
 
 const APropos = () => {
+  const { backendUrl, whatsappNum } = useContext(ShopContext);
+
   // CONFIGURATION DES CONTACTS
-  const NUMERO_WHATSAPP = "22872656485";
+  const NUMERO_WHATSAPP = whatsappNum || "22872656485";
   const EMAIL_CONTACT = "aridonabijoux@gmail.com";
   const ADRESSE = "Lomé, Togo";
 
   const [formData, setFormData] = useState({ nom: '', email: '', sujet: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
   const ouvrirWhatsApp = () => {
     const message = "Bonjour Aridona Bijoux ! 💎 Je souhaiterais avoir un renseignement sur vos bijoux en acier inoxydable.";
     window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
-    setFormData({ nom: '', email: '', sujet: '', message: '' });
+    try {
+      setEnvoiEnCours(true);
+      const response = await axios.post(`${backendUrl}/api/contact/envoyer`, formData);
+      if (response.data.success) {
+        setSubmitted(true);
+        setTimeout(() => setSubmitted(false), 5000);
+        setFormData({ nom: '', email: '', sujet: '', message: '' });
+      } else {
+        toast.error(response.data.message || "Impossible d'envoyer le message.", { theme: "dark" });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Erreur lors de l'envoi du message.", { theme: "dark" });
+    } finally {
+      setEnvoiEnCours(false);
+    }
   };
 
   return (
@@ -234,9 +252,11 @@ const APropos = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-amber-800 hover:bg-amber-900 active:scale-[0.99] text-white font-semibold py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={envoiEnCours}
+                  className="w-full bg-amber-800 hover:bg-amber-900 active:scale-[0.99] text-white font-semibold py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 >
-                  <Send size={15} /> Envoyer la demande
+                  {envoiEnCours ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                  {envoiEnCours ? 'Envoi en cours...' : 'Envoyer la demande'}
                 </button>
               </form>
             </div>

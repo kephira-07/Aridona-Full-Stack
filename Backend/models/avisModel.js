@@ -6,7 +6,9 @@ const avisSchema = new mongoose.Schema({
   note: { type: Number, required: true, min: 1, max: 5 },
   commentaire: { type: String, required: true, trim: true },
   verifie: { type: Boolean, default: false }, // achat vérifié (réservé à un futur rapprochement avec les commandes)
-  approuve: { type: Boolean, default: false }, // modération admin avant publication publique
+  // Publié immédiatement à la création (voir avisController.ajouterAvis) ; conservé comme
+  // simple drapeau de visibilité que l'admin peut repasser à false plus tard si besoin.
+  approuve: { type: Boolean, default: true },
 }, { timestamps: true });
 
 const avisModel = mongoose.models.avis || mongoose.model("avis", avisSchema);

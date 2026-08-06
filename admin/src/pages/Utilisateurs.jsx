@@ -11,8 +11,8 @@ const Utilisateurs = ({ token: propToken }) => {
   const fetchUtilisateurs = async () => {
     try {
       setLoading(true);
-      // Récupération du token d'administration (priorité prop > localStorage)
-      const adminToken = propToken || localStorage.getItem('admin_token') || localStorage.getItem('token');
+      // Récupération du token d'administration (priorité prop > localStorage, seule clé utilisée)
+      const adminToken = propToken || localStorage.getItem('token');
 
       const response = await axios.get(`${backendUrl}/api/utilisateur/liste`, {
         headers: {

@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Mail, Phone, MapPin, Send, MessageCircle, Clock } from 'lucide-react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { Mail, Phone, MapPin, Send, MessageCircle, Clock, Loader2 } from 'lucide-react';
+import { ShopContext } from '../context/ShopContext';
 
 const Contact = () => {
+  const { backendUrl, whatsappNum } = useContext(ShopContext);
+
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -11,17 +16,29 @@ const Contact = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Logique d'envoi d'email ou API backend à ajouter ici
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
-    setFormData({ nom: '', email: '', sujet: '', message: '' });
+    try {
+      setEnvoiEnCours(true);
+      const response = await axios.post(`${backendUrl}/api/contact/envoyer`, formData);
+      if (response.data.success) {
+        setSubmitted(true);
+        setTimeout(() => setSubmitted(false), 5000);
+        setFormData({ nom: '', email: '', sujet: '', message: '' });
+      } else {
+        toast.error(response.data.message || "Impossible d'envoyer le message.", { theme: "dark" });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Erreur lors de l'envoi du message.", { theme: "dark" });
+    } finally {
+      setEnvoiEnCours(false);
+    }
   };
 
   return (
@@ -103,7 +120,7 @@ const Contact = () => {
             <div className="pt-6 border-t border-slate-800 space-y-3">
               <p className="text-xs text-slate-400">Pour une assistance instantanée :</p>
               <a
-                href="https://wa.me/22872656485"
+                href={`https://wa.me/${whatsappNum || '22872656485'}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 w-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-600 hover:text-white py-3 px-4 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all duration-300 shadow-lg"
@@ -198,10 +215,11 @@ const Contact = () => {
               {/* Bouton Soumettre */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
+                disabled={envoiEnCours}
+                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-lg flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                <Send size={16} />
-                Envoyer le message
+                {envoiEnCours ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {envoiEnCours ? 'Envoi en cours...' : 'Envoyer le message'}
               </button>
 
             </form>

@@ -9,9 +9,13 @@ export const ShopContext = createContext();
 const ShopContextProvider = (props) => {
 
   const monnaie = 'FCFA';
-  const delivery_free = 500;
-  
-  const [produits, setProduits] = useState(produitsMock); 
+
+  // Valeurs de repli si /api/config est injoignable — la vraie source de vérité est le backend
+  // (config/siteConfig.js), pour ne plus dupliquer ces constantes dans chaque composant.
+  const [delivery_free, setDeliveryFree] = useState(500);
+  const [whatsappNum, setWhatsappNum] = useState('22872656485');
+
+  const [produits, setProduits] = useState(produitsMock);
   const [categories, setCategories] = useState([]); 
   
   const [recherche, setRecherche] = useState('');
@@ -96,9 +100,24 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  // 🛰️ APPEL API : Charger les réglages partagés (frais de livraison, WhatsApp...)
+  const getSiteConfig = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/config`);
+      if (response.data.success && response.data.config) {
+        const { fraisLivraison, whatsappNum: numeroServeur } = response.data.config;
+        if (typeof fraisLivraison === 'number') setDeliveryFree(fraisLivraison);
+        if (numeroServeur) setWhatsappNum(numeroServeur);
+      }
+    } catch (error) {
+      console.warn("Impossible de charger la config serveur, valeurs par défaut conservées.");
+    }
+  };
+
   useEffect(() => {
     getProductsData();
     getCategoriesData();
+    getSiteConfig();
   }, []);
 
   useEffect(() => {
@@ -339,21 +358,27 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     }
   };
 
-  // Un article a besoin d'une taille choisie si le produit a de vraies déclinaisons
-  // mais que la clé enregistrée dans le panier n'en fait pas partie (ex: "Unique" laissé
-  // par défaut quand le choix n'a pas été fait sur la fiche produit). Utilisé par Panier.jsx
-  // et SidebarPanier.jsx pour imposer le choix avant la caisse — logique centralisée ici pour
-  // que les deux restent toujours d'accord sur la même règle.
+  // Une taille n'est valable que si elle fait réellement partie des déclinaisons du produit
+  // (sinon le repli "Unique"/"Standard" posé par défaut quand le choix n'a pas été fait sur la
+  // fiche produit passerait pour une vraie sélection). Centralisé ici et exporté pour que
+  // Panier.jsx applique exactement la même règle au lieu de la réimplémenter localement.
+  const estTailleValidePourProduit = (produitInfo, taille) => {
+    if (!produitInfo) return true;
+    const taillesDisponibles = produitInfo.sizes || produitInfo.tailles || [];
+    if (taillesDisponibles.length === 0) return true;
+    return taillesDisponibles.includes(taille);
+  };
+
+  // Un article a besoin d'une taille choisie si le produit a de vraies déclinaisons mais que
+  // la clé enregistrée dans le panier n'en fait pas partie. Utilisé par Panier.jsx et
+  // SidebarPanier.jsx pour imposer le choix avant la caisse.
   const panierNecessiteChoixTaille = () => {
     for (const produitId in panierProduits) {
       const produitInfo = produits.find((p) => String(p._id || p.id) === String(produitId));
       if (!produitInfo) continue;
 
-      const taillesDisponibles = produitInfo.sizes || produitInfo.tailles || [];
-      if (taillesDisponibles.length === 0) continue;
-
       for (const taille in panierProduits[produitId]) {
-        if (panierProduits[produitId][taille] > 0 && !taillesDisponibles.includes(taille)) {
+        if (panierProduits[produitId][taille] > 0 && !estTailleValidePourProduit(produitInfo, taille)) {
           return true;
         }
       }
@@ -409,7 +434,9 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     updateQuantity,
     getPanierMontant,
     panierNecessiteChoixTaille,
+    estTailleValidePourProduit,
     viderPanier,
+    whatsappNum,
     showSuggestions, 
     setShowSuggestions,
     suggestions, 
