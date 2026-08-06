@@ -93,7 +93,7 @@ connectDB()
     // Idempotent — ne fait rien si les index sont déjà à jour.
     await produitModel.syncIndexes();
     await articleModel.syncIndexes();
-    app.listen(PORT, () => console.log(`🚀 Serveur actif sur : http://localhost:${PORT}`));
+    app.listen(PORT, () => console.log(`Serveur actif sur : http://localhost:${PORT}`));
   })
   .catch((err) => {
     console.error('❌ Connexion BDD échouée :', err);

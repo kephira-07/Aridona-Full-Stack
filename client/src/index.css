@@ -36,3 +36,12 @@
 .animate-slide-in {
   animation: slideIn 0.3s ease-out forwards;
 }
+
+@keyframes avisMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-avis-marquee {
+  animation: avisMarquee var(--avis-marquee-duration, 30s) linear infinite;
+}

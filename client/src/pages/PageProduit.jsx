@@ -7,6 +7,37 @@ import ApparenteProduit from '../composant/ApparenteProduit';
 import BoutonRetour from '../composant/BoutonRetour';
 import { Helmet } from 'react-helmet-async';
 
+const CarteAvis = ({ item }) => (
+  <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-shadow h-full">
+    <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-ebgaramond font-semibold text-sm shrink-0">
+          {item.nom?.[0]?.toUpperCase() || '?'}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-stone-900 truncate">{item.nom}</p>
+          <p className="text-[11px] text-stone-400">
+            {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+      </div>
+      <div className="flex text-amber-500 shrink-0">
+        {[...Array(5)].map((_, i) => (
+          <Star key={i} size={12} className={i < item.note ? "fill-amber-500" : "text-stone-200"} />
+        ))}
+      </div>
+    </div>
+
+    <p className="text-sm text-stone-600 leading-relaxed">{item.commentaire}</p>
+
+    {item.verifie && (
+      <div className="mt-4 pt-3 border-t border-stone-100 flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium">
+        <CheckCircle size={12} /> Achat vérifié
+      </div>
+    )}
+  </div>
+);
+
 const PageProduit = () => {
 const { slug } = useParams();
   const { produits, categories, monnaie, ajouterPanier, whatsappNum, backendUrl } = useContext(ShopContext);
@@ -546,48 +577,37 @@ const { slug } = useParams();
       </div>
     )}
 
-    {/* GRILLE DES AVIS */}
+    {/* CARROUSEL DES AVIS */}
     {!avisLoading && avisListe.length === 0 && (
       <p className="text-sm text-stone-400 italic text-center py-12 border border-dashed border-stone-200 rounded-2xl">
         Aucun avis publié pour le moment.
       </p>
     )}
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {avisListe.map((item) => (
-        <div
-          key={item._id}
-          className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-ebgaramond font-semibold text-sm shrink-0">
-                {item.nom?.[0]?.toUpperCase() || '?'}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-stone-900 truncate">{item.nom}</p>
-                <p className="text-[11px] text-stone-400">
-                  {new Date(item.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-              </div>
-            </div>
-            <div className="flex text-amber-500 shrink-0">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} size={12} className={i < item.note ? "fill-amber-500" : "text-stone-200"} />
-              ))}
-            </div>
-          </div>
-
-          <p className="text-sm text-stone-600 leading-relaxed">{item.commentaire}</p>
-
-          {item.verifie && (
-            <div className="mt-4 pt-3 border-t border-stone-100 flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium">
-              <CheckCircle size={12} /> Achat vérifié
-            </div>
-          )}
+    {avisListe.length === 1 && (
+      <div className="flex justify-center">
+        <div className="w-full max-w-md">
+          <CarteAvis item={avisListe[0]} />
         </div>
-      ))}
-    </div>
+      </div>
+    )}
+
+    {avisListe.length > 1 && (
+      <div
+        className="group relative overflow-hidden mask-[linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]"
+      >
+        <div
+          className="flex w-max gap-5 animate-avis-marquee group-hover:[animation-play-state:paused]"
+          style={{ '--avis-marquee-duration': `${Math.max(avisListe.length * 8, 20)}s` }}
+        >
+          {[...avisListe, ...avisListe].map((item, index) => (
+            <div key={`${item._id}-${index}`} className="w-75 sm:w-90 shrink-0">
+              <CarteAvis item={item} />
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
 
   </div>
 </section>
