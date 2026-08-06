@@ -209,7 +209,7 @@ export default function Hero() {
               >
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
                 <div className="relative shadow-xl overflow-hidden">
-                  <Boutton textb="Commander en ligne" />
+                  <Boutton textb="Visitez la boutique" />
                 </div>
               </Link>
             </div>
@@ -302,7 +302,7 @@ export default function Hero() {
             >
               <div className="absolute -inset-0.5 bg-amber-500 blur opacity-60"></div>
               <div className="relative shadow-[0_0_15px_rgba(217,119,6,0.5)] overflow-hidden">
-                <Boutton textb="Commander en ligne" />
+                <Boutton textb="Visitez la boutique" />
               </div>
             </Link>
           </div>
