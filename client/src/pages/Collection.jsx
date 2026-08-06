@@ -11,38 +11,44 @@ import BoutonRetour from "../composant/BoutonRetour";
 import { Helmet } from 'react-helmet-async';
 
 // --- DICTIONNAIRE TEXTES OPTIMISÉS SEO PAR CATÉGORIE ---
+// Chaque texte mentionne Lomé/Togo (localisation réelle de la boutique) pour améliorer le
+// positionnement sur les recherches géolocalisées, en plus du nom de la catégorie.
 const SEO_TEXTS = {
     default: {
         title: "Bijoux en Acier Inoxydable",
-        description: "Découvrez notre collection complète de bijoux en acier inoxydable pour femme. Des créations waterproof, hypoallergéniques et conçues pour résister au temps sans perdre leur éclat."
+        description: "Découvrez notre collection complète de bijoux en acier inoxydable, vendue en ligne à Lomé, Togo. Des créations waterproof, hypoallergéniques et conçues pour résister au temps sans perdre leur éclat."
     },
     bague: {
         title: "Bagues en Acier Inoxydable",
-        description: "Explorez nos bagues en acier inoxydable dorées et argentées. Des modèles ajustables, résistants à l'eau et hypoallergéniques à porter seuls ou en accumulation."
+        description: "Explorez nos bagues en acier inoxydable dorées et argentées, disponibles à Lomé, Togo. Des modèles ajustables, résistants à l'eau et hypoallergéniques à porter seuls ou en accumulation."
     },
     collier: {
         title: "Colliers & Ras de Cou en Acier Inoxydable",
-        description: "Sublimez votre décolleté avec nos colliers en acier inoxydable. Ras de cou, chaînes et pendentifs waterproof qui ne noircissent pas au contact de l'eau."
+        description: "Sublimez votre décolleté avec nos colliers en acier inoxydable, livrés à Lomé, Togo. Ras de cou, chaînes et pendentifs waterproof qui ne noircissent pas au contact de l'eau."
     },
     bracelet: {
         title: "Bracelets & Joncs en Acier Inoxydable",
-        description: "Trouvez le bracelet en acier inoxydable parfait : joncs rigides, chaînettes dorées et maillons tendance conçus pour résister à votre quotidien."
+        description: "Trouvez le bracelet en acier inoxydable parfait, livré à Lomé, Togo : joncs rigides, chaînettes dorées et maillons tendance conçus pour résister à votre quotidien."
     },
     boucle: {
         title: "Boucles d'Oreilles en Acier Inoxydable",
-        description: "Parcourez notre sélection de créoles, puces et pendantes en acier inoxydable. Des bijoux légers et doux pour les peaux sensibles."
+        description: "Parcourez notre sélection de créoles, puces et pendantes en acier inoxydable, vendue à Lomé, Togo. Des bijoux légers et doux pour les peaux sensibles."
     },
-    Armlet:{
+    braceletDeBras: {
         title: "Bracelets de Bras en Acier Inoxydable",
-        description: "Découvrez nos bracelets de bras en acier inoxydable, parfaits pour un look audacieux et élégant. Conçus pour durer et résister à l'eau."
+        description: "Découvrez nos bracelets de bras en acier inoxydable, disponibles à Lomé, Togo. Parfaits pour un look audacieux et élégant, conçus pour durer et résister à l'eau."
     },
-    chainedelunnette:{
+    ceintureChaine: {
+        title: "Ceintures Chaîne en Acier Inoxydable",
+        description: "Découvrez nos ceintures chaîne en acier inoxydable, vendues à Lomé, Togo. Un accessoire tendance qui sublime silhouettes et tenues, résistant et durable."
+    },
+    chainedelunnette: {
         title: "Chaînes de Lunettes en Acier Inoxydable",
-        description: "Ajoutez une touche de style à vos lunettes avec nos chaînes en acier inoxydable. Élégantes, durables et résistantes à l'eau."
+        description: "Ajoutez une touche de style à vos lunettes avec nos chaînes en acier inoxydable, livrées à Lomé, Togo. Élégantes, durables et résistantes à l'eau."
     },
     parure: {
         title: "Parures & Ensembles de Bijoux en Acier Inoxydable",
-        description: "Découvrez nos parures et ensembles de bijoux 2, 3 ou 4 pièces en acier inoxydable. Colliers, bagues, bracelets et boucles d'oreilles assortis, waterproof et résistant à l'eau."
+        description: "Découvrez nos parures et ensembles de bijoux 2, 3 ou 4 pièces en acier inoxydable, vendus à Lomé, Togo. Colliers, bagues, bracelets et boucles d'oreilles assortis, waterproof et résistant à l'eau."
     }
 };
 
@@ -149,18 +155,22 @@ const Collection = () => {
             const currentCatObj = categoriesList.find(c => c._id === selectedCategories[0]);
             const catName = (currentCatObj?.nom || "").toLowerCase();
 
+            // Les correspondances multi-mots ("bracelet de bras") doivent être testées AVANT
+            // les correspondances génériques ("bracelet") pour ne pas être court-circuitées.
+            if (catName.includes("bracelet") && catName.includes("bras")) return SEO_TEXTS.braceletDeBras;
+            if (catName.includes("ceinture")) return SEO_TEXTS.ceintureChaine;
+            if (catName.includes("lunette")) return SEO_TEXTS.chainedelunnette;
+            if (catName.includes("parure") || catName.includes("ensemble") || catName.includes("ensenbles")) return SEO_TEXTS.parure;
+
             if (catName.includes("bague")) return SEO_TEXTS.bague;
             if (catName.includes("collier")) return SEO_TEXTS.collier;
             if (catName.includes("bracelet")) return SEO_TEXTS.bracelet;
             if (catName.includes("boucle") || catName.includes("oreille")) return SEO_TEXTS.boucle;
-            if (catName.includes("armlet")) return SEO_TEXTS.Armlet;
-            if (catName.includes("chaine") && catName.includes("lunette")) return SEO_TEXTS.chainedelunnette;
-            if (catName.includes("parure") || catName.includes("ensemble")) return SEO_TEXTS.parure;
 
             if (currentCatObj?.nom) {
                 return {
                     title: `${currentCatObj.nom} en Acier Inoxydable`,
-                    description: `Découvrez notre gamme de ${currentCatObj.nom.toLowerCase()} en acier inoxydable. Des bijoux waterproof, résistants et hypoallergéniques pensés pour durer.`
+                    description: `Découvrez notre gamme de ${currentCatObj.nom.toLowerCase()} en acier inoxydable, vendue à Lomé, Togo. Des bijoux waterproof, résistants et hypoallergéniques pensés pour durer.`
                 };
             }
         }
