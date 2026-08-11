@@ -188,50 +188,53 @@ const { slug } = useParams();
     window.open(url, '_blank');
   };
 
-  const schemaData = produitData ? {
-    "@context": "https://schema.org/",
-    "@type": "Product",
-    "name": produitData.nom,
-    "image": Array.isArray(produitData.image) 
-      ? produitData.image.map(img => getImageUrl(img)) 
-      : [getImageUrl(produitData.image)],
-    "description": produitData.description,
-    "sku": String(produitData._id || produitData.id),
-    "brand": {
-      "@type": "Brand",
-      "name": "Aridona Bijoux"
+  const schemaData = produitData && produitData.prix ? {
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": produitData.nom || "",
+  "image": Array.isArray(produitData.image) 
+    ? produitData.image.map(img => getImageUrl(img)) 
+    : [getImageUrl(produitData.image)],
+  "description": produitData.description || "",
+  "sku": String(produitData._id || produitData.id || ""),
+  "brand": {
+    "@type": "Brand",
+    "name": "Aridona Bijoux"
+  },
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "XOF",
+    "price": String(produitData.prix), // Convertir en String propre
+    "priceValidUntil": "2027-12-31",
+    "availability": produitData.enStock !== false 
+      ? "https://schema.org/InStock" 
+      : "https://schema.org/OutOfStock",
+    "itemCondition": "https://schema.org/NewCondition",
+    "url": typeof window !== "undefined" ? window.location.href : ""
+  },
+  ...(totalAvis > 0 ? {
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": String(moyenneNotes),
+      "reviewCount": String(totalAvis)
     },
-    "offers": {
-      "@type": "Offer",
-      "priceCurrency": "XOF",
-      "price": Number(produitData.prix) || 0,
-      "priceValidUntil": "2027-12-31",
-      "availability": produitData.enStock !== false 
-        ? "https://schema.org/InStock" 
-        : "https://schema.org/OutOfStock",
-      "itemCondition": "https://schema.org/NewCondition"
-    },
-    // aggregateRating/review ne sont envoyés à Google que s'il existe de vrais avis approuvés,
-    // pour ne jamais déclarer de données structurées fabriquées (règles Google sur les faux avis).
-    ...(totalAvis > 0 ? {
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": moyenneNotes,
-        "reviewCount": totalAvis
+    "review": avisListe.map(a => ({
+      "@type": "Review",
+      "@type": "Review",
+      "author": { 
+        "@type": "Person", 
+        "name": a.nom || "Client anonyme" 
       },
-      "review": avisListe.map(a => ({
-        "@type": "Review",
-        "author": { "@type": "Person", "name": a.nom },
-        "datePublished": a.createdAt,
-        "reviewBody": a.commentaire,
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": a.note,
-          "bestRating": "5"
-        }
-      }))
-    } : {})
-  } : null;
+      "datePublished": a.createdAt ? new Date(a.createdAt).toISOString() : new Date().toISOString(),
+      "reviewBody": a.commentaire || "",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": String(a.note || 5),
+        "bestRating": "5"
+      }
+    }))
+  } : {})
+} : null;
 
   const pageTitle = produitData
     ? (produitData.metaTitle || `${produitData.nom} - Bijoux en Acier Inoxydable | Aridona Bijoux`)
