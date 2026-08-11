@@ -8,14 +8,24 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const clientRoot = join(__dirname, '..');
 
-// Lecture minimale du .env (pas de dépendance dotenv pour un seul script de build).
+// Lecture améliorée du fichier .env (supporte .env et .env.local, gère les espaces et guillemets)
 const readEnvVar = (key, fallback) => {
-  const envPath = join(clientRoot, '.env');
-  if (!existsSync(envPath)) return fallback;
-  const line = readFileSync(envPath, 'utf-8')
-    .split('\n')
-    .find((l) => l.trim().startsWith(`${key}=`));
-  return line ? line.split('=').slice(1).join('=').trim() : fallback;
+  const envFiles = ['.env.local', '.env.production', '.env'];
+  for (const file of envFiles) {
+    const envPath = join(clientRoot, file);
+    if (existsSync(envPath)) {
+      const lines = readFileSync(envPath, 'utf-8').split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('#') || !trimmed.includes('=')) continue;
+        const [envKey, ...valParts] = trimmed.split('=');
+        if (envKey.trim() === key) {
+          return valParts.join('=').trim().replace(/^["']|["']$/g, '');
+        }
+      }
+    }
+  }
+  return fallback;
 };
 
 const SITE_URL = 'https://aridona.store';
@@ -45,43 +55,60 @@ ${entries.map(urlEntry).join('\n')}
 </urlset>
 `;
 
-const fetchProduitEntries = async () => {
+// Helper sécurisé pour exécuter un fetch d'API
+const safeFetchJson = async (endpoint) => {
+  const url = `${BACKEND_URL}${endpoint}`;
   try {
-    const response = await fetch(`${BACKEND_URL}/api/produit/list`);
-    const data = await response.json();
-    if (!data.success || !Array.isArray(data.produits)) return [];
-
-    return data.produits
-      .filter((p) => p.enStock !== false) // pas d'intérêt SEO à indexer une rupture définitive
-      .map((p) => ({
-        loc: `/produit/${p.slug || p._id}`,
-        changefreq: 'weekly',
-        priority: '0.7',
-        lastmod: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : undefined,
-      }));
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.warn(`[sitemap] Échec HTTP ${response.status} sur ${url}`);
+      return null;
+    }
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      console.warn(`[sitemap] Réponse non-JSON reçue sur ${url} (probablement du HTML). Vérifiez BACKEND_URL.`);
+      return null;
+    }
+    return await response.json();
   } catch (error) {
-    console.warn(`[sitemap] Impossible de récupérer les produits (${BACKEND_URL}) : ${error.message}. Sitemap généré avec les pages statiques uniquement.`);
+    console.warn(`[sitemap] Erreur réseau lors de l'appel à ${url} : ${error.message}`);
+    return null;
+  }
+};
+
+const fetchProduitEntries = async () => {
+  const data = await safeFetchJson('/api/produit/list');
+  if (!data || !data.success || !Array.isArray(data.produits)) {
+    console.warn(`[sitemap] Impossible de récupérer les produits. Sitemap généré avec les pages statiques.`);
     return [];
   }
+
+  return data.produits
+    .filter((p) => p.enStock !== false)
+    .map((p) => ({
+      loc: `/produit/${p.slug || p._id}`,
+      changefreq: 'weekly',
+      priority: '0.7',
+      lastmod: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : undefined,
+    }));
 };
 
 const fetchArticleEntries = async () => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/article/list`);
-    const data = await response.json();
-    if (!data.success || !Array.isArray(data.articles)) return [];
-
-    return data.articles.map((a) => ({
-      loc: `/blog/${a.slug}`,
-      changefreq: 'monthly',
-      priority: '0.5',
-      lastmod: a.updatedAt ? new Date(a.updatedAt).toISOString().split('T')[0] : undefined,
-    }));
-  } catch (error) {
-    console.warn(`[sitemap] Impossible de récupérer les articles (${BACKEND_URL}) : ${error.message}.`);
+  const data = await safeFetchJson('/api/article/list');
+  if (!data || !data.success || !Array.isArray(data.articles)) {
+    console.warn(`[sitemap] Impossible de récupérer les articles.`);
     return [];
   }
+
+  return data.articles.map((a) => ({
+    loc: `/blog/${a.slug}`,
+    changefreq: 'monthly',
+    priority: '0.5',
+    lastmod: a.updatedAt ? new Date(a.updatedAt).toISOString().split('T')[0] : undefined,
+  }));
 };
+
+console.log(`[sitemap] Connexion au backend sur : ${BACKEND_URL}`);
 
 const produitEntries = await fetchProduitEntries();
 const articleEntries = await fetchArticleEntries();
@@ -89,7 +116,7 @@ const xml = buildXml([...STATIC_PAGES, ...produitEntries, ...articleEntries]);
 
 writeFileSync(join(clientRoot, 'public', 'sitemap.xml'), xml, 'utf-8');
 
-// L'ancien fichier mal nommé ne doit plus traîner (robots.txt référence sitemap.xml, pas .txt).
+// L'ancien fichier mal nommé ne doit plus traîner
 const oldSitemapTxt = join(clientRoot, 'public', 'sitemap.txt');
 if (existsSync(oldSitemapTxt)) unlinkSync(oldSitemapTxt);
 
