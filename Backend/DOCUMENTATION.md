@@ -46,7 +46,6 @@ Un gestionnaire d'erreurs global est placé **après** toutes les routes : il in
 ### Authentification (`middleware/auth.js`)
 
 `auth(roles = [])` est une factory de middleware :
-
 - Lit le token depuis le header `token` **ou** `Authorization: Bearer <token>`.
 - Vérifie le JWT (`JWT_SECRET`), extrait `id`/`role`/`email`, les attache à `req.userId`/`req.userRole`/`req.userEmail` **et** les réinjecte dans `req.body.userId` (compatibilité avec des contrôleurs plus anciens qui le lisent depuis le body).
 - Si `roles` est fourni (ex. `['admin']`) et que le rôle du token n'y figure pas → 403.

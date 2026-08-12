@@ -196,10 +196,10 @@ export default function Hero() {
                 {images[0].title}
               </h1>
 
-              {/* Description enrichie : activité claire pour Google + argumentaire marketing */}
-              <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
-                <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme : bagues, colliers, bracelets , boucles d'oreilles,bracelets de bras (Armelets) , ceintures chaine , chaines de lunettes et ensembles de bijoux hypoallergéniques, waterproof et inoxydables. Parcourez nos catégories, commandez en quelques clics et recevez vos bijoux <strong className="text-amber-300 font-medium">rapidement à Lomé</strong>.
-              </p>
+            {/* Description enrichie : activité claire pour Google + argumentaire marketing */}
+                    <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
+                      <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme : bagues, colliers, bracelets, boucles d'oreilles, bracelets de bras (armelets), ceintures chaînes, chaînes de lunettes et parures hypoallergéniques, waterproof et inoxydables. Parcourez nos collections, commandez en quelques clics et recevez vos bijoux <strong className="text-amber-300 font-medium">rapidement à Lomé</strong>.
+                    </p>
               
               <Link 
                 to="/collection" 
@@ -291,7 +291,7 @@ export default function Hero() {
 
             {/* Description enrichie mobile : activité claire pour Google + argumentaire marketing */}
             <p className="text-stone-200 font-light text-[11px] max-w-xs mb-4 leading-relaxed">
-              ARIDONA Bijoux : vente en ligne de bijoux en acier inoxydable 316L ( bagues, colliers, bracelets , boucles d'oreilles,bracelets de bras (Armelets) , ceintures chaine , chaines de lunettes et ensembles de bijoux ), hypoallergéniques et waterproof. Commandez et recevez <strong>rapidement à Lomé</strong>.
+              ARIDONA Bijoux : vente en ligne de bijoux en acier inoxydable 316L (bijoux en acier inoxydable 316L</strong> pour femme : bagues, colliers, bracelets, boucles d'oreilles, bracelets de bras (armelets), ceintures chaînes, chaînes de lunettes et parures de bijoux ), hypoallergéniques et waterproof. Commandez et recevez <strong>rapidement à Lomé</strong>.
             </p>
             
             <Link 

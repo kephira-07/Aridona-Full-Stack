@@ -204,7 +204,7 @@ const { slug } = useParams();
   "offers": {
     "@type": "Offer",
     "priceCurrency": "XOF",
-    "price": String(produitData.prix), // Convertir en String propre
+    "price": String(produitData.prix),
     "priceValidUntil": "2027-12-31",
     "availability": produitData.enStock !== false 
       ? "https://schema.org/InStock" 
@@ -215,12 +215,11 @@ const { slug } = useParams();
   ...(totalAvis > 0 ? {
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": String(moyenneNotes),
+      "ratingValue": String(Number(moyenneNotes).toFixed(1)), // Force un format décimal propre (ex: 4.8)
       "reviewCount": String(totalAvis)
     },
     "review": avisListe.map(a => ({
-      "@type": "Review",
-      "@type": "Review",
+      "@type": "Review", // Correction : suppression du doublon
       "author": { 
         "@type": "Person", 
         "name": a.nom || "Client anonyme" 

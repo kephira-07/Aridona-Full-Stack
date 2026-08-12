@@ -16,7 +16,7 @@ const Blog = () => {
     const fetchArticles = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${backendUrl}/api/article/list`);
+        const response = await axios.get(`${backendUrl}/api/produit/list`);
         if (response.data.success) setArticles(response.data.articles);
       } catch (error) {
         console.error("Erreur chargement des articles:", error);
