@@ -198,7 +198,7 @@ export default function Hero() {
 
             {/* Description enrichie : activité claire pour Google + argumentaire marketing */}
                     <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
-                      <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme : bagues, colliers, bracelets, boucles d'oreilles, bracelets de bras (armelets), ceintures chaînes, chaînes de lunettes et parures hypoallergéniques, waterproof et inoxydables. Parcourez nos collections, commandez en quelques clics et recevez vos bijoux <strong className="text-amber-300 font-medium">rapidement à Lomé</strong>.
+                      <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme : bagues, colliers, bracelets, boucles d'oreilles, bracelets de bras (armelets), ceintures en chaînes, chaînes de lunettes et parures hypoallergéniques, waterproof et inoxydables. Parcourez nos collections, commandez en quelques clics et recevez vos bijoux <strong className="text-amber-300 font-medium">rapidement à Lomé</strong>.
                     </p>
               
               <Link 
