@@ -35,13 +35,32 @@ const placeOrder = async (req, res) => {
         const verifiedItems = [];
 
         for (const item of items) {
+            if (!item || !item._id) {
+                return res.status(400).json({ success: false, message: "Un article est invalide dans le panier." });
+            }
+
             const productDB = await produitModel.findById(item._id);
             if (!productDB) {
                 return res.status(404).json({ success: false, message: `Le bijou avec l'ID ${item._id} n'existe plus.` });
             }
 
+            if (productDB.enStock === false) {
+                return res.status(400).json({ success: false, message: `Le produit "${productDB.nom || productDB.name}" est actuellement en rupture de stock.` });
+            }
+
             const itemPrice = Number(productDB.prix || productDB.price || 0);
-            const quantity = Number(item.quantity) || 1;
+            const quantity = Number(item.quantity);
+
+            if (!Number.isInteger(quantity) || quantity <= 0) {
+                return res.status(400).json({ success: false, message: `La quantité pour le produit "${productDB.nom || productDB.name}" est invalide.` });
+            }
+
+            const itemSize = item.size || item.sizes || 'Taille Unique';
+            const availableSizes = Array.isArray(productDB.sizes) ? productDB.sizes : [];
+            if (availableSizes.length > 0 && !availableSizes.includes(itemSize)) {
+                return res.status(400).json({ success: false, message: `La taille sélectionnée pour "${productDB.nom || productDB.name}" est invalide.` });
+            }
+
             calculatedAmount += itemPrice * quantity;
 
             // orderModel attend image: [String] — produitModel stocke désormais des objets
@@ -55,7 +74,7 @@ const placeOrder = async (req, res) => {
                 nom: productDB.nom || productDB.name,
                 prix: itemPrice,
                 // Supporte 'size' ou 'sizes' selon l'objet envoyé par le Frontend
-                size: item.size || item.sizes || "Standard",
+                size: itemSize,
                 quantity,
                 image: imageUrls
             });
@@ -71,7 +90,7 @@ const placeOrder = async (req, res) => {
             items: verifiedItems,
             address,
             amount: montantTotal, // Prix recalculé côté serveur, frais de livraison inclus
-            paymentMethod: paymentMethod || "Manuel",
+            paymentMethod: paymentMethod || "Paiement à la livraison",
             payment: false,
             status: "Commande passée"
         };

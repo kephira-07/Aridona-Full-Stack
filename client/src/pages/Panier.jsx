@@ -233,13 +233,16 @@ const Panier = () => {
 
           <div className='lg:col-span-1 bg-stone-50/50 p-6 sm:p-8 border border-stone-100 lg:sticky lg:top-28 shadow-sm'>
             <PanierTotal />
+            <div className='mt-5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900'>
+              Paiement à la livraison. La commande est confirmée et finalisée via WhatsApp.
+            </div>
             <div className='mt-8'>
               <button
                 type="button"
                 onClick={verifierTaillesEtProceder}
                 className='w-full bg-amber-900 text-white text-xs font-semibold tracking-widest uppercase py-4 hover:bg-amber-950 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group shadow-md cursor-pointer'
               >
-                Passer à la caisse
+                Confirmer sur WhatsApp
                 <ArrowRight size={14} className='transform group-hover:translate-x-1 transition-transform' />
               </button>
             </div>

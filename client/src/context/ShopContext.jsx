@@ -86,14 +86,64 @@ const ShopContextProvider = (props) => {
     }
   };
 
+  const mergeCartData = (guestCart = {}, serverCart = {}) => {
+    const mergedCart = {};
+
+    const addCartToMerged = (sourceCart = {}) => {
+      Object.entries(sourceCart).forEach(([productId, sizes]) => {
+        if (!sizes || typeof sizes !== 'object') return;
+
+        if (!mergedCart[productId]) {
+          mergedCart[productId] = {};
+        }
+
+        Object.entries(sizes).forEach(([size, quantity]) => {
+          const validQty = Number(quantity);
+          if (!size || !Number.isFinite(validQty) || validQty <= 0) return;
+          mergedCart[productId][size] = (mergedCart[productId][size] || 0) + validQty;
+        });
+      });
+    };
+
+    addCartToMerged(serverCart);
+    addCartToMerged(guestCart);
+
+    Object.entries(mergedCart).forEach(([productId, sizes]) => {
+      Object.keys(sizes).forEach((size) => {
+        if (!sizes[size] || Number(sizes[size]) <= 0) delete sizes[size];
+      });
+      if (Object.keys(sizes).length === 0) delete mergedCart[productId];
+    });
+
+    return mergedCart;
+  };
+
   // 🛰️ APPEL API : Récupération du panier utilisateur
   const getUserCart = async (authToken) => {
     try {
       const response = await axios.get(`${backendUrl}/api/utilisateur/panier`, { 
         headers: { token: authToken } 
       });
-      if (response.data.success && response.data.cartData) {
-        setPanierProduits(response.data.cartData);
+
+      if (response.data.success) {
+        const guestCart = (() => {
+          try {
+            const localCart = localStorage.getItem('panierProduits');
+            return localCart ? JSON.parse(localCart) : {};
+          } catch (e) {
+            return {};
+          }
+        })();
+
+        const mergedCart = mergeCartData(guestCart, response.data.cartData || {});
+        setPanierProduits(mergedCart);
+        localStorage.setItem('panierProduits', JSON.stringify(mergedCart));
+
+        await axios.post(
+          `${backendUrl}/api/utilisateur/panier/remplacer`,
+          { cartData: mergedCart },
+          { headers: { token: authToken } }
+        );
       }
     } catch (error) {
       console.error("Erreur récupération panier BDD :", error);
@@ -426,7 +476,8 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     setRecherche, 
     montreRecherche, 
     setMontreRecherche, 
-    panierProduits, 
+    panierProduits,
+    setPanierProduits,
     ajouterPanier, 
     ajouterTousLesFavorisAuPanier, 
     modifierTaillePanier,
@@ -449,7 +500,6 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     panierOuvert, 
     setPanierOuvert,
     supprimerDuPanier,
-    
   };
 
   return (

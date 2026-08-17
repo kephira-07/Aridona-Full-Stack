@@ -127,18 +127,42 @@ const loginutilisateur = async (req, res) => {
   }
 };
 
+const verifyAdminPassword = async (candidatePassword) => {
+  const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+  const adminPlainPassword = process.env.ADMIN_PASSWORD;
+
+  if (adminPasswordHash) {
+    try {
+      const hashMatch = await bcrypt.compare(candidatePassword, adminPasswordHash);
+      if (hashMatch) return true;
+    } catch (error) {
+      console.warn("ADMIN_PASSWORD_HASH invalide, fallback sur le mot de passe brut.");
+    }
+  }
+
+  if (adminPlainPassword) {
+    return candidatePassword === adminPlainPassword;
+  }
+
+  return false;
+};
+
 // 3. Connexion Administrateur
 const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "L'email et le mot de passe sont requis." });
+    }
+
     const adminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase() : '';
     
-    if (email.toLowerCase() !== adminEmail) {
+    if (!adminEmail || email.toLowerCase() !== adminEmail) {
       return res.status(401).json({ success: false, message: "Email ou mot de passe incorrect." });
     }
 
-    const isMatch = (password === process.env.ADMIN_PASSWORD);
+    const isMatch = await verifyAdminPassword(password);
     
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Email ou mot de passe incorrect." });
@@ -320,6 +344,52 @@ const reinitialiserMotDePasse = async (req, res) => {
 
 
 
+const normaliserCartData = (cartData = {}) => {
+  const safeCartData = {};
+
+  if (!cartData || typeof cartData !== 'object') {
+    return safeCartData;
+  }
+
+  Object.entries(cartData).forEach(([productId, tailles]) => {
+    if (!tailles || typeof tailles !== 'object') return;
+
+    const taillesValides = {};
+    Object.entries(tailles).forEach(([taille, quantite]) => {
+      const qte = Number(quantite);
+      if (!taille || !Number.isFinite(qte) || qte <= 0 || !Number.isInteger(qte)) {
+        return;
+      }
+      taillesValides[taille] = qte;
+    });
+
+    if (Object.keys(taillesValides).length > 0) {
+      safeCartData[productId] = taillesValides;
+    }
+  });
+
+  return safeCartData;
+};
+
+const remplacerPanier = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { cartData } = req.body;
+
+    const safeCartData = normaliserCartData(cartData);
+    await utilisateurModel.findByIdAndUpdate(userId, { cartData: safeCartData });
+
+    return res.json({
+      success: true,
+      message: "Panier synchronisé avec succès.",
+      cartData: safeCartData
+    });
+  } catch (error) {
+    console.error("Erreur remplacement panier BDD :", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Récupérer le panier de l'utilisateur connecté
 const getUtilisateurPanier = async (req, res) => {
   try {
@@ -330,7 +400,7 @@ const getUtilisateurPanier = async (req, res) => {
       return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
     }
 
-    const cartData = userData.cartData || {};
+    const cartData = normaliserCartData(userData.cartData || {});
     return res.json({ success: true, cartData });
   } catch (error) {
     console.error("Erreur récupération panier :", error);
@@ -443,5 +513,6 @@ export {
   getUtilisateurPanier,
   ajouterAuPanier,
   updatePanier,
-  deletePanier  
+  deletePanier,
+  remplacerPanier
 };

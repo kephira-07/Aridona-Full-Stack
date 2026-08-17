@@ -12,8 +12,7 @@ import {
   Gem,
   Info,
   Newspaper,
-  ShieldCheck,
-  PhoneCall
+  ShieldCheck
 } from 'lucide-react';
 
 const MenuMobile = ({ visible, setVisible, logo2 }) => {
@@ -170,15 +169,14 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
             <span>Mon Espace Privé</span>
           </NavLink>
 
-          <a
-            href={`https://wa.me/${context?.whatsappNum || '22872656485'}`}
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 py-2.5 px-4  text-[11px] font-medium tracking-wider uppercase transition-all"
+          <NavLink
+            to="/contact"
+            onClick={() => setVisible(false)}
+            className="flex items-center justify-center gap-2 w-full bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 py-2.5 px-4 text-[11px] font-medium tracking-wider uppercase transition-all"
           >
-            <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Service Client WhatsApp</span>
-          </a>
+            <User className="w-3.5 h-3.5 text-stone-600" />
+            <span>Contact</span>
+          </NavLink>
         </div>
 
       </div>

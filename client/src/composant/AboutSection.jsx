@@ -42,6 +42,12 @@ export default function AboutSection() {
             ARIDONA Bijoux est une boutique en ligne basée à Lomé, au Togo, spécialisée dans les bijoux en acier inoxydable 316L : bagues, colliers, bracelets et boucles d'oreilles hypoallergéniques et waterproof. Chaque pièce est sélectionnée pour sa qualité et sa résistance au quotidien, avec une livraison rapide sur Lomé.
           </p>
 
+          <div className="flex flex-wrap gap-2 mb-6">
+            <span className="border border-stone-200 bg-white px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-stone-700">Paiement à la livraison</span>
+            <span className="border border-stone-200 bg-white px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-stone-700">Livraison Lomé</span>
+            <span className="border border-stone-200 bg-white px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] text-stone-700">Qualité garantie</span>
+          </div>
+
           <Link
             to="/a-propos"
             aria-label="En savoir plus sur ARIDONA Bijoux"

@@ -1,10 +1,10 @@
-import React, { useContext, useState } from 'react';
+﻿import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
-import { MessageSquare, MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import axios from 'axios';
 
@@ -22,15 +22,15 @@ const PasserCommande = () => {
   } = useContext(ShopContext);
 
   const navigate = useNavigate();
-  const [methode, setMethode] = useState('cod');
   const [loading, setLoading] = useState(false);
+  const paiementALivraison = 'Paiement Ã  la livraison';
 
   const WHATSAPP_NUMBER = whatsappNum || "22872656485";
 
   const [formData, setFormData] = useState({
     fullName: '',
     country: 'Togo',
-    city: 'Lomé',
+    city: 'LomÃ©',
     neighborhood: '',
     phone: ''
   });
@@ -65,7 +65,7 @@ const PasserCommande = () => {
       );
       return JSON.parse(jsonPayload).id || null;
     } catch (error) {
-      console.warn("Mode invité (token non-décodable):", error.message);
+      console.warn("Mode invitÃ© (token non-dÃ©codable):", error.message);
       return null;
     }
   };
@@ -120,17 +120,17 @@ const PasserCommande = () => {
           firstName: firstName,
           lastName: lastName,
           email: "client-whatsapp@Aridona.com",
-          street: formData.neighborhood.trim() || "Non spécifié",
+          street: formData.neighborhood.trim() || "Non spÃ©cifiÃ©",
           city: formData.city.trim(),
           zipcode: "00228",
           phone: formData.phone.trim()
         },
         items: orderItems,
         amount: totalFinal,
-        paymentMethod: methode === 'cod' ? 'COD' : 'Mobile Money'
+        paymentMethod: paiementALivraison
       };
 
-      const headers = {};
+            const headers = {};
       if (token && token !== "null" && token !== "undefined") {
         headers['token'] = token;
         headers['Authorization'] = `Bearer ${token}`;
@@ -138,14 +138,13 @@ const PasserCommande = () => {
 
       const urlDestination = `${backendUrl || ''}/api/order/place`;
       const response = await axios.post(urlDestination, commandeBackendData, { headers });
-
-      if (response.data && response.data.success) {
-        let message = `✨ *NOUVELLE COMMANDE — Aridona BIJOUX* ✨\n\n`;
-        message += `👤 *Client :* ${formData.fullName.trim()}\n`;
-        message += `📞 *Téléphone :* ${formData.phone.trim()}\n`;
-        message += `📍 *Adresse :* ${formData.neighborhood.trim()}, ${formData.city.trim()} (${formData.country.trim()})\n`;
-        message += `💳 *Paiement :* ${methode === 'cod' ? 'À la livraison' : 'Mobile Money'}\n\n`;
-        message += `🛍️ *DÉTAILS DU PANIER :*\n`;
+if (response.data && response.data.success) {
+        let message = `âœ¨ *NOUVELLE COMMANDE â€” Aridona BIJOUX* âœ¨\n\n`;
+        message += `ðŸ‘¤ *Client :* ${formData.fullName.trim()}\n`;
+        message += `ðŸ“ž *TÃ©lÃ©phone :* ${formData.phone.trim()}\n`;
+        message += `ðŸ“ *Adresse :* ${formData.neighborhood.trim()}, ${formData.city.trim()} (${formData.country.trim()})\n`;
+        message += `ðŸ’³ *Paiement :* Ã€ la livraison\n\n`;
+        message += `ðŸ›ï¸ *DÃ‰TAILS DU PANIER :*\n`;
 
         orderItems.forEach((item, index) => {
           let tailleFormatee = item.size;
@@ -155,9 +154,9 @@ const PasserCommande = () => {
           message += `${index + 1}. *${item.nom}* (Taille: ${tailleFormatee}) x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString()} ${monnaie}\n`;
         });
 
-        message += `\n💰 *Sous-total :* ${sousTotal.toLocaleString()} ${monnaie}`;
-        message += `\n📦 *Frais de livraison :* ${fraisLivraison.toLocaleString()} ${monnaie}`;
-        message += `\n⭐ *TOTAL À PAYER : ${totalFinal.toLocaleString()} ${monnaie}*`;
+        message += `\nðŸ’° *Sous-total :* ${sousTotal.toLocaleString()} ${monnaie}`;
+        message += `\nðŸ“¦ *Frais de livraison :* ${fraisLivraison.toLocaleString()} ${monnaie}`;
+        message += `\nâ­ *TOTAL Ã€ PAYER : ${totalFinal.toLocaleString()} ${monnaie}*`;
 
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
@@ -166,8 +165,8 @@ const PasserCommande = () => {
           setPanierProduits({});
         }
 
-        // La confirmation et l'éventuelle invite à créer un compte se font maintenant
-        // sur une vraie page dédiée (sert aussi de page de conversion pour Google Business).
+        // La confirmation et l'Ã©ventuelle invite Ã  crÃ©er un compte se font maintenant
+        // sur une vraie page dÃ©diÃ©e (sert aussi de page de conversion pour Google Business).
         navigate('/commande-confirmee', { state: { whatsappUrl, montant: totalFinal } });
 
       } else {
@@ -190,7 +189,7 @@ const PasserCommande = () => {
       <div className='max-w-7xl mx-auto px-4 pt-40 pb-20 flex flex-col items-center justify-center text-center'>
         <div className='w-10 h-10 border-2 border-stone-200 border-t-amber-900 rounded-full animate-spin mb-4'></div>
         <p className='text-xs text-stone-400 uppercase tracking-widest font-mono animate-pulse'>
-          Initialisation de votre écrin de commande...
+          Initialisation de votre Ã©crin de commande...
         </p>
       </div>
     );
@@ -207,12 +206,15 @@ const PasserCommande = () => {
             <p className='text-xs text-stone-400 italic mt-1'>
               Saisissez vos informations de livraison avant de confirmer la commande sur WhatsApp.
             </p>
+            <div className='mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] leading-relaxed text-emerald-900'>
+              Paiement Ã  la livraison. Aucun paiement en ligne n'est requis sur le site. La commande est validÃ©e et confirmÃ©e via WhatsApp.
+            </div>
           </div>
 
           <div className='space-y-4'>
             <div>
               <label className='text-xs font-medium uppercase tracking-wider text-stone-600 block mb-1.5'>
-                Nom & Prénom *
+                Nom & PrÃ©nom *
               </label>
               <input
                 required
@@ -227,7 +229,7 @@ const PasserCommande = () => {
 
             <div>
               <label className='text-xs font-medium uppercase tracking-wider text-stone-600 block mb-1.5'>
-                Numéro WhatsApp *
+                NumÃ©ro WhatsApp *
               </label>
               <input
                 required
@@ -266,12 +268,12 @@ const PasserCommande = () => {
                   value={formData.city}
                   className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
                   type="text"
-                  placeholder='Lomé'
+                  placeholder='LomÃ©'
                 />
               </div>
               <div>
                 <label className='text-xs font-medium uppercase tracking-wider text-stone-600 block mb-1.5'>
-                  Quartier / Repère *
+                  Quartier / RepÃ¨re *
                 </label>
                 <input
                   required
@@ -280,7 +282,7 @@ const PasserCommande = () => {
                   value={formData.neighborhood}
                   className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
                   type="text"
-                  placeholder='Ex: Adidogomé'
+                  placeholder='Ex: AdidogomÃ©'
                 />
               </div>
             </div>
@@ -294,37 +296,19 @@ const PasserCommande = () => {
 
           <div className='space-y-4'>
             <div className='text-sm font-medium uppercase tracking-widest text-stone-800 border-b border-stone-200 pb-2 flex items-center gap-2'>
-              <MapPin size={16} className='text-amber-800' /> Mode de règlement
+              <MapPin size={16} className='text-amber-800' /> Mode de rÃ¨glement
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-              <div
-                onClick={() => setMethode('cod')}
-                className={`flex items-center gap-3 border p-4 cursor-pointer transition-all ${
-                  methode === 'cod' ? 'border-amber-900 bg-white shadow-sm' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
-                }`}
-              >
-                <div className={`w-3.5 h-3.5 border rounded-full flex items-center justify-center ${
-                  methode === 'cod' ? 'border-amber-900' : 'border-stone-300'
-                }`}>
-                  {methode === 'cod' && <span className='w-1.5 h-1.5 bg-amber-900 rounded-full'></span>}
+            <div className='border border-amber-900 bg-white shadow-sm p-4'>
+              <div className='flex items-center gap-3'>
+                <div className='w-3.5 h-3.5 border border-amber-900 rounded-full flex items-center justify-center'>
+                  <span className='w-1.5 h-1.5 bg-amber-900 rounded-full'></span>
                 </div>
-                <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>À la livraison</span>
+                <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>Paiement Ã  la livraison</span>
               </div>
-
-              <div
-                onClick={() => setMethode('momo')}
-                className={`flex items-center gap-3 border p-4 cursor-pointer transition-all ${
-                  methode === 'momo' ? 'border-amber-900 bg-white shadow-sm' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
-                }`}
-              >
-                <div className={`w-3.5 h-3.5 border rounded-full flex items-center justify-center ${
-                  methode === 'momo' ? 'border-amber-900' : 'border-stone-300'
-                }`}>
-                  {methode === 'momo' && <span className='w-1.5 h-1.5 bg-amber-900 rounded-full'></span>}
-                </div>
-                <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>Mobile Money</span>
-              </div>
+              <p className='text-xs text-stone-500 mt-3 leading-relaxed'>
+                Le paiement est rÃ©glÃ© Ã  la livraison. Aucun paiement en ligne n'est requis sur le site.
+              </p>
             </div>
           </div>
 
@@ -332,18 +316,15 @@ const PasserCommande = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-white font-medium py-4 text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 shadow-md active:scale-[0.99] cursor-pointer"
+              className="w-full border border-stone-200 bg-white text-stone-800 font-medium py-3.5 text-[10px] uppercase tracking-[0.22em] transition-all flex items-center justify-center gap-2 hover:border-stone-400 disabled:bg-stone-100 disabled:text-stone-400 shadow-sm active:scale-[0.99] cursor-pointer"
             >
               {loading ? (
                 <>
-                  <Loader2 size={16} className='animate-spin' />
+                  <Loader2 size={14} className='animate-spin' />
                   <span>Enregistrement...</span>
                 </>
               ) : (
-                <>
-                  <MessageSquare size={16} />
-                  <span>Confirmer & Envoyer sur WhatsApp</span>
-                </>
+                <span>Confirmer la commande</span>
               )}
             </button>
           </div>
@@ -354,3 +335,10 @@ const PasserCommande = () => {
 };
 
 export default PasserCommande;
+
+
+
+
+
+
+

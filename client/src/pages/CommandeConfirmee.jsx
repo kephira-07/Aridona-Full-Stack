@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { toast } from 'react-toastify';
-import { CheckCircle2, MessageSquare, UserPlus, Loader2 } from 'lucide-react';
+import { CheckCircle2, UserPlus, Loader2 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { ShopContext } from '../context/ShopContext';
 
@@ -70,18 +70,12 @@ const CommandeConfirmee = () => {
       </h1>
       <p className="text-sm text-stone-500 mt-3 leading-relaxed">
         Votre commande a bien été enregistrée{montant ? ` pour un total de ${Number(montant).toLocaleString()} ${monnaie}` : ''}.
-        Il ne reste qu'une étape : confirmez-la avec nous sur WhatsApp pour finaliser la livraison.
+        Le paiement se fait à la livraison. Il ne reste qu'une étape : confirmez-la avec nous sur WhatsApp pour finaliser la livraison.
       </p>
 
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center justify-center gap-3 mt-8 w-full sm:w-auto px-8 py-4 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold uppercase tracking-widest transition-all shadow-md active:scale-[0.98]"
-      >
-        <MessageSquare size={16} />
-        <span>Confirmer sur WhatsApp</span>
-      </a>
+      <div className="mt-8 text-sm text-stone-600 leading-relaxed">
+        Nous vous recontacterons sur WhatsApp pour confirmer votre commande et finaliser la livraison.
+      </div>
 
       {estInvite && (
         <div className="mt-12 pt-8 border-t border-stone-100">

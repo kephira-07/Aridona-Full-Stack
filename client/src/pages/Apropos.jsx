@@ -2,26 +2,20 @@ import React, { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, CheckCircle2, Award, HeartHandshake, Loader2 } from 'lucide-react';
+import { Mail, MapPin, ShieldCheck, Droplets, Clock, Send, CheckCircle2, Award, HeartHandshake, Loader2 } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import { ShopContext } from '../context/ShopContext';
 
 const APropos = () => {
-  const { backendUrl, whatsappNum } = useContext(ShopContext);
+  const { backendUrl } = useContext(ShopContext);
 
   // CONFIGURATION DES CONTACTS
-  const NUMERO_WHATSAPP = whatsappNum || "22872656485";
   const EMAIL_CONTACT = "aridonabijoux@gmail.com";
   const ADRESSE = "Lomé, Togo";
 
   const [formData, setFormData] = useState({ nom: '', email: '', sujet: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
-
-  const ouvrirWhatsApp = () => {
-    const message = "Bonjour Aridona Bijoux ! 💎 Je souhaiterais avoir un renseignement sur vos bijoux en acier inoxydable.";
-    window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank');
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,23 +138,6 @@ const APropos = () => {
             {/* CANAUX RAPIDES (2 COLONNES) */}
             <div className="lg:col-span-2 space-y-4">
               
-              {/* WhatsApp Direct */}
-              <button
-                onClick={ouvrirWhatsApp}
-                className="w-full p-6 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 hover:border-emerald-400 hover:bg-emerald-50 hover:-translate-y-0.5 transition-all duration-300 text-left flex items-start justify-between group cursor-pointer shadow-sm"
-              >
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">WhatsApp Direct</span>
-                    <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Réponse rapide</span>
-                  </div>
-                  <p className="text-xs text-emerald-900/70">Conseil personnalisé et commande instantanée.</p>
-                </div>
-                <div className="p-3 bg-emerald-700 text-white rounded-xl group-hover:scale-105 transition-transform shadow-sm">
-                  <MessageCircle size={20} />
-                </div>
-              </button>
-
               {/* Email */}
               <a
                 href={`mailto:${EMAIL_CONTACT}`}

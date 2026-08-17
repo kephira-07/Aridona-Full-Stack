@@ -183,7 +183,7 @@ const { slug } = useParams();
   const notifierSurWhatsApp = () => {
     if (!produitData) return;
     const prixFormate = produitData.prix ? Number(produitData.prix).toLocaleString() : 0;
-    const message = `Bonjour Aridona Bijoux ! 💎\n\nJe souhaite être informée lorsque la création *"${produitData.nom}"* (${prixFormate} ${monnaie || 'FCFA'}) sera à nouveau disponible.\n\nLien du produit : ${window.location.href}`;
+    const message = `Bonjour Aridona Bijoux ! 💎\n\nJe souhaite être prévenu dès que le produit *"${produitData.nom}"* (${prixFormate} ${monnaie || 'FCFA'}) sera de retour en stock.\n\nLien du produit : ${window.location.href}`;
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -394,7 +394,16 @@ const { slug } = useParams();
 
           {/* BOUTONS D'ACTION */}
           <div className="md:w-11/12 mt-6 flex flex-col gap-3">
-            {produitData.enStock !== false ? (
+            {produitData.enStock === false ? (
+              <button
+                type="button"
+                onClick={notifierSurWhatsApp}
+                className="w-full flex items-center justify-center gap-3 text-xs font-semibold tracking-widest py-4 px-4 bg-emerald-600 text-white hover:bg-emerald-700 transition-all duration-300 uppercase shadow-sm active:scale-[0.98] cursor-pointer"
+              >
+                <MessageCircle size={18} className="fill-white/20" />
+                <span>Me prévenir quand il est de retour</span>
+              </button>
+            ) : (
               <button 
                 type="button"
                 onClick={() => {
@@ -416,15 +425,6 @@ const { slug } = useParams();
               >
                 <ShoppingBag size={16} strokeWidth={2} className={estAjoute ? 'scale-110 animate-bounce' : ''} />
                 <span>{estAjoute ? 'Ajouté au panier !' : 'Ajouter au panier'}</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={notifierSurWhatsApp}
-                className="w-full flex items-center justify-center gap-3 text-xs font-bold tracking-wider py-4 px-4 bg-emerald-600 text-white hover:bg-emerald-700 transition-all duration-300 uppercase shadow-md active:scale-[0.98] cursor-pointer"
-              >
-                <MessageCircle size={18} className="fill-white/20" />
-                <span>Me prévenir sur WhatsApp</span>
               </button>
             )}
           </div>

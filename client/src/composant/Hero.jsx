@@ -197,10 +197,16 @@ export default function Hero() {
               </h1>
 
             {/* Description enrichie : activité claire pour Google + argumentaire marketing */}
-                    <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
+                    <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-5 leading-relaxed">
                       <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme : bagues, colliers, bracelets, boucles d'oreilles, bracelets de bras (armelets), ceintures chaînes, chaînes de lunettes et parures hypoallergéniques, waterproof et inoxydables. Parcourez nos collections, commandez en quelques clics et recevez vos bijoux <strong className="text-amber-300 font-medium">rapidement à Lomé</strong>.
                     </p>
-              
+
+                    <div className="flex flex-wrap items-center justify-center gap-2 mb-6 text-[10px] uppercase tracking-[0.2em] text-stone-200/90">
+                      <span className="border border-white/15 bg-white/5 px-3 py-1.5 backdrop-blur-sm">Paiement à la livraison</span>
+                      <span className="border border-white/15 bg-white/5 px-3 py-1.5 backdrop-blur-sm">Livraison rapide</span>
+                      <span className="border border-white/15 bg-white/5 px-3 py-1.5 backdrop-blur-sm">WhatsApp</span>
+                    </div>
+                
               <Link 
                 to="/collection" 
                 aria-label="Visiter la boutique de bijoux en acier inoxydable ARIDONA à Lomé"
@@ -209,7 +215,7 @@ export default function Hero() {
               >
                 <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-amber-600 blur opacity-40 group-hover/btn:opacity-70 transition duration-500"></div>
                 <div className="relative shadow-xl overflow-hidden">
-                  <Boutton textb="Visitez la boutique" />
+                  <Boutton textb="Découvrir la collection" />
                 </div>
               </Link>
             </div>

@@ -212,6 +212,12 @@ const Collection = () => {
                     </p>
                 </div>
 
+                <div className="mb-8 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-stone-600">
+                    <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5">Paiement à la livraison</span>
+                    <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5">Livraison rapide</span>
+                    <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5">WhatsApp</span>
+                </div>
+
                 {/* BARRE D'OUTILS UNIQUE */}
                 <div className="flex items-center justify-between gap-4 mb-6 pb-2 border-b border-gray-100">
                     <div>
