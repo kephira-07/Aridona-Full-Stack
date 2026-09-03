@@ -27,6 +27,7 @@ const Edit = ({ token }) => {
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
   const [prix, setPrix] = useState('');
+  const [stock, setStock] = useState('');
   
   const [categorie, setCategorie] = useState('');
   const [categoriesList, setCategoriesList] = useState([]);
@@ -64,6 +65,7 @@ const Edit = ({ token }) => {
           setNom(p.nom || '');
           setDescription(p.description || '');
           setPrix(p.prix || '');
+          setStock(p.stock === null || p.stock === undefined ? '' : String(p.stock));
           
           if (p.categorie) {
             const catId = typeof p.categorie === 'object' ? p.categorie._id : p.categorie;
@@ -178,6 +180,7 @@ const Edit = ({ token }) => {
       formData.append("nom", nom);
       formData.append("description", description);
       formData.append("prix", prix);
+      formData.append("stock", stock);
       formData.append("categorie", categorie);
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
@@ -224,7 +227,7 @@ const Edit = ({ token }) => {
 
   if (fetching) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] gap-3 text-stone-500 font-sans">
+      <div className="flex flex-col items-center justify-center min-h-75 gap-3 text-stone-500 font-sans">
         <Loader2 className="w-8 h-8 animate-spin text-amber-800" />
         <p className="text-xs font-medium">Chargement des détails de la création...</p>
       </div>
@@ -403,6 +406,21 @@ const Edit = ({ token }) => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Stock disponible
+              </label>
+              <input
+                onChange={(e) => setStock(e.target.value)}
+                value={stock}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Vide = ancien mode"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
                 Prix (FCFA) *
               </label>
               <div className="relative">
@@ -517,7 +535,7 @@ const Edit = ({ token }) => {
         <div className="space-y-6">
           {/* Couleurs */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2 flex items-center gap-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2">
               <Palette size={14} className="text-amber-800" />
               <span>Couleurs Disponibles</span>
             </label>

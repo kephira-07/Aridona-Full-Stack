@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
 import { ShopContext } from '../context/ShopContext';
-import { Search, X, FolderOpen, Loader2,ShoppingBag, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Search, X, FolderOpen, Loader2, ShoppingBag, ArrowLeft, ChevronRight, Gift } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Fuse from 'fuse.js';
 
@@ -19,10 +19,12 @@ export default function BarRecherche({ isNavbar }) {
     montreRecherche, setMontreRecherche,
     showSuggestions, setShowSuggestions,
     produits,
-    categories
+    categories,
+    backendUrl
   } = useContext(ShopContext);
 
-  const [suggestionsFiltrees, setSuggestionsFiltrees] = useState({ categories: [], produits: [] });
+  const [suggestionsFiltrees, setSuggestionsFiltrees] = useState({ categories: [], produits: [], packs: [] });
+  const [packs, setPacks] = useState([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [estEnChargement, setEstEnChargement] = useState(false);
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
@@ -32,6 +34,17 @@ export default function BarRecherche({ isNavbar }) {
   const inputRefMobile = useRef(null);
   const inputRefDesktop = useRef(null);
   const containerRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch(`${backendUrl}/api/packs`)
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (active && data?.success) setPacks(data.packs || []);
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [backendUrl]);
 
   // 1. Synchronisation avec le bouton Loupe de la Navbar Mobile
   useEffect(() => {
@@ -56,13 +69,29 @@ export default function BarRecherche({ isNavbar }) {
   }, [isMobileModalOpen]);
 
   // 3. Mémorisation de l'indexation Fuse.js
-  const fuseCat = useMemo(() => new Fuse(categories || [], { keys: ['nom'], threshold: 0.4 }), [categories]);
-  const fuseProd = useMemo(() => new Fuse(produits || [], { keys: ['nom', 'description'], threshold: 0.4 }), [produits]);
+  const fuseCat = useMemo(() => new Fuse(categories || [], { keys: ['nom', 'slug'], threshold: 0.4 }), [categories]);
+  const fuseProd = useMemo(() => new Fuse(produits || [], {
+    keys: [
+      { name: 'nom', weight: 0.5 },
+      { name: 'description', weight: 0.2 },
+      { name: 'tags', weight: 0.2 },
+      { name: 'matiere', weight: 0.1 },
+      { name: 'couleurs', weight: 0.1 },
+    ],
+    threshold: 0.4,
+  }), [produits]);
+  const fusePack = useMemo(() => new Fuse(packs || [], {
+    keys: [
+      { name: 'nom', weight: 0.7 },
+      { name: 'description', weight: 0.3 },
+    ],
+    threshold: 0.4,
+  }), [packs]);
 
   // 4. Traitement dynamique des requêtes avec effet d'analyse "Debounce"
   useEffect(() => {
     if (recherche.trim().length < 2) {
-      setSuggestionsFiltrees({ categories: [], produits: [] });
+      setSuggestionsFiltrees({ categories: [], produits: [], packs: [] });
       setEstEnChargement(false);
       setActiveIndex(-1);
       return;
@@ -72,16 +101,17 @@ export default function BarRecherche({ isNavbar }) {
     const timer = setTimeout(() => {
       const resCat = fuseCat.search(recherche).map(r => r.item).slice(0, 3);
       const resProd = fuseProd.search(recherche).map(r => r.item).slice(0, 6);
+      const resPack = fusePack.search(recherche).map(r => r.item).slice(0, 3);
 
-      setSuggestionsFiltrees({ categories: resCat, produits: resProd });
+      setSuggestionsFiltrees({ categories: resCat, produits: resProd, packs: resPack });
       setEstEnChargement(false);
       setActiveIndex(-1);
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [recherche, fuseCat, fuseProd]);
+  }, [recherche, fuseCat, fuseProd, fusePack]);
 
-  const totalSuggestionsCount = suggestionsFiltrees.categories.length + suggestionsFiltrees.produits.length;
+  const totalSuggestionsCount = suggestionsFiltrees.categories.length + suggestionsFiltrees.packs.length + suggestionsFiltrees.produits.length;
 
   // Clic à l'extérieur (Desktop)
   useEffect(() => {
@@ -118,10 +148,13 @@ export default function BarRecherche({ isNavbar }) {
 
   const executerSelectionClavier = (index) => {
     const nbCat = suggestionsFiltrees.categories.length;
+    const nbPacks = suggestionsFiltrees.packs.length;
     if (index < nbCat) {
       handleCategoryClick(suggestionsFiltrees.categories[index].slug);
+    } else if (index < nbCat + nbPacks) {
+      handlePackClick(suggestionsFiltrees.packs[index - nbCat]);
     } else {
-      handleProductClick(suggestionsFiltrees.produits[index - nbCat]);
+      handleProductClick(suggestionsFiltrees.produits[index - nbCat - nbPacks]);
     }
   };
 
@@ -143,6 +176,12 @@ export default function BarRecherche({ isNavbar }) {
     navigate('/collection', { state: { initialCategorySlug: slug } });
   };
 
+  const handlePackClick = (pack) => {
+    setRecherche('');
+    fermerTout();
+    navigate(`/pack/${pack.slug}`);
+  };
+
   const validerRechercheGlobale = () => {
     fermerTout();
     if (location.pathname !== '/collection') {
@@ -153,7 +192,7 @@ export default function BarRecherche({ isNavbar }) {
   const surlignerTexte = (text, highlight) => {
     if (!highlight.trim()) return <span>{text}</span>;
     const regexText = highlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-    const regex = new RegExp(`(${regexText})`, 'gi');
+    const regex = new RegExp(`(${regexText})`, 'i');
     const parts = text.split(regex);
     return (
       <span>
@@ -238,6 +277,7 @@ export default function BarRecherche({ isNavbar }) {
                 setActiveIndex={setActiveIndex}
                 handleCategoryClick={handleCategoryClick}
                 handleProductClick={handleProductClick}
+                handlePackClick={handlePackClick}
                 surlignerTexte={surlignerTexte}
               />
             </div>
@@ -304,6 +344,7 @@ export default function BarRecherche({ isNavbar }) {
               setActiveIndex={setActiveIndex}
               handleCategoryClick={handleCategoryClick}
               handleProductClick={handleProductClick}
+              handlePackClick={handlePackClick}
               surlignerTexte={surlignerTexte}
               isMobile={true}
             />
@@ -327,6 +368,7 @@ function ContenuSuggestions({
   setActiveIndex,
   handleCategoryClick,
   handleProductClick,
+  handlePackClick,
   surlignerTexte,
   isMobile = false
 }) {
@@ -431,8 +473,39 @@ function ContenuSuggestions({
         </div>
       )}
 
+      {/* PACKS */}
+      {suggestionsFiltrees.packs.length > 0 && (
+        <div className="mb-2">
+          <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-3 py-1">
+            Packs signature
+          </div>
+          {suggestionsFiltrees.packs.map((pack, index) => {
+            const globalIndex = suggestionsFiltrees.categories.length + index;
+            return (
+              <li
+                key={pack._id}
+                onClick={() => handlePackClick(pack)}
+                onMouseEnter={() => !isMobile && setActiveIndex(globalIndex)}
+                className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all ${activeIndex === globalIndex ? 'bg-amber-50/90' : 'hover:bg-stone-50'}`}
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-amber-200 bg-amber-50 text-amber-800">
+                  {pack.produits?.[0]?.produit?.image?.[0]?.url ? (
+                    <img src={pack.produits[0].produit.image[0].url} alt="" className="h-full w-full object-cover" />
+                  ) : <Gift className="h-5 w-5" />}
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-xs font-medium text-stone-900 md:text-sm">{surlignerTexte(pack.nom, recherche)}</span>
+                  <span className="mt-0.5 text-xs font-bold text-amber-900">{Number(pack.prix).toLocaleString('fr-FR')} FCFA</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-stone-300" />
+              </li>
+            );
+          })}
+        </div>
+      )}
+
       {/* SEPARATEUR */}
-      {suggestionsFiltrees.categories.length > 0 && suggestionsFiltrees.produits.length > 0 && (
+      {(suggestionsFiltrees.categories.length > 0 || suggestionsFiltrees.packs.length > 0) && suggestionsFiltrees.produits.length > 0 && (
         <div className="h-[1px] bg-stone-100 my-2 mx-2" />
       )}
 

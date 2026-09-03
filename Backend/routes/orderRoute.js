@@ -1,13 +1,22 @@
 import express from 'express';
 import { placeOrder, userOrders, allOrders, updateStatus } from '../controller/orderController.js';
 import auth from '../middleware/auth.js'; 
+import rateLimit from 'express-rate-limit';
 
 const orderRouter = express.Router();
+
+const orderLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 10,
+	standardHeaders: 'draft-8',
+	legacyHeaders: false,
+	message: { success: false, message: 'Trop de commandes envoyées. Réessayez plus tard.' },
+});
 
 
 
 // Client
-orderRouter.post('/place', placeOrder);
+orderRouter.post('/place', orderLimiter, placeOrder);
 orderRouter.get('/userorders', auth(), userOrders);
 
 // Admin

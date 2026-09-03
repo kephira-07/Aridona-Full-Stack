@@ -1,0 +1,5 @@
+Contact: mailto:contact@aridona.store
+Canonical: https://aridona.store/.well-known/security.txt
+Preferred-Languages: fr, en
+Policy: https://aridona.store/politique-confidentialite
+Expires: 2027-09-02T00:00:00.000Z

@@ -126,7 +126,18 @@ const Collection = () => {
         let copie = produits.slice();
 
         if (recherche.trim()) {
-            copie = copie.filter(item => (item.nom || item.name || "").toLowerCase().includes(recherche.toLowerCase()));
+            const terme = recherche.toLowerCase();
+            copie = copie.filter((item) => {
+                const valeurs = [
+                    item.nom,
+                    item.name,
+                    item.description,
+                    item.matiere,
+                    ...(item.tags || []),
+                    ...(item.couleurs || []),
+                ];
+                return valeurs.some((valeur) => String(valeur || '').toLowerCase().includes(terme));
+            });
         }
 
         if (selectedCategories.length > 0) {

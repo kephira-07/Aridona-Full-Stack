@@ -17,15 +17,24 @@ import {
 
 // Importation du middleware d'authentification RBAC
 import auth from '../middleware/auth.js'; 
+import rateLimit from 'express-rate-limit';
 
 const utilisateurRouter = express.Router();
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { success: false, message: 'Trop de tentatives. Réessayez plus tard.' },
+});
+
 // --- 1. Routes Publiques (Sans authentification) ---
-utilisateurRouter.post('/register', registerutilisateur);
-utilisateurRouter.post('/login', loginutilisateur);
-utilisateurRouter.post('/admin', adminLogin);
-utilisateurRouter.post('/google-login', googleLogin);
-utilisateurRouter.post('/mot-de-passe-oublie', motDePasseOublie);
+utilisateurRouter.post('/register', authLimiter, registerutilisateur);
+utilisateurRouter.post('/login', authLimiter, loginutilisateur);
+utilisateurRouter.post('/admin', authLimiter, adminLogin);
+utilisateurRouter.post('/google-login', authLimiter, googleLogin);
+utilisateurRouter.post('/mot-de-passe-oublie', authLimiter, motDePasseOublie);
 utilisateurRouter.post('/reinitialiser-mot-de-passe', reinitialiserMotDePasse);
 
 // --- 2. Routes Protégées Client (Accessible à tout utilisateur connecté) ---

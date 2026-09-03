@@ -1,6 +1,7 @@
 import orderModel from '../models/orderModel.js';
 import userModel from '../models/utilisateurModel.js';
 import produitModel from '../models/produitModel.js';
+import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { FRAIS_LIVRAISON } from '../config/siteConfig.js';
 
@@ -34,14 +35,43 @@ const placeOrder = async (req, res) => {
         let calculatedAmount = 0;
         const verifiedItems = [];
 
+        if (items.length > 50) {
+            return res.status(400).json({ success: false, message: "La commande contient trop d'articles." });
+        }
+
+        const productIds = items.map((item) => item?._id);
+        if (productIds.some((id) => !mongoose.isValidObjectId(id))) {
+            return res.status(400).json({ success: false, message: 'Identifiant produit invalide.' });
+        }
+        const products = await produitModel.find({ _id: { $in: productIds } });
+        const productsById = new Map(products.map((product) => [String(product._id), product]));
+        const quantitiesByProduct = new Map();
+
         for (const item of items) {
-            const productDB = await produitModel.findById(item._id);
+            const productDB = productsById.get(String(item?._id));
             if (!productDB) {
                 return res.status(404).json({ success: false, message: `Le bijou avec l'ID ${item._id} n'existe plus.` });
             }
 
+            if (productDB.enStock === false) {
+                return res.status(409).json({ success: false, message: `${productDB.nom} est en rupture de stock.` });
+            }
+
+            const quantity = Number(item.quantity);
+            if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
+                return res.status(400).json({ success: false, message: 'Quantité invalide.' });
+            }
+            quantitiesByProduct.set(
+                String(productDB._id),
+                (quantitiesByProduct.get(String(productDB._id)) || 0) + quantity
+            );
+
+            const requestedSize = item.size || item.sizes;
+            if (requestedSize && productDB.sizes.length > 0 && !productDB.sizes.includes(requestedSize)) {
+                return res.status(400).json({ success: false, message: `Taille invalide pour ${productDB.nom}.` });
+            }
+
             const itemPrice = Number(productDB.prix || productDB.price || 0);
-            const quantity = Number(item.quantity) || 1;
             calculatedAmount += itemPrice * quantity;
 
             // orderModel attend image: [String] — produitModel stocke désormais des objets
@@ -61,6 +91,34 @@ const placeOrder = async (req, res) => {
             });
         }
 
+        const reservedProducts = [];
+        try {
+            for (const [productId, quantity] of quantitiesByProduct) {
+                const productDB = productsById.get(productId);
+                if (productDB.stock === null || productDB.stock === undefined) continue;
+
+                const reserved = await produitModel.findOneAndUpdate(
+                    { _id: productId, stock: { $gte: quantity } },
+                    { $inc: { stock: -quantity } },
+                    { new: true }
+                );
+                if (!reserved) {
+                    const stockError = new Error(`${productDB.nom} n'a plus assez de stock.`);
+                    stockError.statusCode = 409;
+                    throw stockError;
+                }
+                reservedProducts.push({ productId, quantity });
+            }
+        } catch (error) {
+            await Promise.all(reservedProducts.map(({ productId, quantity }) =>
+                produitModel.findByIdAndUpdate(productId, { $inc: { stock: quantity } })
+            ));
+            if (error.statusCode === 409) {
+                return res.status(409).json({ success: false, message: error.message });
+            }
+            throw error;
+        }
+
         // Le sous-total seul ne reflète pas ce que le client voit/paie réellement (WhatsApp
         // affiche sous-total + frais de livraison) — il faut inclure les frais ici aussi.
         const fraisLivraison = calculatedAmount > 0 ? FRAIS_LIVRAISON : 0;
@@ -77,7 +135,21 @@ const placeOrder = async (req, res) => {
         };
 
         const newOrder = new orderModel(orderData);
-        await newOrder.save();
+        try {
+            await newOrder.save();
+        } catch (error) {
+            await Promise.all(reservedProducts.map(({ productId, quantity }) =>
+                produitModel.findByIdAndUpdate(productId, { $inc: { stock: quantity } })
+            ));
+            throw error;
+        }
+
+        await Promise.all(reservedProducts.map(({ productId }) =>
+            produitModel.updateOne(
+                { _id: productId, stock: 0 },
+                { $set: { enStock: false } }
+            )
+        ));
 
         // Réinitialiser le panier BDD si l'utilisateur est authentifié
         if (userId) {

@@ -1,10 +1,9 @@
 import React, { useContext, useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { ShopContext } from '../context/ShopContext';
-import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send ,ChevronDown,ChevronUp} from 'lucide-react';
+import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send, ChevronDown, ChevronUp, ShieldCheck, Truck } from 'lucide-react';
 import ApparenteProduit from '../composant/ApparenteProduit';
-import BoutonRetour from '../composant/BoutonRetour';
 import { Helmet } from 'react-helmet-async';
 
 const CarteAvis = ({ item }) => (
@@ -42,6 +41,9 @@ const PageProduit = () => {
 const { slug } = useParams();
   const { produits, categories, monnaie, ajouterPanier, whatsappNum, backendUrl } = useContext(ShopContext);
   const [produitData, setProduitData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [notFound, setNotFound] = useState(false);
   const [image, setImage] = useState('');
   const [imageAlt, setImageAlt] = useState('');
   const [nomCategorie, setNomCategorie] = useState('');
@@ -49,6 +51,7 @@ const { slug } = useParams();
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [estAjoute, setEstAjoute] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [descriptionOuverte, setDescriptionOuverte] = useState(false);
 
   // --- ÉTAT DU FORMULAIRE D'AVIS DÉROULANT ---
   const [showFormAvis, setShowFormAvis] = useState(false);
@@ -68,6 +71,12 @@ const { slug } = useParams();
     return typeof imgItem === 'object' && imgItem?.url ? imgItem.url : imgItem;
   };
 
+  const getOptimizedImageUrl = (url, width = 800) => {
+    if (!url || !url.includes('/upload/')) return url;
+    if (url.includes('f_auto') || url.includes('q_auto')) return url;
+    return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+  };
+
   const getImageAlt = (imgItem, fallback) => {
     return (typeof imgItem === 'object' && imgItem?.alt) || fallback || 'Aridona Bijoux';
   };
@@ -80,19 +89,20 @@ const { slug } = useParams();
   };
 
   const handleSizeToggle = (item) => {
-    setSelectedSizes((prevSelected) =>
-      prevSelected.includes(item)
-        ? prevSelected.filter((s) => s !== item)
-        : [...prevSelected, item]
-    );
+    setSelectedSizes([item]);
   };
 
   useEffect(() => {
-    const fetchProduitData = () => {
-      const listeProduits = produits || [];
-      const produitTrouve = listeProduits.find((item) => item.slug === slug || item._id === slug);
-      
-      if (produitTrouve) {
+    let active = true;
+
+    const fetchProduitData = async () => {
+      setIsLoading(true);
+      setLoadError('');
+      setNotFound(false);
+      try {
+        const response = await axios.get(`${backendUrl}/api/produit/single/slug/${encodeURIComponent(slug)}`);
+        if (!active) return;
+        const produitTrouve = response.data.produit;
         setProduitData(produitTrouve);
         
         if (produitTrouve.image && produitTrouve.image.length > 0) {
@@ -109,15 +119,41 @@ const { slug } = useParams();
           setSelectedSizes([]);
         }
 
-        const listeCategories = categories || [];
-        const catTrouvee = listeCategories.find(cat => String(cat._id || cat.id) === String(produitTrouve.categorie));
-        setNomCategorie(catTrouvee ? catTrouvee.nom : '');
+        const catTrouvee = typeof produitTrouve.categorie === 'object'
+          ? produitTrouve.categorie
+          : (categories || []).find(cat => String(cat._id || cat.id) === String(produitTrouve.categorie));
+        setNomCategorie(catTrouvee?.nom || catTrouvee?.name || '');
+      } catch (error) {
+        if (!active) return;
+        if (error.response?.status === 404) {
+          setNotFound(true);
+        } else {
+          const fallback = (produits || []).find((item) => item.slug === slug || item._id === slug);
+          if (fallback) setProduitData(fallback);
+          else setLoadError('La fiche produit est momentanément indisponible.');
+        }
+      } finally {
+        if (active) setIsLoading(false);
       }
     };
 
     fetchProduitData();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [slug, produits, categories]);
+    return () => { active = false; };
+  }, [slug, backendUrl, produits, categories]);
+
+  useEffect(() => {
+    if (!showModal) return undefined;
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setShowModal(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [showModal]);
 
   // Charge les avis du produit (publiés immédiatement, aucune donnée mock)
   const produitId = produitData?._id || produitData?.id;
@@ -188,6 +224,14 @@ const { slug } = useParams();
     window.open(url, '_blank');
   };
 
+  const commanderSurWhatsApp = () => {
+    if (!produitData) return;
+    const taille = selectedSizes[0] || 'Unique';
+    const prixFormate = Number(produitData.prix || 0).toLocaleString('fr-FR');
+    const message = `Bonjour Aridona Bijoux !\n\nJe souhaite commander : ${produitData.nom}\nTaille : ${taille}\nPrix : ${prixFormate} XOF\nLien : ${window.location.href}\n\nMerci de me confirmer la disponibilité et la livraison.`;
+    window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  };
+
   const schemaData = produitData && produitData.prix ? {
   "@context": "https://schema.org/",
   "@type": "Product",
@@ -244,10 +288,39 @@ const { slug } = useParams();
       || `Découvrez ${produitData.nom}. Bijou en acier inoxydable waterproof et hypoallergénique par Aridona Bijoux.`)
     : '';
   const canonicalUrl = produitData && typeof window !== 'undefined'
-    ? `${window.location.origin}/produit/${produitData.slug || produitData._id || produitData.id}`
+    ? `https://aridona.store/produit/${produitData.slug || produitData._id || produitData.id}`
     : undefined;
 
-  return produitData ? (
+  const categorySlug = typeof produitData?.categorie === 'object' ? produitData.categorie.slug : undefined;
+  const breadcrumbData = produitData ? {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Accueil', item: 'https://aridona.store/' },
+      ...(categorySlug ? [{ '@type': 'ListItem', position: 2, name: nomCategorie, item: `https://aridona.store/collection/${categorySlug}` }] : []),
+      { '@type': 'ListItem', position: categorySlug ? 3 : 2, name: produitData.nom, item: canonicalUrl },
+    ],
+  } : null;
+
+  if (isLoading) {
+    return <div className="min-h-[50vh] flex items-center justify-center text-stone-500" role="status">Chargement du produit...</div>;
+  }
+
+  if (notFound || loadError || !produitData) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center text-center px-4">
+        <Helmet>
+          <title>{notFound ? 'Produit introuvable' : 'Produit indisponible'} | Aridona Bijoux</title>
+          <meta name="robots" content="noindex, follow" />
+        </Helmet>
+        <h1 className="text-3xl font-ebgaramond text-stone-900">{notFound ? 'Produit introuvable' : 'Produit indisponible'}</h1>
+        <p className="mt-3 text-stone-500">{loadError || 'Cette création n’existe plus ou a été déplacée.'}</p>
+        <Link to="/collection" className="mt-6 bg-stone-900 text-white px-6 py-3 text-xs uppercase tracking-widest">Voir la collection</Link>
+      </div>
+    );
+  }
+
+  return (
     <div className='mt-5 md:mt-8 transition-opacity ease-in duration-500 opacity-100 bg-white'>
 
       <Helmet>
@@ -259,15 +332,38 @@ const { slug } = useParams();
         <meta property="og:image" content={image} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="product" />
+        <meta property="og:site_name" content="Aridona Bijoux" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={getOptimizedImageUrl(image, 1200)} />
 
         {schemaData && (
           <script type="application/ld+json">
             {JSON.stringify(schemaData)}
           </script>
         )}
+        {breadcrumbData && (
+          <script type="application/ld+json">{JSON.stringify(breadcrumbData)}</script>
+        )}
       </Helmet>
 
-      <BoutonRetour />
+      <nav aria-label="Fil d’Ariane" className="px-4 md:px-10 lg:px-20 text-xs text-stone-500 mt-4">
+        <Link to="/" className="hover:text-amber-800">Accueil</Link>
+        {nomCategorie && (
+          <>
+            <span className="mx-2">/</span>
+            <Link
+              to="/collection"
+              state={categorySlug ? { initialCategorySlug: categorySlug } : undefined}
+              className="hover:text-amber-800 hover:underline"
+            >
+              {nomCategorie}
+            </Link>
+          </>
+        )}
+        <span className="mx-2">/</span><span aria-current="page">{produitData.nom}</span>
+      </nav>
       
       {/* CONTENEUR PRINCIPAL */}
       <div className='flex gap-8 lg:gap-16 flex-col md:flex-row px-4 md:px-10 lg:px-20 mt-6'>
@@ -279,14 +375,16 @@ const { slug } = useParams();
               const itemUrl = getImageUrl(item);
               const isActive = image === itemUrl;
               return (
-                <div
+                <button
+                  type="button"
+                  aria-label={`Afficher ${getImageAlt(item, `${produitData.nom} - vue ${index + 1}`)}`}
                   key={index}
                   onClick={() => { setImage(itemUrl); setImageAlt(getImageAlt(item, `${produitData.nom} - vue ${index + 1}`)); }}
                   className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-full aspect-square cursor-pointer border-2 transition-all duration-300 rounded-md overflow-hidden
                     ${isActive ? 'border-amber-600 shadow-sm' : 'border-transparent hover:border-amber-200'}`}
                 >
-                  <img src={itemUrl} className='w-full h-full object-cover' alt={getImageAlt(item, `${produitData.nom} - vue ${index + 1}`)} />
-                </div>
+                  <img src={getOptimizedImageUrl(itemUrl, 240)} className='w-full h-full object-cover' alt={getImageAlt(item, `${produitData.nom} - vue ${index + 1}`)} loading="lazy" width="240" height="240" />
+                </button>
               );
             })}
           </div>
@@ -297,7 +395,7 @@ const { slug } = useParams();
               className='aspect-square w-full overflow-hidden bg-stone-50 border border-stone-100 cursor-zoom-in group relative'
             >
               {image ? (
-                <img src={image} alt={imageAlt} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105' />
+                <img src={getOptimizedImageUrl(image, 1000)} alt={imageAlt} className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105' fetchPriority="high" width="1000" height="1000" />
               ) : (
                 <div className='w-full h-full flex items-center justify-center text-stone-300'>Image non disponible</div>
               )}
@@ -311,11 +409,11 @@ const { slug } = useParams();
           </div>
 
           {showModal && (
-            <div className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center p-4 md:p-10" onClick={() => setShowModal(false)}>
-              <button type="button" className="absolute top-5 right-5 text-white hover:text-amber-500 transition-colors" onClick={() => setShowModal(false)}>
+            <div className="fixed inset-0 z-[1000] bg-black/90 flex items-center justify-center p-4 md:p-10" role="dialog" aria-modal="true" aria-label={`Agrandissement de ${produitData.nom}`} onClick={() => setShowModal(false)}>
+              <button type="button" aria-label="Fermer l’image" className="absolute top-5 right-5 text-white hover:text-amber-500 transition-colors" onClick={() => setShowModal(false)}>
                 <X size={40} strokeWidth={1.5} />
               </button>
-              <img src={image} alt={imageAlt} className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
+              <img src={getOptimizedImageUrl(image, 1600)} alt={imageAlt} className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
             </div>
           )}
         </div>
@@ -352,6 +450,12 @@ const { slug } = useParams();
               {produitData.prix ? Number(produitData.prix).toLocaleString() : 0} {monnaie || 'FCFA'}
             </p>
 
+            {produitData.stock !== null && produitData.stock !== undefined && (
+              <span className="text-sm text-stone-500">
+                {produitData.stock > 0 ? `${produitData.stock} disponible${produitData.stock > 1 ? 's' : ''}` : 'Rupture de stock'}
+              </span>
+            )}
+
             {produitData.enStock === false && (
               <span className="px-3 py-1 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-full uppercase tracking-wider">
                 Rupture de stock
@@ -359,9 +463,23 @@ const { slug } = useParams();
             )}
           </div>
           
-          <p className='mt-6 text-stone-600 leading-relaxed font-dmsans text-base md:text-lg md:w-11/12'>
-            {produitData.description}
-          </p>
+          <div className='mt-6 md:w-11/12 border-y border-stone-200'>
+            <button
+              type='button'
+              onClick={() => setDescriptionOuverte((ouverte) => !ouverte)}
+              aria-expanded={descriptionOuverte}
+              aria-controls='description-produit'
+              className='flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-semibold text-stone-800 cursor-pointer'
+            >
+              <span>Description du bijou</span>
+              {descriptionOuverte ? <ChevronDown size={18} aria-hidden='true' /> : <ChevronUp size={18} aria-hidden='true' />}
+            </button>
+            {descriptionOuverte && (
+              <p id='description-produit' className='pb-5 text-stone-600 leading-relaxed font-dmsans text-base md:text-lg'>
+                {produitData.description}
+              </p>
+            )}
+          </div>
 
           {/* SÉLECTION TAILLE */}
           {produitData.sizes && produitData.sizes.length > 0 && (
@@ -395,15 +513,12 @@ const { slug } = useParams();
           {/* BOUTONS D'ACTION */}
           <div className="md:w-11/12 mt-6 flex flex-col gap-3">
             {produitData.enStock !== false ? (
+              <>
               <button 
                 type="button"
                 onClick={() => {
                   const idProduit = produitData._id || produitData.id;
-                  const taillesAAjouter = selectedSizes.length > 0 ? selectedSizes : ['Unique'];
-                  
-                  taillesAAjouter.forEach((sizeSelected) => {
-                    ajouterPanier(idProduit, sizeSelected);
-                  });
+                  ajouterPanier(idProduit, selectedSizes[0] || 'Unique');
                   
                   setEstAjoute(true);
                   setTimeout(() => setEstAjoute(false), 2000);
@@ -417,7 +532,17 @@ const { slug } = useParams();
                 <ShoppingBag size={16} strokeWidth={2} className={estAjoute ? 'scale-110 animate-bounce' : ''} />
                 <span>{estAjoute ? 'Ajouté au panier !' : 'Ajouter au panier'}</span>
               </button>
-            ) : (
+              <button
+                type="button"
+                onClick={commanderSurWhatsApp}
+                className="w-full flex items-center justify-center gap-3 text-xs font-bold tracking-wider py-4 px-4 border border-emerald-700 text-emerald-800 hover:bg-emerald-50 transition-all uppercase cursor-pointer"
+              >
+                <MessageCircle size={18} />
+                <span>Commander sur WhatsApp</span>
+              </button>
+              </>
+            ) : null}
+            {produitData.enStock === false && (
               <button
                 type="button"
                 onClick={notifierSurWhatsApp}
@@ -431,14 +556,27 @@ const { slug } = useParams();
 
           <hr className='mt-10 border-stone-200 md:w-11/12'/>
           
-          <div className='text-xs sm:text-lg text-stone-500 mt-6 font-caveat flex flex-col gap-2 font-medium'>
-            <div className='flex items-center gap-2 italic'>
-              <span className='w-1 h-1 bg-amber-600 rounded-full'></span>
-              <p>100% Satisfaction Garantie — Acier Inoxydable Waterproof</p>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-3 gap-3 mt-6 w-full lg:w-11/12'>
+            <div className='flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-3'>
+              <ShieldCheck className='shrink-0 text-amber-700' size={20} strokeWidth={1.6} aria-hidden='true' />
+              <div>
+                <p className='text-xs font-semibold text-stone-800'>Satisfaction garantie</p>
+                <p className='mt-0.5 text-[11px] leading-snug text-stone-500'>Acier inoxydable waterproof</p>
+              </div>
             </div>
-            <div className='flex items-center gap-2 italic'>
-              <span className='w-1 h-1 bg-amber-600 rounded-full'></span>
-              <p>Livraison rapide à domicile</p>
+            <div className='flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-3'>
+              <Truck className='shrink-0 text-amber-700' size={20} strokeWidth={1.6} aria-hidden='true' />
+              <div>
+                <p className='text-xs font-semibold text-stone-800'>Livraison partout</p>
+                <p className='mt-0.5 text-[11px] leading-snug text-stone-500'>Rapide et soigneusement préparée</p>
+              </div>
+            </div>
+            <div className='flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-3'>
+              <MessageCircle className='shrink-0 text-emerald-700' size={20} strokeWidth={1.6} aria-hidden='true' />
+              <div>
+                <p className='text-xs font-semibold text-stone-800'>Commande sur WhatsApp</p>
+                <p className='mt-0.5 text-[11px] leading-snug text-stone-500'>Confirmation personnalisée</p>
+              </div>
             </div>
           </div>
         </div>
@@ -623,10 +761,6 @@ const { slug } = useParams();
           actuelId={produitData._id || produitData.id} 
         />
       </div>
-    </div> 
-  ) : (
-    <div className='text-center py-40 text-stone-400 text-sm italic animate-pulse'>
-      Recherche de la création exclusive...
     </div>
   );
 };

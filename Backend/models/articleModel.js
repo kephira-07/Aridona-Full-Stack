@@ -6,9 +6,11 @@ const articleSchema = new mongoose.Schema({
   extrait: { type: String, required: true, trim: true, maxlength: 300 }, // résumé (carte blog + repli meta description)
   contenu: { type: String, required: true }, // texte brut, paragraphes séparés par une ligne vide
 
+  produit: { type: mongoose.Schema.Types.ObjectId, ref: 'produit', index: true },
+
   image: {
-    url: { type: String, required: true },
-    publicId: { type: String, required: true },
+    url: { type: String },
+    publicId: { type: String },
     alt: { type: String, trim: true, default: '' },
   },
 

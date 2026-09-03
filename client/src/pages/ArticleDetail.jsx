@@ -67,6 +67,7 @@ const ArticleDetail = () => {
   const pageTitle = article.metaTitle || `${article.titre} | ARIDONA Bijoux`;
   const pageDescription = article.metaDescription || truncate(article.extrait, 160);
   const canonicalUrl = `https://aridona.store/blog/${article.slug}`;
+  const articleImage = article.image?.url || article.produit?.image?.[0]?.url || article.produit?.image?.[0];
 
   const paragraphes = (article.contenu || '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 
@@ -75,7 +76,7 @@ const ArticleDetail = () => {
     "@type": "BlogPosting",
     "headline": article.titre,
     "description": article.extrait,
-    "image": article.image?.url,
+    "image": articleImage,
     "author": { "@type": "Organization", "name": article.auteur || "Aridona Bijoux" },
     "publisher": { "@type": "Organization", "name": "Aridona Bijoux" },
     "datePublished": article.createdAt,
@@ -91,7 +92,7 @@ const ArticleDetail = () => {
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
-        <meta property="og:image" content={article.image?.url} />
+        <meta property="og:image" content={articleImage} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
@@ -114,8 +115,8 @@ const ArticleDetail = () => {
 
         <div className="aspect-video rounded-xl overflow-hidden border border-stone-100 mb-10">
           <img
-            src={article.image?.url}
-            alt={article.image?.alt || article.titre}
+            src={articleImage}
+            alt={article.image?.alt || article.produit?.nom || article.titre}
             className="w-full h-full object-cover"
           />
         </div>

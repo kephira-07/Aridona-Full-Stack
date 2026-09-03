@@ -46,7 +46,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
       const currentScrollY = window.scrollY;
       setIsSticky(currentScrollY > 900); 
 
-      if (currentScrollY > lastScrollY && currentScrollY > 150) {
+      if (currentScrollY > lastScrollY && currentScrollY > 350) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
@@ -138,14 +138,16 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
             {/* Option "Tout" */}
             <button
               onClick={handleViewAllClick}
-              className={`flex flex-col items-center flex-shrink-0 snap-center focus:outline-none text-center transition-all duration-300 ${
-                isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
+              className={`flex flex-shrink-0 snap-center focus:outline-none transition-all duration-300 ${
+                isLarge 
+                  ? 'flex-col items-center text-center w-32 md:w-48' 
+                  : 'flex-row items-center text-left gap-2 w-auto'
               }`}
             >
               <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
                 isLarge 
                   ? 'w-30 h-25 md:w-40 md:h-35 hover:scale-105' 
-                  : 'w-12 h-10 md:w-14 md:h-12'
+                  : 'w-10 h-10 md:w-12 md:h-12'
               } ${
                 isAllSelected 
                   ? 'ring-2 ring-amber-500 ring-offset-2' 
@@ -158,8 +160,10 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                 />
               </div>
 
-              <span className={`tracking-wide font-dmsans mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
-                isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
+              <span className={`tracking-wide font-dmsans px-1 whitespace-nowrap leading-tight transition-all ${
+                isLarge 
+                  ? 'mt-2 text-xs md:text-sm font-semibold w-full line-clamp-2 break-words text-center' 
+                  : 'text-xs md:text-sm font-medium'
               } ${isAllSelected ? 'text-amber-600 font-bold' : 'text-slate-700'}`}>
                 Tout
               </span>
@@ -170,13 +174,16 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
               Array.from({ length: 6 }).map((_, index) => (
                 <div 
                   key={index} 
-                  className={`flex flex-col items-center flex-shrink-0 animate-pulse ${
-                    isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
+                  className={`flex flex-shrink-0 animate-pulse ${
+                    isLarge 
+                      ? 'flex-col items-center w-32 md:w-48' 
+                      : 'flex-row items-center gap-2 w-auto'
                   }`}
                 >
                   <div className={`rounded-full bg-gray-200 aspect-square flex-shrink-0 ${
-                    isLarge ? 'w-24 h-24 md:w-28 md:h-28' : 'w-12 h-10 md:w-14 md:h-12'
+                    isLarge ? 'w-24 h-24 md:w-28 md:h-28' : 'w-10 h-10 md:w-12 md:h-12'
                   }`} />
+                  {!isLarge && <div className="h-3 w-16 bg-gray-200 rounded" />}
                 </div>
               ))
             ) : (
@@ -187,20 +194,24 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   <button
                     key={cat._id}
                     onClick={() => handleCategoryClick(cat._id)}
-                    className={`flex flex-col items-center flex-shrink-0 snap-center focus:outline-none text-center transition-all duration-300 ${
-                      isLarge ? 'w-32 md:w-48' : 'w-16 md:w-20'
+                    className={`flex flex-shrink-0 snap-center focus:outline-none transition-all duration-300 ${
+                      isLarge 
+                        ? 'flex-col items-center text-center w-32 md:w-48' 
+                        : 'flex-row items-center text-left gap-2 w-auto'
                     }`}
                   >
                     <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 transition-all duration-300 ${
                       isLarge 
                         ? 'w-30 h-25 md:w-40 md:h-35 hover:scale-105' 
-                        : 'w-12 h-10 md:w-14 md:h-12'
+                        : 'w-10 h-10 md:w-12 md:h-12'
                     } ${isChecked ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
                       <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
                     </div>
 
-                    <span className={`tracking-wide font-dmsans mt-2 px-1 w-full line-clamp-2 break-words leading-tight transition-all ${
-                      isLarge ? 'text-xs md:text-sm font-semibold' : 'text-[10px]'
+                    <span className={`tracking-wide font-dmsans px-1 whitespace-nowrap leading-tight transition-all ${
+                      isLarge 
+                        ? 'mt-2 text-xs md:text-sm font-semibold w-full line-clamp-2 break-words text-center' 
+                        : 'text-xs md:text-sm font-medium'
                     } ${isChecked ? 'text-amber-600 font-bold' : 'text-slate-900'}`}>
                       {cat.nom}
                     </span>

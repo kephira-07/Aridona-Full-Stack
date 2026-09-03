@@ -6,6 +6,7 @@ import MeilleurVente from '../composant/MeilleurVente';
 import Hero from '../composant/Hero';
 import Categorybar from '../composant/Categorybar';
 import AboutSection from '../composant/AboutSection';
+import PacksSection from '../composant/PacksSection';
 export default function Home() {
   return (
     <div>
@@ -21,6 +22,7 @@ export default function Home() {
 
       <Hero/>
       <Categorybar/>
+      <PacksSection />
       <DerniereCollection/>
       <MeilleurVente />
       <AboutSection/>

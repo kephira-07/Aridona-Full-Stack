@@ -26,6 +26,8 @@ const Contact = lazy(() => import('./pages/Contact'));
 const PolitiqueConfidentialite = lazy(() => import('./pages/PolitiqueConfidentialite'));
 const Blog = lazy(() => import('./pages/Blog'));
 const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
+const Packs = lazy(() => import('./pages/Packs'));
+const PackDetail = lazy(() => import('./pages/PackDetail'));
 
 // Composant de chargement pendant le passage d'une page à une autre
 const PageLoader = () => (
@@ -70,6 +72,8 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<ArticleDetail />} />
+            <Route path="/packs" element={<Packs />} />
+            <Route path="/pack/:slug" element={<PackDetail />} />
             
             {/* Capture des URLs inconnues */}
             <Route path="*" element={<Erreur404 />} />

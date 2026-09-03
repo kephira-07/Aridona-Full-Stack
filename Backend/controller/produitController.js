@@ -78,7 +78,7 @@ const generateUniqueSlug = async (nom, excludeId = null) => {
 // 1. Ajouter un produit
 const addproduit = async (req, res) => {
   try {
-    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, alts, metaTitle, metaDescription } = req.body;
+    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, stock, alts, metaTitle, metaDescription } = req.body;
 
     if (!nom || !description || !prix || !categorie) {
       cleanLocalFiles(req.files);
@@ -112,6 +112,11 @@ const addproduit = async (req, res) => {
     const parsedCouleurs = parseArrayHelper(couleurs);
     const parsedTags = parseTagsHelper(tags); // Traitement des tags
 
+    const stockValue = stock === '' || stock === undefined ? null : Number(stock);
+    if (stockValue !== null && (!Number.isInteger(stockValue) || stockValue < 0)) {
+      return res.status(400).json({ success: false, message: "Le stock doit être un entier positif ou nul." });
+    }
+
     const produitData = {
       nom,
       description,
@@ -122,6 +127,8 @@ const addproduit = async (req, res) => {
       sizes: parsedSizes,
       tags: parsedTags, // Ajout des tags
       meilleurVente: meilleurVente === "true" || meilleurVente === true,
+      stock: stockValue,
+      enStock: stockValue === null ? true : stockValue > 0,
       image: imageDocs,
       slug,
       metaTitle,
@@ -181,11 +188,26 @@ const singleproduit = async (req, res) => {
   }
 };
 
+const singleproduitBySlug = async (req, res) => {
+  try {
+    const produit = await produitModel.findOne({ slug: req.params.slug }).populate("categorie");
+
+    if (!produit) {
+      return res.status(404).json({ success: false, message: "Produit introuvable" });
+    }
+
+    return res.status(200).json({ success: true, produit });
+  } catch (error) {
+    console.error("Erreur singleproduitBySlug :", error);
+    return res.status(500).json({ success: false, message: "Erreur lors du chargement du produit." });
+  }
+};
+
 // 4. Modifier un produit
 const updateproduit = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, imagesManifest, metaTitle, metaDescription } = req.body;
+    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, stock, imagesManifest, metaTitle, metaDescription } = req.body;
 
     const updateData = {};
     if (nom) {
@@ -200,6 +222,14 @@ const updateproduit = async (req, res) => {
     if (sizes) updateData.sizes = parseArrayHelper(sizes);
     if (tags !== undefined) updateData.tags = parseTagsHelper(tags); // Prise en compte de la mise à jour des tags
     if (meilleurVente !== undefined) updateData.meilleurVente = (meilleurVente === "true" || meilleurVente === true);
+    if (stock !== undefined) {
+      const stockValue = stock === '' ? null : Number(stock);
+      if (stockValue !== null && (!Number.isInteger(stockValue) || stockValue < 0)) {
+        return res.status(400).json({ success: false, message: "Le stock doit être un entier positif ou nul." });
+      }
+      updateData.stock = stockValue;
+      if (stockValue !== null) updateData.enStock = stockValue > 0;
+    }
     if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
     if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
 
@@ -318,7 +348,7 @@ const changerStatutStock = async (req, res) => {
 
     const produit = await produitModel.findByIdAndUpdate(
       id,
-      { enStock: Boolean(enStock) },
+      { enStock: enStock === true || enStock === 'true' },
       { new: true, runValidators: true }
     );
 
@@ -397,4 +427,4 @@ ${items.join('\n')}
   }
 };
 
-export { addproduit, listproduits, removeproduit, singleproduit, updateproduit, searchProduits, changerStatutStock, getProductFeed };
+export { addproduit, listproduits, removeproduit, singleproduit, singleproduitBySlug, updateproduit, searchProduits, changerStatutStock, getProductFeed };

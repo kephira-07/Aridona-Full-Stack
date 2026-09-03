@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import multer from 'multer'; // nécessaire pour le gestionnaire d'erreurs d'upload plus bas
 import EventEmitter from 'events';
 
@@ -14,6 +15,7 @@ import avisRouter from './routes/avisRoute.js';
 import articleRouter from './routes/articleRoute.js';
 import contactRouter from './routes/contactRoute.js';
 import configRouter from './routes/configRoute.js';
+import packRouter from './routes/packRoute.js';
 import produitModel from './models/produitModel.js';
 import articleModel from './models/articleModel.js';
 
@@ -31,7 +33,8 @@ const PORT = process.env.PORT || 4000;
 connectCloudinary();
 
 // Middlewares
-app.use(express.json());
+app.use(helmet());
+app.use(express.json({ limit: '100kb' }));
 
 // Origines autorisées : domaine de prod (client + admin servi sous /admin sur le même domaine)
 // + ports de dev locaux. Personnalisable via CORS_ORIGIN (liste séparée par des virgules) sans
@@ -61,6 +64,11 @@ app.use('/api/avis', avisRouter);
 app.use('/api/article', articleRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/config', configRouter);
+app.use('/api/packs', packRouter);
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 app.get('/', (req, res) => {
   res.send("L'API d'Arilona Shop fonctionne parfaitement !");

@@ -1,4 +1,6 @@
 import articleModel from '../models/articleModel.js';
+import produitModel from '../models/produitModel.js';
+import mongoose from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
 import slugify from 'slugify';
 import fs from 'fs';
@@ -47,21 +49,26 @@ const parseTags = (input) => {
 // 1. Ajouter un article (admin)
 const ajouterArticle = async (req, res) => {
   try {
-    const { titre, extrait, contenu, tags, publie, metaTitle, metaDescription, alt } = req.body;
+    const { titre, extrait, contenu, tags, publie, metaTitle, metaDescription, produitId } = req.body;
     const imageFile = req.file;
 
     if (!titre || !extrait || !contenu) {
       cleanLocalFile(imageFile);
       return res.status(400).json({ success: false, message: "Titre, extrait et contenu sont obligatoires." });
     }
-    if (!imageFile) {
-      return res.status(400).json({ success: false, message: "Une image de couverture est requise." });
+    if (!produitId || !mongoose.isValidObjectId(produitId)) {
+      return res.status(400).json({ success: false, message: "Veuillez sélectionner un produit existant." });
     }
 
-    const uploadResult = await cloudinary.uploader.upload(imageFile.path, {
-      folder: 'aridona/articles',
-      resource_type: 'image',
-    });
+    const produit = await produitModel.findById(produitId).select('image');
+    if (!produit) {
+      return res.status(404).json({ success: false, message: "Produit introuvable." });
+    }
+    const imagePrincipale = produit.image?.[0];
+    if (!imagePrincipale?.url) {
+      return res.status(400).json({ success: false, message: "Le produit sélectionné ne possède pas d'image." });
+    }
+
     cleanLocalFile(imageFile);
 
     const slug = await generateUniqueSlug(titre);
@@ -71,11 +78,7 @@ const ajouterArticle = async (req, res) => {
       slug,
       extrait: extrait.trim(),
       contenu: contenu.trim(),
-      image: {
-        url: uploadResult.secure_url,
-        publicId: uploadResult.public_id,
-        alt: (alt && alt.trim()) || titre.trim(),
-      },
+      produit: produitId,
       tags: parseTags(tags),
       publie: publie === 'true' || publie === true,
       metaTitle,
@@ -94,7 +97,7 @@ const ajouterArticle = async (req, res) => {
 // 2. Lister les articles publiés (public)
 const listerArticles = async (req, res) => {
   try {
-    const articles = await articleModel.find({ publie: true }).sort({ createdAt: -1 });
+    const articles = await articleModel.find({ publie: true }).populate('produit', 'nom slug image').sort({ createdAt: -1 });
     return res.status(200).json({ success: true, articles });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -104,7 +107,7 @@ const listerArticles = async (req, res) => {
 // 3. Lister tous les articles, brouillons compris (admin)
 const listerArticlesAdmin = async (req, res) => {
   try {
-    const articles = await articleModel.find({}).sort({ createdAt: -1 });
+    const articles = await articleModel.find({}).populate('produit', 'nom slug image').sort({ createdAt: -1 });
     return res.status(200).json({ success: true, articles });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -115,7 +118,7 @@ const listerArticlesAdmin = async (req, res) => {
 const getArticleParSlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const article = await articleModel.findOne({ slug, publie: true });
+    const article = await articleModel.findOne({ slug, publie: true }).populate('produit', 'nom slug image');
     if (!article) {
       return res.status(404).json({ success: false, message: "Article introuvable." });
     }
@@ -129,7 +132,7 @@ const getArticleParSlug = async (req, res) => {
 const modifierArticle = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titre, extrait, contenu, tags, publie, metaTitle, metaDescription, alt } = req.body;
+    const { titre, extrait, contenu, tags, publie, metaTitle, metaDescription, produitId } = req.body;
     const imageFile = req.file;
 
     const article = await articleModel.findById(id);
@@ -139,6 +142,19 @@ const modifierArticle = async (req, res) => {
     }
 
     const updateData = {};
+    if (produitId !== undefined) {
+      if (!mongoose.isValidObjectId(produitId)) {
+        return res.status(400).json({ success: false, message: "Produit sélectionné invalide." });
+      }
+      const produit = await produitModel.findById(produitId).select('image');
+      if (!produit) {
+        return res.status(404).json({ success: false, message: "Produit introuvable." });
+      }
+      if (!produit.image?.[0]?.url) {
+        return res.status(400).json({ success: false, message: "Le produit sélectionné ne possède pas d'image." });
+      }
+      updateData.produit = produitId;
+    }
     if (titre && titre.trim() !== article.titre) {
       updateData.titre = titre.trim();
       updateData.slug = await generateUniqueSlug(titre, id);
@@ -150,25 +166,9 @@ const modifierArticle = async (req, res) => {
     if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
     if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
 
-    if (imageFile) {
-      const uploadResult = await cloudinary.uploader.upload(imageFile.path, {
-        folder: 'aridona/articles',
-        resource_type: 'image',
-      });
-      cleanLocalFile(imageFile);
-      updateData.image = {
-        url: uploadResult.secure_url,
-        publicId: uploadResult.public_id,
-        alt: (alt && alt.trim()) || updateData.titre || article.titre,
-      };
-    }
+    cleanLocalFile(imageFile);
 
-    const articleModifie = await articleModel.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
-
-    // On ne supprime l'ancienne image qu'après confirmation de l'enregistrement.
-    if (imageFile && article.image?.publicId) {
-      await cloudinary.uploader.destroy(article.image.publicId);
-    }
+    const articleModifie = await articleModel.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate('produit', 'nom slug image');
 
     return res.status(200).json({ success: true, message: "Article mis à jour avec succès !", article: articleModifie });
   } catch (error) {

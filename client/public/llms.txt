@@ -1,0 +1,32 @@
+# Aridona Bijoux
+
+> Boutique en ligne de bijoux en acier inoxydable 316L, waterproof et hypoallergéniques.
+
+## Site officiel
+
+- Site : https://aridona.store/
+- Catalogue : https://aridona.store/collection
+- Blog : https://aridona.store/blog
+- Contact : https://aridona.store/contact
+- Sitemap : https://aridona.store/sitemap.xml
+
+## Catégories
+
+- Bagues : https://aridona.store/collection/bague
+- Boucles d'oreilles : https://aridona.store/collection/boucle-doreille
+- Bracelets : https://aridona.store/collection/bracelet
+- Bracelets de bras : https://aridona.store/collection/bracelet-de-bras
+- Ceintures chaîne : https://aridona.store/collection/ceinture-chaine
+- Chaînes de lunettes : https://aridona.store/collection/chaine-de-lunette
+- Colliers : https://aridona.store/collection/collier
+- Ensembles de bijoux : https://aridona.store/collection/ensembles-de-bijoux
+
+## Commandes
+
+Le site ne réalise aucun paiement en ligne. La cliente prépare sa commande sur le site, puis la confirme et convient du paiement et de la livraison avec Aridona sur WhatsApp.
+
+## Crawl
+
+Les pages panier, commande, connexion, favoris, réinitialisation du mot de passe, administration et API ne sont pas des pages publiques destinées à l'indexation.
+
+Pour les informations complètes sur l'architecture, les règles SEO, les catégories et les bonnes pratiques, consulter le fichier `llms-full.txt` à la racine du dépôt.

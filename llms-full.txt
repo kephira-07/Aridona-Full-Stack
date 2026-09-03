@@ -1,0 +1,433 @@
+# Aridona Shop - Guide complet pour assistants IA et SEO
+
+## Mission du projet
+
+Aridona Shop est une boutique en ligne de bijoux en acier inoxydable 316L. Le site vend des bagues, boucles d'oreilles, bracelets, bracelets de bras, ceintures chaîne, chaînes de lunettes, colliers et ensembles de bijoux. Le site ne réalise pas de paiement en ligne : la commande est préparée sur le site puis finalisée avec la cliente sur WhatsApp.
+
+Le positionnement éditorial est élégant, féminin, accessible et orienté vers des bijoux durables, waterproof et hypoallergéniques. Le site cible principalement les recherches liées aux bijoux en acier inoxydable, aux bijoux waterproof, aux accessoires féminins et à la vente de bijoux en ligne.
+
+## Architecture technique
+
+- `Backend/` : API REST Node.js, Express et Mongoose.
+- `client/` : boutique publique React et Vite.
+- `admin/` : espace d'administration React et Vite.
+- `docker-compose.yml` : orchestration locale des services.
+- MongoDB Atlas : base de données.
+- Cloudinary : stockage et distribution des images.
+- Resend : emails transactionnels.
+
+## Références de production
+
+Le domaine officiel est `https://aridona.store`.
+La boutique publique est accessible sur `https://aridona.store/`.
+L'espace d'administration est accessible sur `https://aridona.store/admin/`.
+L'API publique est référencée sous `https://aridona.store/api`.
+L'endpoint de santé est `https://aridona.store/health`.
+
+## Démarrage local
+
+```powershell
+cd Backend
+npm run dev
+```
+
+Dans un autre terminal :
+
+```powershell
+cd client
+npm run dev
+```
+
+Dans un troisième terminal :
+
+```powershell
+cd admin
+npm run dev
+```
+
+Les liens publics documentés dans ce fichier utilisent le domaine de production. Les vérifications techniques et le développement doivent toutefois être effectués localement lorsque le serveur de production est désactivé.
+
+Adresses de développement uniquement :
+
+- Boutique : `http://localhost:5173`
+- Administration : `http://localhost:5174/admin/`
+- API : `http://localhost:4000`
+
+## Catégories officielles
+
+Les catégories métier et leurs slugs sont :
+
+| Nom affiché | Slug | Intention SEO principale |
+|---|---|---|
+| Bague | `bague` | bague en acier inoxydable, bague femme waterproof |
+| Boucle d'oreille | `boucle-doreille` | boucles d'oreilles en acier inoxydable |
+| Bracelet | `bracelet` | bracelet femme waterproof, bracelet acier inoxydable |
+| Bracelet de bras | `bracelet-de-bras` | bracelet de bras femme, bijou de bras |
+| Ceinture chaîne | `ceinture-chaine` | ceinture chaîne femme, accessoire chaîne |
+| Chaîne de lunette | `chaine-de-lunette` | chaîne de lunettes femme, cordon bijoux |
+| Collier | `collier` | collier en acier inoxydable, collier femme |
+| Ensembles de bijoux | `ensembles-de-bijoux` | ensemble de bijoux, parure de bijoux femme |
+
+Les slugs doivent rester stables. Si une catégorie est renommée, conserver une redirection permanente de l'ancien slug vers le nouveau.
+
+## API principale
+
+Base publique : `https://aridona.store/api`
+
+### Produits
+
+- `GET /produit/list` : catalogue public.
+- `GET /produit/single/:id` : détail d'un produit.
+- `GET /produit/search?query=...` : recherche textuelle.
+- `GET /produit/feed.xml` : flux Google Merchant Center.
+- `POST /produit/add` : ajout admin.
+- `PUT /produit/update/:id` : modification admin.
+- `DELETE /produit/remove/:id` : suppression admin.
+- `PUT /produit/changer-stock/:id` : mise à jour de disponibilité admin.
+
+### Commandes
+
+- `POST /order/place` : commande client ou invité.
+- `GET /order/userorders` : commandes de l'utilisateur connecté.
+- `GET /order/list` : commandes admin.
+- `PUT /order/status` : changement de statut admin.
+
+Les prix doivent toujours être recalculés côté serveur. Le stock numérique est réservé avec une opération atomique et décrémenté lors de la commande.
+
+## Parcours de commande et paiement
+
+Aridona n'intègre actuellement aucune passerelle de paiement et ne collecte pas de paiement directement sur le site. Le parcours réel est :
+
+1. La cliente ajoute ses bijoux au panier.
+2. Elle saisit ses informations de livraison.
+3. Le backend enregistre la commande et recalcule le total en XOF.
+4. Le site génère un récapitulatif avec les articles, le total et les frais de livraison.
+5. La cliente ouvre WhatsApp pour transmettre la commande et convenir avec Aridona du paiement et de la livraison.
+
+Le champ `paymentMethod` enregistré dans la commande indique une préférence (`COD`, `Mobile Money` ou `Manuel`) et ne constitue pas une preuve de paiement. Le champ `payment` ne doit pas être présenté comme une confirmation de transaction.
+
+Les textes visibles doivent utiliser « Confirmer ma commande sur WhatsApp ». Ils ne doivent pas promettre un paiement en ligne et doivent éviter « Payer maintenant » ou « paiement sécurisé en ligne ».
+
+## Devises et prix XOF
+
+La devise commerciale du site est le franc CFA BCEAO, code ISO `XOF`. Les prix étant exprimés en francs sans centimes, ils doivent être stockés et calculés comme des entiers en FCFA : ne jamais utiliser de calculs flottants pour un montant de commande.
+
+Validation backend recommandée :
+
+```js
+const prix = Number(req.body.prix);
+if (!Number.isSafeInteger(prix) || prix < 0) {
+  return res.status(400).json({ success: false, message: 'Prix XOF invalide.' });
+}
+```
+
+Pour l'affichage côté client, utiliser l'API internationale plutôt qu'une concaténation manuelle :
+
+```js
+export const formatXof = (amount) =>
+  new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: 'XOF',
+    maximumFractionDigits: 0,
+  }).format(Number(amount));
+```
+
+Le montant recalculé côté serveur reste la source de vérité. Le panier, WhatsApp, les emails, le flux Merchant Center et les données structurées doivent afficher le même montant entier et le même code `XOF`.
+
+## Sécurité de validation des commandes et du stock
+
+Le contrôle de disponibilité doit être effectué au moment de la validation de la commande, jamais uniquement au chargement du panier. Pour un produit géré avec un stock numérique, la réservation doit rester atomique :
+
+```js
+const reserved = await produitModel.findOneAndUpdate(
+  { _id: productId, stock: { $gte: quantity } },
+  { $inc: { stock: -quantity } },
+  { new: true }
+);
+```
+
+Si deux clientes tentent d'acheter la dernière unité simultanément, une seule requête satisfait `stock: { $gte: quantity }`. L'autre reçoit une réponse `409` et aucune commande ne doit être enregistrée. En cas d'échec de sauvegarde de la commande, la quantité réservée doit être restaurée. Pour une cohérence maximale entre plusieurs produits, utiliser une transaction MongoDB avec un replica set et prévoir une compensation si un service externe échoue.
+
+Les commandes doivent également valider les quantités comme des entiers positifs, limiter la quantité maximale, vérifier les tailles disponibles et ne jamais faire confiance au prix ou au stock envoyés par le navigateur.
+
+### Authentification
+
+- `POST /utilisateur/register` : inscription client.
+- `POST /utilisateur/login` : connexion client.
+- `POST /utilisateur/admin` : connexion admin.
+- `POST /utilisateur/google-login` : connexion Google.
+- `POST /utilisateur/mot-de-passe-oublie` : demande de réinitialisation.
+- `POST /utilisateur/reinitialiser-mot-de-passe` : réinitialisation.
+- `GET /utilisateur/profil` : profil connecté.
+- `GET /utilisateur/panier` : panier connecté.
+
+Les routes de modification utilisent `auth(['admin'])`. Les routes sensibles utilisent un rate limiting. Les avis restent publiés automatiquement selon le choix fonctionnel actuel.
+
+## Règles de sécurité
+
+- Ne jamais publier `Backend/.env`, aucun mot de passe, token ou secret.
+- Utiliser `ADMIN_PASSWORD_HASH` avec un hash bcrypt, jamais un mot de passe en clair.
+- Utiliser un `JWT_SECRET` long, aléatoire et renouvelable.
+- Ne jamais mettre de secret dans une variable `VITE_*`.
+- Vérifier les permissions admin côté serveur, jamais uniquement dans React.
+- Valider les identifiants MongoDB, les nombres, les quantités et les URLs reçus par l'API.
+- Limiter les uploads par type réel, taille, nombre de fichiers et dimensions.
+- Conserver Helmet, CORS restrictif et les limites de taille JSON.
+- Ne pas faire confiance au prix, à la disponibilité ou à la quantité envoyés par le navigateur.
+
+## Plan SEO technique à appliquer
+
+### 1. Indexabilité
+
+- Autoriser uniquement les pages publiques utiles dans `client/public/robots.txt`.
+- Interdire `/panier`, `/commander`, `/commande-confirmee`, `/login`, `/reset-password` et `/favoris`.
+- Ajouter une seule ligne sitemap : `Sitemap: https://aridona.store/sitemap.xml`.
+- Ne pas bloquer par erreur les pages produits, catégories, blog ou présentation.
+- Éviter les pages accessibles avec plusieurs URLs sans canonical.
+- Répondre avec HTTP 404 pour une fiche produit inexistante.
+- Utiliser `noindex, follow` pour les pages privées ou sans valeur SEO.
+
+### 2. Pages catégories
+
+Créer une page indexable par catégorie, par exemple :
+
+- `/collection/bague`
+- `/collection/boucle-doreille`
+- `/collection/bracelet`
+- `/collection/bracelet-de-bras`
+- `/collection/ceinture-chaine`
+- `/collection/chaine-de-lunette`
+- `/collection/collier`
+- `/collection/ensembles-de-bijoux`
+
+Chaque page doit avoir :
+
+- un seul `h1` contenant le nom de la catégorie ;
+- un titre de 50 à 60 caractères environ ;
+- une meta description unique de 140 à 160 caractères environ ;
+- une introduction utile de 80 à 150 mots ;
+- des liens vers les produits de la catégorie ;
+- des liens vers les catégories voisines ;
+- une canonical absolue et stable ;
+- une image principale avec un attribut `alt` descriptif ;
+- un fil d'Ariane visible et en JSON-LD.
+
+Exemple de meta :
+
+```jsx
+<Helmet>
+  <title>Bracelets en acier inoxydable | Aridona Bijoux</title>
+  <meta
+    name="description"
+    content="Découvrez nos bracelets en acier inoxydable 316L, waterproof et hypoallergéniques. Livraison de vos bijoux Aridona."
+  />
+  <link rel="canonical" href="https://aridona.store/collection/bracelet" />
+</Helmet>
+```
+
+### 3. Pages produits
+
+Chaque fiche produit indexable doit contenir :
+
+- un titre unique basé sur le nom du produit ;
+- un seul `h1` ;
+- une description originale et utile ;
+- le prix, la devise XOF et l'état du stock visibles ;
+- des photos optimisées avec des `alt` descriptifs ;
+- une URL canonique basée sur le slug ;
+- des liens vers sa catégorie et des produits associés ;
+- un fil d'Ariane ;
+- un JSON-LD `Product` avec `Brand`, `Offer` et, uniquement si elles sont réelles, `AggregateRating` et `Review`.
+
+Ne jamais inventer de notes, d'avis, de prix ou de disponibilité dans les données structurées.
+
+Exemple JSON-LD minimal :
+
+```jsx
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: produit.nom,
+  description: produit.description,
+  image: produit.image.map((image) => image.url),
+  sku: String(produit._id),
+  brand: {
+    '@type': 'Brand',
+    name: 'Aridona Bijoux',
+  },
+  offers: {
+    '@type': 'Offer',
+    url: `https://aridona.store/produit/${produit.slug}`,
+    priceCurrency: 'XOF',
+    price: produit.prix,
+    availability: produit.enStock
+      ? 'https://schema.org/InStock'
+      : 'https://schema.org/OutOfStock',
+    itemCondition: 'https://schema.org/NewCondition',
+  },
+};
+```
+
+### 4. Données structurées globales
+
+Ajouter sur le site :
+
+- `Organization` ou `JewelryStore` avec le nom, logo, URL et réseaux sociaux réels ;
+- `WebSite` avec `SearchAction` si la recherche fonctionne réellement ;
+- `BreadcrumbList` sur les pages catégories, produits et articles ;
+- `Article` sur les articles de blog publiés ;
+- `Product` uniquement sur les fiches produits.
+
+Ne pas ajouter de données structurées pour des informations absentes de la page visible.
+
+### 5. Open Graph et partage social
+
+Chaque page publique doit définir :
+
+- `og:type` ;
+- `og:title` ;
+- `og:description` ;
+- `og:url` ;
+- `og:image` ;
+- `og:site_name` ;
+- `twitter:card` ;
+- `twitter:title` ;
+- `twitter:description` ;
+- `twitter:image`.
+
+Les images sociales doivent être absolues, accessibles, représentatives et idéalement préparées en 1200x630 pixels.
+
+### 6. Sitemap
+
+Le sitemap `client/public/sitemap.xml` doit contenir :
+
+- la page d'accueil ;
+- `/collection` ;
+- les huit pages catégories ;
+- les fiches produits disponibles ;
+- les articles publiés ;
+- les pages institutionnelles utiles.
+
+Ne pas inclure :
+
+- panier ;
+- connexion ;
+- favoris ;
+- réinitialisation du mot de passe ;
+- confirmation de commande ;
+- administration ;
+- doublons d'URL ;
+- produits supprimés ou hors catalogue.
+
+Chaque URL doit être absolue, canonique et répondre en HTTP 200. Le sitemap doit être régénéré après une modification de catalogue et contrôlé dans Google Search Console.
+
+### 7. Performance SEO
+
+- Convertir les images lourdes en WebP ou AVIF.
+- Utiliser des tailles responsives avec `srcSet` et `sizes`.
+- Réserver la place des images avec `width`, `height` ou `aspect-ratio`.
+- Utiliser `loading="lazy"` hors écran et `fetchpriority="high"` pour l'image héro principale.
+- Charger les pages admin avec `lazy()` et `Suspense`.
+- Paginer les produits, commandes, utilisateurs et avis.
+- Réduire le JavaScript initial de la boutique.
+- Mesurer LCP, CLS, INP et poids mobile avec Lighthouse local.
+
+### 7.1 Images Cloudinary
+
+Les images Cloudinary doivent utiliser des transformations à la diffusion pour servir automatiquement le meilleur format et une qualité adaptée :
+
+```js
+const optimizedImageUrl = imageUrl.replace(
+  '/upload/',
+  '/upload/f_auto,q_auto,w_1200/'
+);
+```
+
+Utiliser `f_auto,q_auto` pour la négociation automatique du format et de la qualité, puis ajouter une largeur adaptée au contexte (`w_400`, `w_800`, `w_1200`) au lieu de servir systématiquement l'original. Pour les galeries responsives, générer plusieurs URLs avec `srcSet` et `sizes`. Garder l'image héro principale en priorité élevée et charger les autres avec `loading="lazy"`.
+
+Ne pas appliquer une transformation deux fois si l'URL contient déjà un segment de transformation. Les URLs originales peuvent rester stockées dans MongoDB ; les URLs transformées sont générées au moment du rendu.
+
+### 8. Rendu et indexation
+
+La boutique utilise React/Vite et le HTML initial contient peu de contenu métier. Le rendu JavaScript peut être indexé par Google, mais il est moins fiable pour le premier crawl, les aperçus sociaux et les performances. Pour une indexation et un partage social plus fiables, pré-rendre ou rendre côté serveur :
+
+- la page d'accueil ;
+- les pages catégories ;
+- les fiches produits ;
+- les articles publiés.
+
+Une migration vers un framework SSR/SSG ou un pré-rendu Vite est recommandée avant une stratégie SEO ambitieuse.
+
+Stratégie progressive recommandée :
+
+1. Court terme : produire des métadonnées uniques, un sitemap complet et des pages catégories stables ; vérifier le HTML rendu avec Lighthouse et un crawler local.
+2. Moyen terme : pré-rendre la page d'accueil, les catégories, les fiches produits et les articles publiés avec une solution SSG compatible Vite.
+3. Long terme : envisager Next.js ou un autre framework SSR/SSG si le catalogue, le blog et les besoins de personnalisation augmentent.
+
+Le SSR/SSG ne remplace pas les fondamentaux : chaque page pré-rendue doit encore posséder un titre, une description, un canonical, un contenu visible, des liens internes et des données structurées cohérentes.
+
+### 9. Contenu éditorial
+
+Pour chaque catégorie :
+
+- expliquer les matières, tailles, couleurs et usages ;
+- répondre aux questions fréquentes ;
+- éviter la répétition mécanique de mots-clés ;
+- écrire pour les clientes avant les moteurs ;
+- utiliser des photos originales ;
+- relier les catégories aux produits et aux articles du blog.
+
+Pour le blog :
+
+- un sujet clair par article ;
+- un titre unique ;
+- un extrait unique ;
+- des sous-titres `h2` et `h3` ;
+- des liens vers les catégories et produits ;
+- un auteur et une date réels ;
+- un JSON-LD `Article` exact.
+
+## Checklist SEO avant publication
+
+- [ ] La page répond en HTTP 200.
+- [ ] L'URL est unique et canonique.
+- [ ] Le titre est unique et descriptif.
+- [ ] La meta description est unique.
+- [ ] Un seul `h1` est présent.
+- [ ] Les images ont un `alt` utile.
+- [ ] Les liens internes fonctionnent.
+- [ ] Les données structurées correspondent au contenu visible.
+- [ ] La page est présente dans le sitemap si elle est indexable.
+- [ ] La page n'est pas bloquée par robots.txt.
+- [ ] Le rendu mobile est lisible.
+- [ ] Les images et scripts sont optimisés.
+- [ ] Aucun contenu de test, prix fictif ou secret n'est publié.
+
+## Validation locale
+
+```powershell
+cd Backend
+node --check server.js
+npm audit
+
+cd ..\client
+npm run build
+
+cd ..\admin
+npm run build
+```
+
+Pour générer le sitemap avec les données de MongoDB, démarrer d'abord le backend local puis lancer le build du client. Cette génération ne doit pas contacter le serveur de production pendant les tests. Les URLs écrites dans le sitemap restent celles du domaine officiel `https://aridona.store`.
+
+## Fichiers importants
+
+- `Backend/server.js` : initialisation Express, sécurité HTTP, routes et santé.
+- `Backend/controller/` : logique métier.
+- `Backend/models/` : schémas MongoDB.
+- `Backend/routes/` : endpoints REST.
+- `client/src/` : boutique publique et métadonnées React.
+- `client/public/robots.txt` : règles d'exploration.
+- `client/public/sitemap.xml` : URLs indexables.
+- `client/scripts/generate-sitemap.js` : génération du sitemap.
+- `admin/src/` : espace d'administration.
+- `DEPLOYMENT.md` : orchestration Docker.

@@ -23,6 +23,7 @@ const produitSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true }, // unique crée déjà l'index, pas besoin de index: true
   meilleurVente: { type: Boolean, default: false },
   enStock: { type: Boolean, default: true },
+  stock: { type: Number, min: 0, default: null },
 
   // Surcharges SEO optionnelles : si vides, le frontend retombe sur nom/description tronqués.
   metaTitle: { type: String, trim: true, maxlength: 70 },

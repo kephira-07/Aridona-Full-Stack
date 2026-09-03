@@ -21,6 +21,7 @@ const Add = ({ token }) => {
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
   const [prix, setPrix] = useState('');
+  const [stock, setStock] = useState('');
   
   const [categorie, setCategorie] = useState(''); 
   const [categoriesList, setCategoriesList] = useState([]);
@@ -114,6 +115,7 @@ const Add = ({ token }) => {
       formData.append("nom", nom);
       formData.append("description", description);
       formData.append("prix", prix);
+      if (stock !== '') formData.append("stock", stock);
       formData.append("categorie", categorie); 
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
@@ -149,6 +151,7 @@ const Add = ({ token }) => {
         setNom(''); 
         setDescription(''); 
         setPrix(''); 
+        setStock('');
         setSizes([]); 
         setCouleurs(['Doré']);
         setTagsInput('');
@@ -293,6 +296,21 @@ const Add = ({ token }) => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                Stock disponible
+              </label>
+              <input
+                onChange={(e) => setStock(e.target.value)}
+                value={stock}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Optionnel"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
                 Prix (FCFA) *
               </label>
               <div className="relative">
@@ -408,7 +426,7 @@ const Add = ({ token }) => {
         <div className="space-y-6">
           {/* Couleurs (Enum du Modèle) */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2 flex items-center gap-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2">
               <Palette size={14} className="text-amber-800" />
               <span>Couleurs Disponibles</span>
             </label>

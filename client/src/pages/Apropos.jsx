@@ -2,24 +2,28 @@ import React, { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, CheckCircle2, Award, HeartHandshake, Loader2 } from 'lucide-react';
+import { 
+  MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, 
+  CheckCircle2, Award, HeartHandshake, Loader2, Sparkles, Gem, 
+  Truck, RefreshCw, ChevronDown, HelpCircle, Compass
+} from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import { ShopContext } from '../context/ShopContext';
 
-const APropos = () => {
+export default function APropos() {
   const { backendUrl, whatsappNum } = useContext(ShopContext);
 
-  // CONFIGURATION DES CONTACTS
   const NUMERO_WHATSAPP = whatsappNum || "22872656485";
   const EMAIL_CONTACT = "aridonabijoux@gmail.com";
-  const ADRESSE = "Lomé, Togo";
+  const ADRESSE = "Lomé, Togo (Livraison Internationale & Locale)";
 
   const [formData, setFormData] = useState({ nom: '', email: '', sujet: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
 
   const ouvrirWhatsApp = () => {
-    const message = "Bonjour Aridona Bijoux ! 💎 Je souhaiterais avoir un renseignement sur vos bijoux en acier inoxydable.";
+    const message = "Bonjour Aridona Bijoux ! 💎 Je souhaite échanger avec votre service conciergerie.";
     window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -42,132 +46,225 @@ const APropos = () => {
     }
   };
 
+  const faqs = [
+    {
+      q: "Vos bijoux résistent-ils vraiment à l'eau et aux douches ?",
+      r: "Absolument. Nos pièces sont confectionnées en acier inoxydable 316L de grade médical, plaquées sous vide (PVD) à l'or fin. Elles ne rouillent pas, ne verdissent pas la peau et résistent à l'eau douce, de mer, ainsi qu'aux parfums."
+    },
+    {
+      q: "Quels sont les délais de livraison à Lomé et à l'international ?",
+      r: "À Lomé, la livraison s'effectue en 24h à 48h selon votre quartier. Pour la sous-région et l'international, nous collaborons avec des services de coursier sécurisés (livraison estimée entre 3 et 7 jours ouvrés)."
+    },
+    {
+      q: "Proposez-vous un emballage cadeau ?",
+      r: "Chaque commande Aridona est expédiée dans une pochette écrin protectrice signée, prête à être offerte ou à conserver vos parures à l'abri."
+    }
+  ];
+
   return (
-    <div className="bg-stone-50/50 text-stone-800 min-h-screen pt-10 pb-24 font-sans selection:bg-amber-100 selection:text-amber-900">
+    <div className="bg-[#FAF8F5] text-stone-800 min-h-screen pt-8 pb-28 font-sans selection:bg-amber-100 selection:text-amber-900">
       
-      {/* 🎯 BALISES SEO OPTIMISÉES */}
       <Helmet>
-        <title>À Propos & Contact | Aridona Bijoux - Haute Joaillerie Fine à Lomé</title>
+        <title>Maison Aridona Bijoux | Haute Joaillerie Fine & Conciergerie à Lomé</title>
         <meta 
           name="description" 
-          content="Découvrez l'univers Aridona Bijoux à Lomé : bijoux en acier inoxydable 316L résistant à l'eau, hypoallergéniques et dorés à l'or fin. Contactez notre conciergerie." 
+          content="Inspirée par l'élégance contemporaine, la Maison Aridona façonne des bijoux en acier 316L waterproof, intemporels et hypoallergéniques. Service conciergerie sur-mesure à Lomé." 
         />
-        <meta name="keywords" content="bijoux acier inoxydable Lomé, bijoux waterproof Togo, collier inoxydable, bague dorée, Aridona Bijoux contact" />
       </Helmet>
 
-      <div className="px-4 sm:px-8 md:px-12 lg:px-20 max-w-6xl mx-auto space-y-20">
+      <div className="px-4 sm:px-8 md:px-12 lg:px-20 max-w-7xl mx-auto space-y-24">
         
         <BoutonRetour />
 
-        {/* --- SECTION 1 : HERO & STORYTELLING SEO --- */}
-        <section className="text-center flex flex-col items-center relative animate-in fade-in slide-in-from-bottom-4 duration-700">
-          {/* Halo lumineux discret pour le thème clair */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-amber-200/30 rounded-full blur-3xl pointer-events-none -z-10" />
-
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/80 border border-amber-200/60 text-amber-900 text-xs font-semibold tracking-[0.25em] uppercase mb-6 shadow-sm">
-             La Maison Aridona
-          </span>
-
-          <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl text-stone-900 font-bold tracking-tight leading-tight max-w-4xl">
-            L'Élégance Fine & Durable <br className="hidden sm:inline" />
-            <span className="text-amber-800 italic font-serif">Conçue Pour Traverser Le Temps</span>
+        {/* SECTION 1: HERO ÉDITORIAL */}
+        <section className="text-center flex flex-col items-center relative">
+      
+          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl text-stone-900 font-normal tracking-tight leading-[1.1] max-w-4xl">
+            Révéler la lumière <br className="hidden sm:inline" />
+            <span className="italic text-amber-900 font-serif">de chaque instant.</span>
           </h1>
 
-          <div className="w-16 h-[2px] bg-amber-700/40 my-8" />
-
-          <p className="text-stone-600 text-sm md:text-base max-w-2xl leading-relaxed font-light text-balance">
-            Basée à <strong className="text-stone-900 font-medium">Lomé</strong>, la Maison <strong className="text-amber-900 font-medium">Aridona Bijoux</strong> sélectionne et façonne des parures d'exception en <strong className="text-stone-900 font-medium">acier inoxydable de qualité supérieure</strong>. Pensées pour les femmes modernes, nos créations allient le raffinement de la haute joaillerie à la liberté du quotidien.
+          <p className="mt-8 text-stone-600 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed font-light">
+            Une joaillerie fine pensée pour sublimer la femme moderne. Des créations au design minimaliste et audacieux, façonnées pour résister aux épreuves du temps sans perdre leur éclat.
           </p>
-        </section>
 
-        {/* --- SECTION 2 : ENGAGEMENTS QUALITÉ --- */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-sm hover:shadow-md hover:border-amber-700/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
-            <div className="p-4 rounded-xl bg-amber-50 text-amber-800 mb-5 group-hover:scale-110 group-hover:bg-amber-100 transition-transform duration-300">
-              <Droplets size={26} />
+          {/* Grille de statistiques / Chiffres clés */}
+          <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl pt-10 border-t border-stone-200/80">
+            <div>
+              <span className="block font-serif text-3xl md:text-4xl font-light text-amber-900">316L</span>
+              <span className="text-[11px] uppercase tracking-wider text-stone-500 font-medium">Acier Chirurgical</span>
             </div>
-            <h3 className="font-serif text-lg font-bold text-stone-900 mb-2">100% Waterproof</h3>
-            <p className="text-xs text-stone-600 leading-relaxed font-light">
-              Résistance garantie sous l'eau, à la mer et aux cosmétiques. Vos bijoux conservent leur éclat d'origine sans jamais ternir.
-            </p>
-          </div>
-
-          <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-sm hover:shadow-md hover:border-amber-700/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
-            <div className="p-4 rounded-xl bg-amber-50 text-amber-800 mb-5 group-hover:scale-110 group-hover:bg-amber-100 transition-transform duration-300">
-              <ShieldCheck size={26} />
+            <div>
+              <span className="block font-serif text-3xl md:text-4xl font-light text-amber-900">100%</span>
+              <span className="text-[11px] uppercase tracking-wider text-stone-500 font-medium">Waterproof</span>
             </div>
-            <h3 className="font-serif text-lg font-bold text-stone-900 mb-2">Acier Hypoallergénique</h3>
-            <p className="text-xs text-stone-600 leading-relaxed font-light">
-              Sélection rigoureuse d'acier 316L certifié, formulé spécifiquement pour préserver la sensibilité des peaux les plus délicates.
-            </p>
-          </div>
-
-          <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-sm hover:shadow-md hover:border-amber-700/30 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
-            <div className="p-4 rounded-xl bg-amber-50 text-amber-800 mb-5 group-hover:scale-110 group-hover:bg-amber-100 transition-transform duration-300">
-              <Award size={26} />
+            <div>
+              <span className="block font-serif text-3xl md:text-4xl font-light text-amber-900">0%</span>
+              <span className="text-[11px] uppercase tracking-wider text-stone-500 font-medium">Risque d'Allergie</span>
             </div>
-            <h3 className="font-serif text-lg font-bold text-stone-900 mb-2">Dorure Haute Tenue</h3>
-            <p className="text-xs text-stone-600 leading-relaxed font-light">
-              Un plaquage minutieux à l'or fin offrant une brillance chaude et durable au fil des saisons, sans altération.
-            </p>
+            <div>
+              <span className="block font-serif text-3xl md:text-4xl font-light text-amber-900">24/48h</span>
+              <span className="text-[11px] uppercase tracking-wider text-stone-500 font-medium">Livraison Lomé</span>
+            </div>
           </div>
         </section>
 
-        {/* --- SECTION 3 : LE MANIFESTE / VALEURS --- */}
-        <section className="bg-amber-900 text-stone-100 rounded-3xl p-8 md:p-14 relative overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-500">
-          {/* Texture d'arrière-plan discrète */}
-          <div className="absolute right-0 bottom-0 w-80 h-80 bg-amber-800/40 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="max-w-2xl space-y-4 relative z-10">
-            <span className="text-xs uppercase tracking-[0.3em] text-amber-300 font-medium flex items-center gap-2">
-              <HeartHandshake size={15} /> Notre Philosophie
-            </span>
-            <h2 className="font-serif text-2xl md:text-3xl font-normal leading-relaxed text-amber-50">
-              « Un bijou ne doit pas seulement sublimer votre allure, il doit être le complice fidèle de vos plus beaux souvenirs. »
+        {/* SECTION 2: NOTRE HISTOIRE & SAVOIR-FAIRE */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-white rounded-3xl p-8 sm:p-14 border border-stone-200/80 shadow-xs">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 text-amber-800 text-xs font-semibold tracking-widest uppercase">
+              <Compass size={16} /> L'Origine du Projet
+            </div>
+            <h2 className="font-serif text-3xl sm:text-4xl text-stone-900 font-medium leading-snug">
+              L'alliance parfaite entre luxe accessible et durabilité.
             </h2>
-            <p className="text-amber-100/80 text-xs md:text-sm leading-relaxed font-light pt-2">
-              Chaque bague, collier ou bracelet de notre collection est pensé pour être superposé à l'infini, porté en toute liberté sans crainte d'usure, et transmis au fil des émotions.
+            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed font-light">
+              Née à Lomé de la volonté de redéfinir la bijouterie du quotidien, <strong className="text-stone-900 font-normal">Aridona Bijoux</strong> s'affranchit des contraintes traditionnelles. Nous avions marre des bijoux fantaisie qui ternissent au bout de quelques jours ou de l'or massif trop précieux pour le quotidien.
             </p>
+            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed font-light">
+              Nous sélectionnons des alliages inoxydables de haute qualité dorés à l'or fin selon des procédés PVD respectueux de l'environnement, garantissant une brillance inaltérable même lors de vos activités quotidiennes.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div className="p-6 rounded-2xl bg-[#FAF8F5] border border-stone-200/60 space-y-2">
+                <Gem className="text-amber-800" size={24} />
+                <h4 className="font-serif text-base font-semibold text-stone-900">Design Intemporel</h4>
+                <p className="text-[11px] text-stone-500 leading-relaxed">Créations pensées pour être empilées et associées au gré des envies.</p>
+              </div>
+              <div className="p-6 rounded-2xl bg-amber-950 text-stone-100 space-y-2">
+                <Sparkles className="text-amber-400" size={24} />
+                <h4 className="font-serif text-base font-semibold text-amber-50">Finition Or Fin</h4>
+                <p className="text-[11px] text-amber-200/80 leading-relaxed">Plaquage PVD haute résistance pour un éclat miroir chaleureux.</p>
+              </div>
+            </div>
+            <div className="space-y-4 pt-6">
+              <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200/60 space-y-2">
+                <Droplets className="text-amber-900" size={24} />
+                <h4 className="font-serif text-base font-semibold text-amber-950">Usage Aquatique</h4>
+                <p className="text-[11px] text-amber-900/80 leading-relaxed">Plage, piscine ou sport : vos parures ne vous quittent plus.</p>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* --- SECTION 4 : CONCIERGERIE & CONTACT --- */}
-        <section className="space-y-12">
+        {/* SECTION 3: NOS ENGAGEMENTS QUALITÉ */}
+        <section className="space-y-10">
+          <div className="text-center space-y-3">
+            <span className="text-xs uppercase tracking-[0.3em] text-amber-800 font-semibold">Excellence & Confiance</span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-normal text-stone-900">Pourquoi choisir Aridona ?</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:border-amber-300 transition-all duration-300 space-y-4">
+              <div className="p-3.5 rounded-xl bg-amber-50 text-amber-800 w-fit">
+                <Droplets size={22} />
+              </div>
+              <h3 className="font-serif text-lg font-medium text-stone-900">Résistance Eau & Vapeur</h3>
+              <p className="text-xs text-stone-500 leading-relaxed font-light">
+                Ne retirez plus vos bijoux. Ils conservent leur brillance sous l'eau douce, salée et lors du repassage ou de la douche.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:border-amber-300 transition-all duration-300 space-y-4">
+              <div className="p-3.5 rounded-xl bg-amber-50 text-amber-800 w-fit">
+                <ShieldCheck size={22} />
+              </div>
+              <h3 className="font-serif text-lg font-medium text-stone-900">Tolérance Cutanée</h3>
+              <p className="text-xs text-stone-500 leading-relaxed font-light">
+                Garanti 100% sans nickel, sans plomb et sans cadmium. Adapté aux peaux les plus réactives ou allergiques.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:border-amber-300 transition-all duration-300 space-y-4">
+              <div className="p-3.5 rounded-xl bg-amber-50 text-amber-800 w-fit">
+                <Truck size={22} />
+              </div>
+              <h3 className="font-serif text-lg font-medium text-stone-900">Expédition Rapide</h3>
+              <p className="text-xs text-stone-500 leading-relaxed font-light">
+                Livraison à domicile ou au bureau à Lomé et expédition sécurisée dans toute la région ouest-africaine.
+              </p>
+            </div>
+
+            <div className="p-8 rounded-2xl bg-white border border-stone-200/80 shadow-xs hover:border-amber-300 transition-all duration-300 space-y-4">
+              <div className="p-3.5 rounded-xl bg-amber-50 text-amber-800 w-fit">
+                <RefreshCw size={22} />
+              </div>
+              <h3 className="font-serif text-lg font-medium text-stone-900">Service Attentionné</h3>
+              <p className="text-xs text-stone-500 leading-relaxed font-light">
+                Un accompagnement personnalisé par WhatsApp pour vous guider dans vos choix de tailles et d'associations.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 4: FOIRE AUX QUESTIONS (FAQ) */}
+        <section className="bg-stone-100/70 rounded-3xl p-8 sm:p-12 border border-stone-200/60 max-w-4xl mx-auto space-y-6">
+          <div className="flex items-center gap-3 mb-2">
+            <HelpCircle className="text-amber-800" size={20} />
+            <h2 className="font-serif text-2xl font-medium text-stone-900">Questions Fréquentes</h2>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <div 
+                key={index} 
+                className="bg-white rounded-xl border border-stone-200/80 overflow-hidden transition-all duration-200"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  className="w-full p-5 text-left font-medium text-xs sm:text-sm text-stone-800 flex justify-between items-center gap-4 cursor-pointer"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown size={18} className={`text-stone-400 transition-transform duration-300 shrink-0 ${openFaq === index ? 'rotate-180 text-amber-800' : ''}`} />
+                </button>
+
+                {openFaq === index && (
+                  <div className="px-5 pb-5 text-xs text-stone-500 leading-relaxed border-t border-stone-100 pt-3">
+                    {faq.r}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 5: CONCIERGERIE & FORMULAIRE */}
+        <section className="space-y-12 pt-8">
           <div className="text-center space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-amber-800 font-semibold">Service Client & Conciergerie</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-stone-900">Contactez la Maison</h2>
-            <p className="text-xs text-stone-500 max-w-md mx-auto">Une question sur nos créations, une demande de conseils ou le suivi d'une commande ? Nous sommes à votre écoute.</p>
+            <span className="text-xs uppercase tracking-[0.3em] text-amber-800 font-semibold">Conciergerie & Support</span>
+            <h2 className="font-serif text-3xl sm:text-4xl font-normal text-stone-900">Entrer en Contact</h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
             
-            {/* CANAUX RAPIDES (2 COLONNES) */}
+            {/* INFOS DIRECTES */}
             <div className="lg:col-span-2 space-y-4">
-              
-              {/* WhatsApp Direct */}
               <button
+                type="button"
                 onClick={ouvrirWhatsApp}
-                className="w-full p-6 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 hover:border-emerald-400 hover:bg-emerald-50 hover:-translate-y-0.5 transition-all duration-300 text-left flex items-start justify-between group cursor-pointer shadow-sm"
+                className="w-full p-6 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 hover:border-emerald-400 hover:bg-emerald-50 transition-all duration-300 text-left flex items-start justify-between group cursor-pointer shadow-xs"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">WhatsApp Direct</span>
-                    <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Réponse rapide</span>
+                    <span className="text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">Réponse immédiate</span>
                   </div>
-                  <p className="text-xs text-emerald-900/70">Conseil personnalisé et commande instantanée.</p>
+                  <p className="text-xs text-emerald-900/70">Conseils d'associations, commandes express et photos réelles sur demande.</p>
                 </div>
-                <div className="p-3 bg-emerald-700 text-white rounded-xl group-hover:scale-105 transition-transform shadow-sm">
+                <div className="p-3 bg-emerald-700 text-white rounded-xl group-hover:scale-105 transition-transform">
                   <MessageCircle size={20} />
                 </div>
               </button>
 
-              {/* Email */}
               <a
                 href={`mailto:${EMAIL_CONTACT}`}
-                className="p-6 rounded-2xl bg-white border border-stone-200/80 hover:border-amber-800/40 hover:-translate-y-0.5 transition-all duration-300 text-left flex items-start justify-between group block shadow-sm"
+                className="p-6 rounded-2xl bg-white border border-stone-200/80 hover:border-amber-800/40 transition-all duration-300 text-left flex items-start justify-between group block shadow-xs"
               >
                 <div className="space-y-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-stone-500">Service Courrier</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Courrier Électronique</span>
                   <p className="text-xs text-amber-900 font-medium">{EMAIL_CONTACT}</p>
                 </div>
                 <div className="p-3 bg-stone-100 text-stone-700 rounded-xl group-hover:scale-105 transition-transform">
@@ -175,42 +272,40 @@ const APropos = () => {
                 </div>
               </a>
 
-              {/* Infos Clés */}
-              <div className="p-6 rounded-2xl bg-white border border-stone-200/80 space-y-3.5 shadow-sm">
+              <div className="p-6 rounded-2xl bg-white border border-stone-200/80 space-y-4 shadow-xs">
                 <div className="flex items-center gap-3 text-stone-700">
                   <MapPin size={18} className="text-amber-800 shrink-0" />
                   <span className="text-xs font-medium">{ADRESSE}</span>
                 </div>
                 <div className="flex items-center gap-3 text-stone-600 text-xs">
                   <Clock size={18} className="text-amber-800 shrink-0" />
-                  <span>Du Lundi au Samedi : 09h00 – 19h00</span>
+                  <span>Du Lundi au Samedi : 08h30 – 19h30</span>
                 </div>
               </div>
-
             </div>
 
-            {/* FORMULAIRE DE MESSAGE (3 COLONNES) */}
-            <div className="lg:col-span-3 bg-white border border-stone-200/80 p-8 rounded-2xl shadow-sm">
-              <h3 className="text-lg font-serif font-bold text-stone-900 mb-6">Transmettre un message</h3>
+            {/* FORMULAIRE DE CONTACT */}
+            <div className="lg:col-span-3 bg-white border border-stone-200/80 p-8 sm:p-10 rounded-2xl shadow-xs">
+              <h3 className="text-xl font-serif font-medium text-stone-900 mb-6">Envoyer une demande</h3>
 
               {submitted && (
-                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-3 animate-in fade-in duration-300">
+                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-3">
                   <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-                  <span>Votre demande a été transmise avec succès. Notre équipe vous répondra sous 24h.</span>
+                  <span>Votre message a été transmis à notre conciergerie. Nous vous répondrons dans les plus brefs délais.</span>
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Nom complet *</label>
+                    <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Nom & Prénom *</label>
                     <input
                       type="text"
                       required
                       value={formData.nom}
                       onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                      placeholder="Votre nom"
-                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
+                      placeholder="Ex: Sarah Mensah"
+                      className="w-full bg-[#FAF8F5] border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
                     />
                   </div>
 
@@ -222,19 +317,19 @@ const APropos = () => {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="votre@email.com"
-                      className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
+                      className="w-full bg-[#FAF8F5] border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Sujet de la demande</label>
+                  <label className="text-[11px] font-medium uppercase tracking-wider text-stone-500">Objet de la demande</label>
                   <input
                     type="text"
                     value={formData.sujet}
                     onChange={(e) => setFormData({ ...formData, sujet: e.target.value })}
-                    placeholder="Conseil bijou, suivi de livraison..."
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
+                    placeholder="Ex: Conseils tailles, suivi de commande..."
+                    className="w-full bg-[#FAF8F5] border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
                   />
                 </div>
 
@@ -245,18 +340,18 @@ const APropos = () => {
                     rows={4}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Détaillez votre demande..."
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all resize-none"
+                    placeholder="Précisez votre demande ici..."
+                    className="w-full bg-[#FAF8F5] border border-stone-200 rounded-xl px-4 py-3 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:border-amber-800 focus:bg-white transition-all resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={envoiEnCours}
-                  className="w-full bg-amber-800 hover:bg-amber-900 active:scale-[0.99] text-white font-semibold py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  className="w-full bg-stone-900 hover:bg-amber-900 active:scale-[0.99] text-white font-medium py-3.5 px-6 rounded-xl text-xs uppercase tracking-[0.2em] transition-all duration-300 shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 >
                   {envoiEnCours ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-                  {envoiEnCours ? 'Envoi en cours...' : 'Envoyer la demande'}
+                  {envoiEnCours ? 'Transmission...' : 'Transmettre à la Maison'}
                 </button>
               </form>
             </div>
@@ -267,6 +362,4 @@ const APropos = () => {
       </div>
     </div>
   );
-};
-
-export default APropos;
+}

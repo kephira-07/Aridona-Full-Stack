@@ -5,8 +5,6 @@ import {
   Newspaper,
   Pencil,
   Trash2,
-  Upload,
-  X,
   Loader2,
   Sparkles,
   Image as ImageIcon,
@@ -17,6 +15,7 @@ import { toast } from 'react-toastify';
 
 export default function Articles({ token }) {
   const [articles, setArticles] = useState([]);
+  const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [titre, setTitre] = useState('');
@@ -26,9 +25,7 @@ export default function Articles({ token }) {
   const [publie, setPublie] = useState(false);
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
-  const [alt, setAlt] = useState('');
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [produitId, setProduitId] = useState('');
 
   const [idEdition, setIdEdition] = useState(null);
 
@@ -44,25 +41,17 @@ export default function Articles({ token }) {
     }
   };
 
-  useEffect(() => { fetchArticles(); }, []);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
+  const fetchProduits = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/produit/list`);
+      if (response.data.success) setProduits(response.data.produits || []);
+    } catch (err) {
+      console.error("Erreur chargement produits:", err.message);
+      toast.error("Impossible de charger les produits.");
     }
   };
 
-  const handleRemoveImage = () => {
-    setImage(null);
-    if (idEdition) {
-      const current = articles.find((a) => a._id === idEdition);
-      setPreview(current ? current.image?.url : null);
-    } else {
-      setPreview(null);
-    }
-  };
+  useEffect(() => { fetchArticles(); fetchProduits(); }, []);
 
   const chargerEdition = (article) => {
     setIdEdition(article._id);
@@ -73,17 +62,14 @@ export default function Articles({ token }) {
     setPublie(Boolean(article.publie));
     setMetaTitle(article.metaTitle || '');
     setMetaDescription(article.metaDescription || '');
-    setAlt(article.image?.alt || '');
-    setPreview(article.image?.url || null);
-    setImage(null);
+    setProduitId(article.produit?._id || article.produit || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const annulerEdition = () => {
     setIdEdition(null);
     setTitre(''); setExtrait(''); setContenu(''); setTagsInput('');
-    setPublie(false); setMetaTitle(''); setMetaDescription(''); setAlt('');
-    setImage(null); setPreview(null);
+    setPublie(false); setMetaTitle(''); setMetaDescription(''); setProduitId('');
   };
 
   const handleSubmit = async (e) => {
@@ -93,8 +79,8 @@ export default function Articles({ token }) {
       toast.warning("Titre, extrait et contenu sont obligatoires.");
       return;
     }
-    if (!idEdition && !image) {
-      toast.warning("Veuillez sélectionner une image de couverture.");
+    if (!produitId) {
+      toast.warning("Veuillez sélectionner un produit.");
       return;
     }
 
@@ -107,8 +93,7 @@ export default function Articles({ token }) {
     formData.append('publie', publie ? 'true' : 'false');
     formData.append('metaTitle', metaTitle);
     formData.append('metaDescription', metaDescription);
-    formData.append('alt', alt);
-    if (image) formData.append('image', image);
+    formData.append('produitId', produitId);
 
     try {
       let response;
@@ -257,42 +242,32 @@ export default function Articles({ token }) {
               />
             </div>
 
-            {/* Image */}
+            {/* Produit source de l'image */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Image de couverture {idEdition && "(Optionnelle)"}
+                Produit associé *
               </label>
-              {preview ? (
-                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-stone-200 group">
-                  <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
-                  {image && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <label className="w-full h-32 border-2 border-dashed border-stone-200 hover:border-amber-700/60 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-stone-50/50 hover:bg-amber-50/20 transition-all text-center p-4 group">
-                  <div className="p-2.5 rounded-full bg-white border border-stone-200 group-hover:border-amber-600/40 text-stone-400 group-hover:text-amber-700 transition-all mb-2 shadow-xs">
-                    <Upload size={16} />
+              <select
+                value={produitId}
+                onChange={(e) => setProduitId(e.target.value)}
+                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                required
+              >
+                <option value="">Choisir un produit existant</option>
+                {produits.map((produit) => (
+                  <option key={produit._id} value={produit._id}>{produit.nom}</option>
+                ))}
+              </select>
+              {produitId && (() => {
+                const produit = produits.find((item) => item._id === produitId);
+                const imageUrl = produit?.image?.[0]?.url || produit?.image?.[0];
+                return imageUrl ? (
+                  <div className="mt-3 flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 p-2">
+                    <img src={imageUrl} alt={produit.nom} className="h-16 w-16 rounded-lg object-cover" />
+                    <p className="text-xs text-stone-600">Image reprise automatiquement depuis ce produit.</p>
                   </div>
-                  <span className="text-xs font-medium text-stone-600 group-hover:text-stone-900">
-                    Cliquez pour choisir une image
-                  </span>
-                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" required={!idEdition} />
-                </label>
-              )}
-              <input
-                type="text"
-                value={alt}
-                onChange={(e) => setAlt(e.target.value)}
-                placeholder="Texte alternatif de l'image (SEO)"
-                className="w-full mt-2 border border-stone-200 bg-stone-50/30 rounded-lg px-3 py-2 text-[11px] outline-none focus:bg-white focus:border-stone-900 transition-all"
-              />
+                ) : null;
+              })()}
             </div>
 
             {/* SEO */}
@@ -382,8 +357,8 @@ export default function Articles({ token }) {
                 }`}
               >
                 <div className="w-14 h-14 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 shrink-0">
-                  {article.image?.url ? (
-                    <img src={article.image.url} alt={article.image.alt} className="w-full h-full object-cover" />
+                  {(article.image?.url || article.produit?.image?.[0]?.url) ? (
+                    <img src={article.image?.url || article.produit.image[0].url} alt={article.image?.alt || article.produit.nom} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-stone-400">
                       <ImageIcon size={16} />

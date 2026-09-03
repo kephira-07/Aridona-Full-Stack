@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 
 # Interdire l'indexation des pages privées et processus d'achat
+Disallow: /admin/
+Disallow: /api/
 Disallow: /panier
 Disallow: /commander
 Disallow: /commande-confirmee

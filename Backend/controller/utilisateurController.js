@@ -25,7 +25,17 @@ const googleLogin = async (req, res) => {
       return res.status(400).json({ success: false, message: "Jeton d'accès Google manquant." });
     }
 
-    // Récupérer les infos utilisateur auprès de Google
+    // Vérifier que le token appartient bien à cette application Google.
+    const tokenInfo = await axios.get('https://oauth2.googleapis.com/tokeninfo', {
+      params: { access_token },
+    });
+    if (process.env.GOOGLE_CLIENT_ID && tokenInfo.data.aud !== process.env.GOOGLE_CLIENT_ID) {
+      return res.status(401).json({ success: false, message: 'Token Google non autorisé.' });
+    }
+    if (tokenInfo.data.email_verified !== 'true') {
+      return res.status(401).json({ success: false, message: 'Adresse Google non vérifiée.' });
+    }
+
     const googleRes = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo`, {
       headers: { Authorization: `Bearer ${access_token}` }
     });
@@ -133,12 +143,18 @@ const adminLogin = async (req, res) => {
     const { email, password } = req.body;
 
     const adminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase() : '';
+
+    if (!email || !password || !adminEmail || !process.env.ADMIN_PASSWORD_HASH) {
+      return res.status(401).json({ success: false, message: "Email ou mot de passe incorrect." });
+    }
     
     if (email.toLowerCase() !== adminEmail) {
       return res.status(401).json({ success: false, message: "Email ou mot de passe incorrect." });
     }
 
-    const isMatch = (password === process.env.ADMIN_PASSWORD);
+    const isMatch = process.env.ADMIN_PASSWORD_HASH
+      ? await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH)
+      : false;
     
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Email ou mot de passe incorrect." });

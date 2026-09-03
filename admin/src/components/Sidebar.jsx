@@ -106,6 +106,14 @@ const Sidebar = () => {
   <span>Journal / Blog</span>
 </NavLink>
 
+<NavLink to="/packs" className={({ isActive }) => `
+            flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group
+            ${isActive ? 'bg-slate-950 text-white shadow-sm font-semibold' : 'text-gray-500 hover:text-slate-900 hover:bg-gray-50'}
+          `}>
+  <span className="text-lg leading-none">✦</span>
+  <span className="tracking-wide">Packs & Offres</span>
+</NavLink>
+
       </div>
 
       {/* Partie Basse : Informations de session ou copyright discret */}

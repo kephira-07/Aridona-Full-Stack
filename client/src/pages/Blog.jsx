@@ -75,12 +75,17 @@ const Blog = () => {
                 className="group flex flex-col"
               >
                 <div className="aspect-video overflow-hidden rounded-xl border border-stone-100 bg-stone-50">
+                  {(() => {
+                    const image = article.image?.url || article.produit?.image?.[0]?.url || article.produit?.image?.[0];
+                    return image ? (
                   <img
-                    src={article.image?.url}
-                    alt={article.image?.alt || article.titre}
+                    src={image}
+                    alt={article.image?.alt || article.produit?.nom || article.titre}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
+                    ) : null;
+                  })()}
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] text-stone-400 mt-3">
                   <Calendar size={12} />

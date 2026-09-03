@@ -176,7 +176,7 @@ export default function Hero() {
       <div className="max-w-10xl mx-auto">
     
         {/* ================= DESIGN PC ================= */}
-        <div className="hidden md:grid grid-cols-2 w-full md:aspect-[18/5.5] lg:aspect-[18/8.5]">
+        <div className="hidden md:grid grid-cols-2 w-full md:aspect-[18/8] ">
                     
           <div className="relative overflow-hidden group shadow-md flex items-center justify-center">
             <img 
@@ -188,9 +188,7 @@ export default function Hero() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent"></div>
             
             <div className="absolute inset-x-0 p-5 lg:p-8 flex flex-col items-center text-center z-10">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-amber-400 font-semibold mb-2 animate-pulse">
-                Livraison Express à Lomé, Togo
-              </span>
+             
               
               <h1 className="text-2xl lg:text-5xl font-serif font-light text-white mb-3 tracking-wide max-w-md leading-tight">
                 {images[0].title}

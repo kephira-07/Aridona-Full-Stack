@@ -4,6 +4,7 @@ import {
   listproduits,
   removeproduit,
   singleproduit,
+  singleproduitBySlug,
   updateproduit,
   searchProduits,
   changerStatutStock,
@@ -24,6 +25,7 @@ const uploadFields = upload.fields([
 
 // --- Routes Publiques (Catalogue du site) ---
 produitRouter.get('/list', listproduits);
+produitRouter.get('/single/slug/:slug', singleproduitBySlug);
 produitRouter.get('/single/:id', singleproduit);
 produitRouter.get('/search', searchProduits);
 produitRouter.get('/feed.xml', getProductFeed); // Google Merchant Center
