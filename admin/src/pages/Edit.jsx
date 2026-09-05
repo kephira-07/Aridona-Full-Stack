@@ -73,7 +73,13 @@ const Edit = ({ token }) => {
           }
 
           setMatiere(p.matiere || 'Acier Inoxydable');
-          setCouleurs(Array.isArray(p.couleurs) && p.couleurs.length > 0 ? p.couleurs : ['Doré']);
+          // "Or Rose" a été renommé en "Rosé" (voir enum du modèle) : les produits créés avant ce
+          // renommage doivent être remappés ici, sinon la valeur n'apparaît plus dans les boutons
+          // de sélection et resauvegarder le produit sans y toucher échoue en validation backend.
+          const couleursRemappees = (Array.isArray(p.couleurs) ? p.couleurs : [])
+            .map((c) => (c === 'Or Rose' ? 'Rosé' : c))
+            .filter((c) => availableColors.includes(c));
+          setCouleurs(couleursRemappees.length > 0 ? couleursRemappees : ['Doré']);
           setSizes(Array.isArray(p.sizes) ? p.sizes : []);
           setMeilleurVente(Boolean(p.meilleurVente));
           setMetaTitle(p.metaTitle || '');

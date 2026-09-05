@@ -27,9 +27,8 @@ const MeilleurVente = () => {
         <div className='text-center text-2xl sm:text-3xl pb-6 px-4'>
             <Titre text1='Nos Succès' text2='Meilleures Ventes' />
             
-            {/* 🎯 DESCRIPTIF CONCRET & CLAIR */}
             <p className='max-w-2xl mx-auto text-xs sm:text-sm font-dmsans text-stone-600 mt-2 leading-relaxed'>
-              Découvrez nos <strong className='font-medium text-stone-800'>bijoux en acier inoxydable 316L</strong> les plus demandés. Sélectionne tes bagues, bracelets et colliers favoris et profite d'une <strong className='font-medium text-amber-700'>livraison rapide à domicile</strong>.
+              Les bijoux que nos clientes recommandent le plus, en <strong className='font-medium text-stone-800'>acier inoxydable 316L</strong>. Faites confiance au choix du plus grand nombre. <strong className='font-medium text-amber-700'>Livraison rapide, à Lomé et partout au Togo.</strong>
             </p>
         </div>
         

@@ -25,7 +25,7 @@ const Footer = () => {
             </div>
 
             <p className="text-stone-400 font-light max-w-md leading-relaxed text-sm">
-              Maison de création de bijoux et haute joaillerie fine. Authentifiez-vous pour gérer vos commandes, enregistrer vos pièces favorites et bénéficier d'une expérience personnalisée.
+              Bijoux en acier inoxydable 316L, waterproof et hypoallergéniques, pensés pour tenir tête à votre quotidien. Créez un compte pour suivre vos commandes et retrouver vos pièces favorites.
             </p>
 
             <p className="text-stone-500 font-light max-w-sm leading-relaxed text-sm"> 
@@ -72,10 +72,10 @@ const Footer = () => {
                 ))
               ) : (
                 <>
-                  <li><Link onClick={scrollToTop} to="/collection" className="hover:text-amber-500 transition-colors duration-200">Haute Joaillerie</Link></li>
+                  <li><Link onClick={scrollToTop} to="/collection" className="hover:text-amber-500 transition-colors duration-200">Bagues</Link></li>
                   <li><Link onClick={scrollToTop} to="/collection" className="hover:text-amber-500 transition-colors duration-200">Colliers & Pendentifs</Link></li>
-                  <li><Link onClick={scrollToTop} to="/collection" className="hover:text-amber-500 transition-colors duration-200">Bagues & Alliances</Link></li>
                   <li><Link onClick={scrollToTop} to="/collection" className="hover:text-amber-500 transition-colors duration-200">Bracelets</Link></li>
+                  <li><Link onClick={scrollToTop} to="/collection" className="hover:text-amber-500 transition-colors duration-200">Boucles d'Oreilles</Link></li>
                 </>
               )}
             </ul>
@@ -87,7 +87,7 @@ const Footer = () => {
             <ul className="space-y-3.5 text-sm font-light text-stone-400">
               <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Notre Histoire</Link></li>
               <li><Link onClick={scrollToTop} to="/blog" className="hover:text-amber-500 transition-colors duration-200">Journal</Link></li>
-              <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Prendre rendez-vous</Link></li>
+              <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Livraison & Délais</Link></li>
               <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Guide des Tailles</Link></li>
               <li><Link onClick={scrollToTop} to="/a-propos" className="hover:text-amber-500 transition-colors duration-200">Contact & Conciergerie</Link></li>
             </ul>

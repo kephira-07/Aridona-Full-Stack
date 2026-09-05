@@ -58,8 +58,8 @@ export default function Navbar() {
         </div>
 
         {/* --- VERSION DESKTOP --- */}
-        <div className={`hidden md:flex items-center justify-between px-12 lg:px-20 h-20 transition-all duration-300 ${
-          isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-white'
+        <div className={`hidden md:flex items-center justify-between px-12 lg:px-20  transition-all duration-300 ${
+          isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm h-15' : ' bg-white h-20'
         }`}>
           {/* Logo */}
           <div className={`transition-all duration-500 ${isScrolled ? 'scale-90' : 'scale-100'}`}>

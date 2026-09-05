@@ -31,7 +31,7 @@ const Blog = () => {
     <div className="min-h-screen bg-white">
       <Helmet>
         <title>Journal | ARIDONA Bijoux</title>
-        <meta name="description" content="Conseils d'entretien, guides et actualités d'Aridona Bijoux : tout sur nos créations en acier inoxydable." />
+        <meta name="description" content="Conseils d'entretien, guides et actualités d'Aridona Bijoux : tout sur nos bijoux en acier inoxydable." />
         <link rel="canonical" href="https://aridona.store/blog" />
         <meta property="og:title" content="Journal | ARIDONA Bijoux" />
         <meta property="og:description" content="Conseils d'entretien, guides et actualités d'Aridona Bijoux." />
@@ -44,7 +44,7 @@ const Blog = () => {
         <div className="text-center mt-6 mb-12">
           <Titre text1="Aridona Bijoux" text2="Le Journal" />
           <p className="text-sm text-stone-500 max-w-xl mx-auto mt-2">
-            Conseils d'entretien, guides et histoires autour de nos créations en acier inoxydable.
+            Conseils d'entretien, guides et histoires autour de nos bijoux en acier inoxydable.
           </p>
         </div>
 

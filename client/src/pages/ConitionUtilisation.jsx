@@ -83,10 +83,11 @@ const articles = [
     body: (
       <p>
         Les livraisons sont effectuées à l'adresse communiquée par le Client lors de la
-        confirmation de commande. Les délais indiqués sont donnés à titre indicatif et
-        dépendent de la zone géographique et du prestataire de messagerie. Aridona Bijoux ne
-        saurait être tenu responsable d'un retard imputable à un tiers transporteur ou à une
-        adresse erronée fournie par le Client.
+        confirmation de commande. À Lomé, le délai habituel est de 24 à 48 heures ; dans les
+        autres villes du Togo, il est de 2 à 5 jours ouvrés. Ces délais sont donnés à titre
+        indicatif et dépendent du prestataire de messagerie. Aridona Bijoux ne saurait être
+        tenu responsable d'un retard imputable à un tiers transporteur ou à une adresse
+        erronée fournie par le Client.
       </p>
     ),
   },
@@ -127,7 +128,7 @@ const articles = [
     title: 'Avis clients',
     body: (
       <p>
-        Les avis laissés sur nos créations sont modérés avant publication et doivent refléter
+        Les avis laissés sur nos bijoux sont modérés avant publication et doivent refléter
         une expérience sincère avec le produit ou le service. Aridona Bijoux se réserve le
         droit de refuser ou de retirer tout avis mensonger, injurieux, hors sujet ou contraire
         à la loi. Un avis peut être supprimé à la demande de son auteur, dans les conditions

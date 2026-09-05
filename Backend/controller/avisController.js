@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import avisModel from '../models/avisModel.js';
 import produitModel from '../models/produitModel.js';
 
@@ -12,9 +13,13 @@ const ajouterAvis = async (req, res) => {
       return res.status(400).json({ success: false, message: "Les champs nom, note et commentaire sont obligatoires." });
     }
 
+    if (!mongoose.isValidObjectId(produitId)) {
+      return res.status(400).json({ success: false, message: "Identifiant produit invalide." });
+    }
+
     const noteNum = Number(note);
-    if (!Number.isFinite(noteNum) || noteNum < 1 || noteNum > 5) {
-      return res.status(400).json({ success: false, message: "La note doit être comprise entre 1 et 5." });
+    if (!Number.isInteger(noteNum) || noteNum < 1 || noteNum > 5) {
+      return res.status(400).json({ success: false, message: "La note doit être un entier compris entre 1 et 5." });
     }
 
     const produit = await produitModel.exists({ _id: produitId });
@@ -45,6 +50,10 @@ const ajouterAvis = async (req, res) => {
 const listAvisProduit = async (req, res) => {
   try {
     const { produitId } = req.params;
+
+    if (!mongoose.isValidObjectId(produitId)) {
+      return res.status(400).json({ success: false, message: "Identifiant produit invalide." });
+    }
 
     const avis = await avisModel.find({ produit: produitId, approuve: true }).sort({ createdAt: -1 });
 

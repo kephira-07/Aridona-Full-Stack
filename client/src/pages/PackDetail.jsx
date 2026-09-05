@@ -1,6 +1,6 @@
 import { startTransition, useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Gift, MessageCircle, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Gift, ShoppingBag, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { ShopContext } from '../context/ShopContext';
@@ -13,7 +13,7 @@ const getImageUrl = (image) => {
 
 export default function PackDetail() {
   const { slug } = useParams();
-  const { backendUrl, whatsappNum } = useContext(ShopContext);
+  const { backendUrl, ajouterPackAuPanier } = useContext(ShopContext);
   const [pack, setPack] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -30,11 +30,9 @@ export default function PackDetail() {
       .finally(() => setLoading(false));
   }, [backendUrl, slug]);
 
-  const orderPack = () => {
+  const handleAjouterPanier = () => {
     if (!pack) return;
-    const composition = pack.produits.map(({ produit, quantite }) => `${produit.nom} x${quantite}`).join(', ');
-    const message = `Bonjour Aridona Bijoux !\n\nJe souhaite commander le pack « ${pack.nom} ».\nComposition : ${composition}\nPrix : ${Number(pack.prix).toLocaleString('fr-FR')} XOF\n\nMerci de me confirmer la disponibilité et la livraison.`;
-    window.open(`https://wa.me/${whatsappNum || '22872656485'}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+    ajouterPackAuPanier(pack);
   };
 
   if (loading) return <div className="py-40 text-center text-sm text-stone-500" role="status">Chargement du pack...</div>;
@@ -54,7 +52,7 @@ export default function PackDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FCFBFA] px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FCFBFA] px-4 py-4 sm:px-6 lg:px-8">
       <Helmet>
         <title>{pack.nom} | Packs Aridona Bijoux</title>
         <meta name="description" content={pack.description} />
@@ -64,10 +62,10 @@ export default function PackDetail() {
         <meta property="og:type" content="product" />
         <meta property="og:url" content={`https://aridona.store/pack/${pack.slug}`} />
       </Helmet>
-
+        <BoutonRetour/>
       <div className="mx-auto max-w-6xl">
         {/* Lien de retour */}
-       <BoutonRetour/>
+    
 
         <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
           
@@ -110,23 +108,23 @@ export default function PackDetail() {
               </ul>
             </div>
 
-            {/* Prix et CTA WhatsApp */}
+            {/* Prix et CTA panier */}
             <div className="mt-8 flex items-center justify-between gap-4 pt-6 border-t border-stone-200">
               <div>
                 <span className="block text-xs text-stone-400 uppercase tracking-wider">Prix du pack</span>
                 <span className="text-3xl font-semibold text-stone-900">{Number(pack.prix).toLocaleString('fr-FR')} FCFA</span>
               </div>
-              <button 
-                type="button" 
-                onClick={orderPack} 
-                className="inline-flex items-center gap-2 rounded-full bg-green-900 px-6 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-amber-900 shadow-sm"
+              <button
+                type="button"
+                onClick={handleAjouterPanier}
+                className="inline-flex items-center gap-2 rounded-full bg-amber-900 px-6 py-3.5 text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-amber-950 shadow-sm"
               >
-                <MessageCircle size={16} /> Commander
+                <ShoppingBag size={16} /> Ajouter au panier
               </button>
             </div>
 
             <p className="mt-4 flex items-center gap-1.5 text-xs text-stone-500">
-              <CheckCircle2 size={50} className="text-emerald-700" /> Commande et confirmation directes avec Aridona sur WhatsApp.
+              <CheckCircle2 size={50} className="text-emerald-700" /> Commande enregistrée puis confirmée avec Aridona sur WhatsApp.
             </p>
           </div>
 

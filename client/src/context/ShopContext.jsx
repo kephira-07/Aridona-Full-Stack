@@ -16,7 +16,8 @@ const ShopContextProvider = (props) => {
   const [whatsappNum, setWhatsappNum] = useState('22872656485');
 
   const [produits, setProduits] = useState(produitsMock);
-  const [categories, setCategories] = useState([]); 
+  const [categories, setCategories] = useState([]);
+  const [packs, setPacks] = useState([]);
   
   const [recherche, setRecherche] = useState('');
   const [montreRecherche, setMontreRecherche] = useState(false);
@@ -25,15 +26,66 @@ const ShopContextProvider = (props) => {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [panierOuvert, setPanierOuvert] = useState(false);
 
+  // 🩹 Migration silencieuse : d'anciennes versions du code stockaient "Taille Unique"
+  // au lieu de "Unique" pour les bijoux sans déclinaison (bug corrigé). On fusionne toute
+  // clé héritée dans "Unique" pour ne pas laisser des paniers déjà enregistrés (invités
+  // en localStorage, clients en MongoDB) avec un affichage cassé ("Taille: Taille Unique").
+  const normaliserPanier = (panier) => {
+    const resultat = structuredClone(panier || {});
+    const produitsMigres = [];
+    for (const produitId in resultat) {
+      const tailles = resultat[produitId];
+      if (tailles && Object.prototype.hasOwnProperty.call(tailles, 'Taille Unique')) {
+        const quantiteHeritee = tailles['Taille Unique'];
+        tailles['Unique'] = (tailles['Unique'] || 0) + quantiteHeritee;
+        delete tailles['Taille Unique'];
+        produitsMigres.push({ produitId, quantite: tailles['Unique'] });
+      }
+    }
+    return { panier: resultat, produitsMigres };
+  };
+
   // 🛒 Panier initialisé avec le localStorage (pour les invités)
   const [panierProduits, setPanierProduits] = useState(() => {
     try {
       const localCart = localStorage.getItem('panierProduits');
-      return localCart ? JSON.parse(localCart) : {};
+      const parsed = localCart ? JSON.parse(localCart) : {};
+      return normaliserPanier(parsed).panier;
     } catch (e) {
       return {};
     }
   });
+
+  // 🩹 Migration silencieuse : une version antérieure stockait un objet enrichi
+  // {quantite, nom, prix, image, slug} par pack au lieu d'une simple quantité — d'anciens
+  // paniers en localStorage peuvent encore contenir cette forme et faire planter le rendu
+  // (React refuse d'afficher un objet). On ne garde que la quantité, quelle que soit la forme.
+  const normaliserPanierPacks = (panier) => {
+    const resultat = {};
+    for (const packId in panier || {}) {
+      const valeur = panier[packId];
+      const quantite = valeur && typeof valeur === 'object' ? Number(valeur.quantite) || 0 : Number(valeur) || 0;
+      if (quantite > 0) resultat[packId] = quantite;
+    }
+    return resultat;
+  };
+
+  // 🎁 Panier des packs — { [packId]: quantite }, même principe que panierProduits/produits :
+  // seule la quantité est stockée, l'affichage se résout via la liste `packs` chargée à part.
+  const [panierPacks, setPanierPacks] = useState(() => {
+    try {
+      const localPacks = localStorage.getItem('panierPacks');
+      return normaliserPanierPacks(localPacks ? JSON.parse(localPacks) : {});
+    } catch (e) {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    if (!token) {
+      localStorage.setItem('panierPacks', JSON.stringify(panierPacks));
+    }
+  }, [panierPacks, token]);
 
   // ❤️ Favoris conservés dans le localStorage
   const [favoris, setFavoris] = useState(() => {
@@ -86,14 +138,45 @@ const ShopContextProvider = (props) => {
     }
   };
 
-  // 🛰️ APPEL API : Récupération du panier utilisateur
+  // 🛰️ APPEL API : Charger les packs
+  const getPacksData = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/packs`);
+      if (response.data.success) {
+        setPacks(response.data.packs || []);
+      }
+    } catch (error) {
+      console.warn("Impossible de charger les packs depuis le serveur.");
+    }
+  };
+
+  // 🛰️ APPEL API : Récupération du panier utilisateur (produits + packs)
   const getUserCart = async (authToken) => {
     try {
-      const response = await axios.get(`${backendUrl}/api/utilisateur/panier`, { 
-        headers: { token: authToken } 
+      const response = await axios.get(`${backendUrl}/api/utilisateur/panier`, {
+        headers: { token: authToken }
       });
       if (response.data.success && response.data.cartData) {
-        setPanierProduits(response.data.cartData);
+        const { panier, produitsMigres } = normaliserPanier(response.data.cartData);
+        setPanierProduits(panier);
+
+        // Corrige durablement en base les paniers enregistrés avant le correctif.
+        // Séquentiel (pas Promise.all) : chaque appel relit puis réécrit tout cartData
+        // côté serveur, donc des requêtes concurrentes pourraient s'écraser entre elles.
+        for (const { produitId, quantite } of produitsMigres) {
+          try {
+            await axios.post(
+              `${backendUrl}/api/utilisateur/panier/update`,
+              { itemId: produitId, oldSize: 'Taille Unique', size: 'Unique', quantity: quantite },
+              { headers: { token: authToken } }
+            );
+          } catch (error) {
+            console.error("Erreur migration panier BDD :", error);
+          }
+        }
+      }
+      if (response.data.success && response.data.cartPacks) {
+        setPanierPacks(normaliserPanierPacks(response.data.cartPacks));
       }
     } catch (error) {
       console.error("Erreur récupération panier BDD :", error);
@@ -117,6 +200,7 @@ const ShopContextProvider = (props) => {
   useEffect(() => {
     getProductsData();
     getCategoriesData();
+    getPacksData();
     getSiteConfig();
   }, []);
 
@@ -181,19 +265,20 @@ const ShopContextProvider = (props) => {
     } else if (declinaisons.length === 1) {
       tailleFinale = declinaisons[0];
     } else {
-      tailleFinale = size || 'Taille Unique';
+      tailleFinale = size || 'Unique';
     }
 
-    // Mise à jour du state local
-    let panierData = structuredClone(panierProduits);
-
-    if (!panierData[produitId]) {
-      panierData[produitId] = {};
-    }
-
-    panierData[produitId][tailleFinale] = (panierData[produitId][tailleFinale] || 0) + 1;
-
-    setPanierProduits(panierData);
+    // Mise à jour du state local — forme fonctionnelle : lit toujours le panier le plus
+    // récent, sinon deux ajouts rapprochés (deux clics, deux produits) peuvent s'écraser
+    // l'un l'autre au lieu de s'additionner (le second écrasait le premier).
+    setPanierProduits((panierActuel) => {
+      const panierData = structuredClone(panierActuel);
+      if (!panierData[produitId]) {
+        panierData[produitId] = {};
+      }
+      panierData[produitId][tailleFinale] = (panierData[produitId][tailleFinale] || 0) + 1;
+      return panierData;
+    });
     toast.success("Bijou ajouté au panier !");
     setPanierOuvert(true);
 
@@ -215,22 +300,20 @@ const ShopContextProvider = (props) => {
 const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
   if (!listeProduitsFavoris || listeProduitsFavoris.length === 0) return;
 
-  // 1. Cloner le panier actuel
-  let panierData = structuredClone(panierProduits);
+  // 1-3. Clone + fusion + mise à jour en une seule passe, sur le panier le plus récent
+  setPanierProduits((panierActuel) => {
+    const panierData = structuredClone(panierActuel);
+    listeProduitsFavoris.forEach((item) => {
+      const idProduit = item._id || item.id;
+      const tailleClf = 'Unique';
 
-  // 2. Ajouter tous les produits favoris dans l'objet panier local
-  listeProduitsFavoris.forEach((item) => {
-    const idProduit = item._id || item.id;
-    const tailleClf = 'Taille Unique';
-
-    if (!panierData[idProduit]) {
-      panierData[idProduit] = {};
-    }
-    panierData[idProduit][tailleClf] = (panierData[idProduit][tailleClf] || 0) + 1;
+      if (!panierData[idProduit]) {
+        panierData[idProduit] = {};
+      }
+      panierData[idProduit][tailleClf] = (panierData[idProduit][tailleClf] || 0) + 1;
+    });
+    return panierData;
   });
-
-  // 3. Mettre à jour l'état React en une seule fois
-  setPanierProduits(panierData);
   toast.success("Tous vos favoris ont été ajoutés au panier !");
   setPanierOuvert(true);
 
@@ -241,7 +324,7 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
         const idProduit = item._id || item.id;
         return axios.post(
           `${backendUrl}/api/utilisateur/panier/ajouter`,
-          { itemId: idProduit, size: 'Taille Unique' },
+          { itemId: idProduit, size: 'Unique' },
           { headers: { token } }
         );
       });
@@ -255,33 +338,36 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
   const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) => {
     if (ancienneTaille === nouvelleTaille) return;
 
-    let panierData = structuredClone(panierProduits);
+    // La quantité fusionnée est capturée depuis l'updater (état le plus récent) pour être
+    // réutilisée ensuite dans la synchro BDD, hors de portée du setState lui-même.
+    let quantiteFusionnee = null;
 
-    if (panierData[produitId] && panierData[produitId][ancienneTaille]) {
+    setPanierProduits((panierActuel) => {
+      if (!panierActuel[produitId] || !panierActuel[produitId][ancienneTaille]) return panierActuel;
+
+      const panierData = structuredClone(panierActuel);
       const quantite = panierData[produitId][ancienneTaille];
 
-      // On supprime l'ancienne clé
       delete panierData[produitId][ancienneTaille];
-
-      // On fusionne avec la nouvelle clé
       panierData[produitId][nouvelleTaille] = (panierData[produitId][nouvelleTaille] || 0) + quantite;
+      quantiteFusionnee = panierData[produitId][nouvelleTaille];
 
-      setPanierProduits(panierData);
+      return panierData;
+    });
 
-      if (token) {
-        try {
-          await axios.post(
-            `${backendUrl}/api/utilisateur/panier/update`,
-            { itemId: produitId, oldSize: ancienneTaille, newSize: nouvelleTaille, size: nouvelleTaille, quantity: quantite },
-            { headers: { token } }
-          );
-        } catch (error) {
-          console.error("Erreur lors de la mise à jour de la taille :", error);
-        }
+    if (quantiteFusionnee !== null && token) {
+      try {
+        await axios.post(
+          `${backendUrl}/api/utilisateur/panier/update`,
+          { itemId: produitId, oldSize: ancienneTaille, newSize: nouvelleTaille, size: nouvelleTaille, quantity: quantiteFusionnee },
+          { headers: { token } }
+        );
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour de la taille :", error);
       }
     }
   };
-  // Nombre d'articles totaux dans le panier
+  // Nombre d'articles totaux dans le panier (produits + packs)
   const getPanierCount = () => {
     let totalCount = 0;
     for (const items in panierProduits) {
@@ -295,18 +381,93 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
         }
       }
     }
+    for (const packId in panierPacks) {
+      if (panierPacks[packId] > 0) totalCount += panierPacks[packId];
+    }
     return totalCount;
+  };
+
+  // 🎁 Ajouter un pack au panier (toujours +1 ; l'ajustement fin se fait dans le panier)
+  const ajouterPackAuPanier = async (pack) => {
+    if (!pack || !pack._id) {
+      toast.error("Pack introuvable.");
+      return;
+    }
+
+    setPanierPacks((prev) => ({ ...prev, [pack._id]: (prev[pack._id] || 0) + 1 }));
+    toast.success("Pack ajouté au panier !");
+    setPanierOuvert(true);
+
+    if (token) {
+      try {
+        await axios.post(
+          `${backendUrl}/api/utilisateur/panier/pack/ajouter`,
+          { packId: pack._id },
+          { headers: { token } }
+        );
+      } catch (error) {
+        console.error("Erreur lors de la synchro panier de packs BDD :", error);
+      }
+    }
+  };
+
+  // 🎁 Modifier la quantité d'un pack dans le panier (0 ou moins = suppression)
+  const updateQuantityPack = async (packId, quantity) => {
+    setPanierPacks((prev) => {
+      if (quantity <= 0) {
+        const reste = { ...prev };
+        delete reste[packId];
+        return reste;
+      }
+      return { ...prev, [packId]: quantity };
+    });
+
+    if (token) {
+      try {
+        await axios.post(
+          `${backendUrl}/api/utilisateur/panier/pack/update`,
+          { packId, quantity },
+          { headers: { token } }
+        );
+      } catch (error) {
+        console.error("Erreur modification quantité pack BDD :", error);
+      }
+    }
+  };
+
+  // 🎁 Retirer un pack du panier
+  const supprimerPackDuPanier = async (packId) => {
+    setPanierPacks((prev) => {
+      const reste = { ...prev };
+      delete reste[packId];
+      return reste;
+    });
+    toast.success("Pack supprimé du panier !");
+
+    if (token) {
+      try {
+        await axios.post(
+          `${backendUrl}/api/utilisateur/panier/pack/supprimer`,
+          { packId },
+          { headers: { token } }
+        );
+      } catch (error) {
+        console.error("Erreur suppression pack panier BDD :", error);
+      }
+    }
   };
   const supprimerDuPanier = async (produitId, size) => {
   try {
-    let panierData = structuredClone(panierProduits);
-    if (panierData[produitId] && panierData[produitId][size]) {
-      delete panierData[produitId][size];
-      if (Object.keys(panierData[produitId]).length === 0) {
-        delete panierData[produitId];
+    setPanierProduits((panierActuel) => {
+      const panierData = structuredClone(panierActuel);
+      if (panierData[produitId] && panierData[produitId][size]) {
+        delete panierData[produitId][size];
+        if (Object.keys(panierData[produitId]).length === 0) {
+          delete panierData[produitId];
+        }
       }
-    }
-    setPanierProduits(panierData);
+      return panierData;
+    });
     toast.success("Article supprimé du panier !");
 
     // Synchronisation BDD uniquement pour les utilisateurs connectés (un invité n'a pas de panier serveur)
@@ -327,23 +488,25 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
 
   // Mettre à jour la quantité d'un article
   const updateQuantity = async (produitId, size, quantity) => {
-    let panierData = structuredClone(panierProduits);
+    setPanierProduits((panierActuel) => {
+      const panierData = structuredClone(panierActuel);
 
-    if (quantity <= 0) {
-      if (panierData[produitId]) {
-        delete panierData[produitId][size];
-        if (Object.keys(panierData[produitId]).length === 0) {
-          delete panierData[produitId];
+      if (quantity <= 0) {
+        if (panierData[produitId]) {
+          delete panierData[produitId][size];
+          if (Object.keys(panierData[produitId]).length === 0) {
+            delete panierData[produitId];
+          }
         }
+      } else {
+        if (!panierData[produitId]) {
+          panierData[produitId] = {};
+        }
+        panierData[produitId][size] = quantity;
       }
-    } else {
-      if (!panierData[produitId]) {
-        panierData[produitId] = {};
-      }
-      panierData[produitId][size] = quantity;
-    }
 
-    setPanierProduits(panierData);
+      return panierData;
+    });
 
     if (token) {
       try {
@@ -386,21 +549,23 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     return false;
   };
 
-  // Vider le panier
+  // Vider le panier (produits + packs)
   const viderPanier = () => {
     setPanierProduits({});
     localStorage.removeItem('panierProduits');
+    setPanierPacks({});
+    localStorage.removeItem('panierPacks');
   };
 
-  // Montant total du panier
+  // Montant total du panier (produits + packs)
   const getPanierMontant = () => {
     let totalMontant = 0;
     for (const items in panierProduits) {
-      let itemInfo = produits.find((produit) => 
+      let itemInfo = produits.find((produit) =>
         String(produit._id || produit.id) === String(items)
       );
 
-      if (itemInfo) { 
+      if (itemInfo) {
         for (const size in panierProduits[items]) {
           try {
             const qte = panierProduits[items][size];
@@ -414,13 +579,21 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
         }
       }
     }
+    for (const packId in panierPacks) {
+      const quantite = panierPacks[packId];
+      const packInfo = packs.find((p) => String(p._id) === String(packId));
+      if (packInfo && quantite > 0) {
+        totalMontant += (Number(packInfo.prix) || 0) * quantite;
+      }
+    }
     return totalMontant;
   };
 
   const value = {
-    produits, 
-    categories, 
-    monnaie, 
+    produits,
+    categories,
+    packs,
+    monnaie,
     delivery_free, 
     recherche, 
     setRecherche, 
@@ -446,10 +619,13 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     favoris, 
     setFavoris, 
     toggleFavori, 
-    panierOuvert, 
+    panierOuvert,
     setPanierOuvert,
     supprimerDuPanier,
-    
+    panierPacks,
+    ajouterPackAuPanier,
+    updateQuantityPack,
+    supprimerPackDuPanier,
   };
 
   return (

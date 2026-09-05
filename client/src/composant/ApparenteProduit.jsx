@@ -72,10 +72,10 @@ const ApparenteProduit = ({ categorie, matiere, actuelId }) => {
         {/* En-tête épuré */}
         <div className='text-center pb-8'>
           <div className='text-2xl sm:text-3xl tracking-wide'>
-            <Titre text1={'Créations'} text2={'Similaires'} />
+            <Titre text1={'Bijoux'} text2={'Similaires'} />
           </div>
           <p className='w-full sm:w-3/4 md:w-1/2 mx-auto text-xs sm:text-sm text-stone-500 font-light mt-2 italic leading-relaxed'>
-            Des designs complémentaires façonnés dans le même esprit d'exception pour parfaire votre parure.
+            Des pièces complémentaires, sélectionnées dans le même esprit, pour parfaire votre parure.
           </p>
         </div>
         

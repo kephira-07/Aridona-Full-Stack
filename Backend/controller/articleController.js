@@ -2,8 +2,8 @@ import articleModel from '../models/articleModel.js';
 import produitModel from '../models/produitModel.js';
 import mongoose from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
-import slugify from 'slugify';
 import fs from 'fs';
+import generateUniqueSlug from '../utils/slug.js';
 
 const cleanLocalFile = (file) => {
   if (file && file.path && fs.existsSync(file.path)) {
@@ -22,18 +22,6 @@ const getPublicIdFromUrl = (url) => {
   } catch {
     return null;
   }
-};
-
-// Génère un slug unique en ajoutant -2, -3... si le slug de base est déjà pris
-const generateUniqueSlug = async (titre, excludeId = null) => {
-  const baseSlug = slugify(titre, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
-  let slug = baseSlug;
-  let counter = 2;
-  while (await articleModel.exists(excludeId ? { slug, _id: { $ne: excludeId } } : { slug })) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
-  }
-  return slug;
 };
 
 const parseTags = (input) => {
@@ -71,7 +59,7 @@ const ajouterArticle = async (req, res) => {
 
     cleanLocalFile(imageFile);
 
-    const slug = await generateUniqueSlug(titre);
+    const slug = await generateUniqueSlug(articleModel, titre);
 
     const article = new articleModel({
       titre: titre.trim(),
@@ -157,7 +145,7 @@ const modifierArticle = async (req, res) => {
     }
     if (titre && titre.trim() !== article.titre) {
       updateData.titre = titre.trim();
-      updateData.slug = await generateUniqueSlug(titre, id);
+      updateData.slug = await generateUniqueSlug(articleModel, titre, id);
     }
     if (extrait) updateData.extrait = extrait.trim();
     if (contenu) updateData.contenu = contenu.trim();

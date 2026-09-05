@@ -104,7 +104,7 @@ const StructuredData = () => {
     "@context": "https://schema.org",
     "@type": "Store",
     "name": "ARIDONA Bijoux",
-    "description": "Boutique e-commerce spécialisée dans la vente de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets, boucles d'oreilles hypoallergéniques et waterproof, avec une livraison rapide à Lomé.",
+    "description": "Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets, boucles d'oreilles et parures waterproof et hypoallergéniques. Livraison rapide à Lomé et partout au Togo.",
     "image": [Heroimg1, Heroimg2, Heroimg3],
     "address": {
       "@type": "PostalAddress",
@@ -136,7 +136,7 @@ export default function Hero() {
   const [currentPcSlide, setCurrentPcSlide] = useState(0);
 
   const images = [
-    { id: 1, src: Heroimg1, title: 'Bijoux en Acier Inoxydable', alt: 'Collection de bijoux en acier inoxydable 316L pour femme et homme - ARIDONA Bijoux Lomé Togo' },
+    { id: 1, src: Heroimg1, title: 'Des Bijoux Inoxydables Qui Ne Vous Quittent Jamais', alt: 'Collection de bijoux en acier inoxydable 316L pour femme et homme - ARIDONA Bijoux Lomé Togo' },
     { id: 2, src: Heroimg2, title: 'Bague Ajustable Dorée', alt: 'Bague ajustable en acier inoxydable doré, résistante à l\'eau et hypoallergénique' },
     { id: 3, src: Heroimg3, title: 'Collier Résistant à l\'Eau', alt: 'Collier maille en acier inoxydable waterproof qui ne rouille pas ni ne ternit' },
     { id: 4, src: Heroimg4, title: 'Bracelet Jonc Hypoallergénique', alt: 'Bracelet jonc en acier chirurgical hypoallergénique pour peau sensible' },
@@ -171,7 +171,7 @@ export default function Hero() {
     <main className="w-full bg-[#fffaf5] overflow-hidden" itemScope itemType="https://schema.org/Store">
       <StructuredData />
       <meta itemProp="name" content="ARIDONA Bijoux" />
-      <meta itemProp="description" content="Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets et boucles d'oreilles, hypoallergéniques et waterproof, avec une livraison rapide à Lomé." />
+      <meta itemProp="description" content="Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets et boucles d'oreilles, hypoallergéniques et waterproof. Livraison rapide à Lomé et partout au Togo." />
 
       <div className="max-w-10xl mx-auto">
     
@@ -196,7 +196,7 @@ export default function Hero() {
 
             {/* Description enrichie : activité claire pour Google + argumentaire marketing */}
                     <p className="text-stone-200 font-light text-xs lg:text-sm max-w-lg mb-6 leading-relaxed">
-                      <strong className="text-amber-300 font-medium">ARIDONA Bijoux</strong> est une boutique en ligne de <strong className="text-amber-300 font-medium">bijoux en acier inoxydable 316L</strong> pour femme : bagues, colliers, bracelets, boucles d'oreilles, bracelets de bras (armelets), ceintures en chaînes, chaînes de lunettes et parures hypoallergéniques, waterproof et inoxydables. Parcourez nos collections, commandez en quelques clics et recevez vos bijoux <strong className="text-amber-300 font-medium">rapidement à Lomé</strong>.
+                      Douche, mer, piscine, transpiration : la vie ne s'arrête pas pour un bijou. Nos bijoux en <strong className="text-amber-300 font-medium">acier inoxydable 316L</strong> — bagues, colliers, bracelets, boucles d'oreilles et parures — sont <strong className="text-amber-300 font-medium">waterproof et sans nickel</strong>, et gardent leur éclat des années sans jamais noircir votre peau. Commandez en quelques clics : <strong className="text-amber-300 font-medium">livraison rapide, à Lomé et partout au Togo</strong>.
                     </p>
               
               <Link 
@@ -289,7 +289,7 @@ export default function Hero() {
 
             {/* Description enrichie mobile : activité claire pour Google + argumentaire marketing */}
             <p className="text-stone-200 font-light text-[11px] max-w-xs mb-4 leading-relaxed">
-              ARIDONA Bijoux : vente en ligne de bijoux en acier inoxydable 316L (bijoux en acier inoxydable 316L<strong> pour femme : bagues, colliers, bracelets, boucles d'oreilles, bracelets de bras (armelets), ceintures chaînes, chaînes de lunettes et parures de bijoux ), hypoallergéniques et waterproof. Commandez et recevez rapidement à Lomé</strong>.
+              Waterproof, sans nickel, un éclat qui dure : nos bijoux en <strong>acier inoxydable 316L</strong> vous suivent partout, sans jamais noircir. <strong>Livraison rapide, à Lomé et partout au Togo.</strong>
             </p>
             
             <Link 

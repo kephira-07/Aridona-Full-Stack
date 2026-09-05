@@ -1,7 +1,10 @@
 import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema({
-    _id: { type: mongoose.Schema.Types.ObjectId, ref: 'produit', required: true },
+    // Référence un produit OU un pack selon `type` — jamais populé (juste un instantané au
+    // moment de la commande), donc pas de `ref` unique possible ici.
+    _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+    type: { type: String, enum: ['produit', 'pack'], default: 'produit' },
     nom: { type: String, required: true },
     prix: { type: Number, required: true },
     size: { type: String, required: true, default: "Standard" },

@@ -107,10 +107,21 @@ const Orders = ({ token }) => {
                       />
                       
                       <div className="text-sm">
-                        <p className="font-semibold text-slate-800">{item.nom}</p>
+                        <p className="font-semibold text-slate-800 flex items-center gap-1.5">
+                          {item.type === 'pack' && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
+                              Pack
+                            </span>
+                          )}
+                          {item.nom}
+                        </p>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          Taille : <span className="font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{item.size || 'Unique'}</span> 
-                          <span className="mx-2">|</span> 
+                          {item.type !== 'pack' && (
+                            <>
+                              Taille : <span className="font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{item.size || 'Unique'}</span>
+                              <span className="mx-2">|</span>
+                            </>
+                          )}
                           Qté : <span className="font-bold text-slate-700">{item.quantity}</span>
                         </p>
                       </div>

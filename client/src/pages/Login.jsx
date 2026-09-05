@@ -183,7 +183,7 @@ const Login = () => {
 
           <div className="relative z-10 my-auto space-y-6 max-w-[340px]">
             <p className="font-serif text-3xl text-stone-100 leading-relaxed font-alice font-light">
-              "Des lignes pures nées de l’éclat de l’or, façonnées pour votre peau."
+              "Des lignes pures, sélectionnées pour l'éclat de l'or et la douceur de votre peau."
             </p>
             <div className="h-[1px] w-20 bg-amber-400"></div>
             <p className="text-xs text-stone-400 font-light leading-relaxed">

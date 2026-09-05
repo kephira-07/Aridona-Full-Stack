@@ -285,7 +285,7 @@ const { slug } = useParams();
   const pageDescription = produitData
     ? (produitData.metaDescription
       || truncate(produitData.description, 160)
-      || `Découvrez ${produitData.nom}. Bijou en acier inoxydable waterproof et hypoallergénique par Aridona Bijoux.`)
+      || `${produitData.nom} : bijou en acier inoxydable 316L, waterproof et hypoallergénique. Livraison à Lomé et partout au Togo.`)
     : '';
   const canonicalUrl = produitData && typeof window !== 'undefined'
     ? `https://aridona.store/produit/${produitData.slug || produitData._id || produitData.id}`
@@ -567,8 +567,8 @@ const { slug } = useParams();
             <div className='flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-3'>
               <Truck className='shrink-0 text-amber-700' size={20} strokeWidth={1.6} aria-hidden='true' />
               <div>
-                <p className='text-xs font-semibold text-stone-800'>Livraison partout</p>
-                <p className='mt-0.5 text-[11px] leading-snug text-stone-500'>Rapide et soigneusement préparée</p>
+                <p className='text-xs font-semibold text-stone-800'>Livraison Rapide</p>
+                <p className='mt-0.5 text-[11px] leading-snug text-stone-500'>À Lomé et partout au Togo</p>
               </div>
             </div>
             <div className='flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-3'>

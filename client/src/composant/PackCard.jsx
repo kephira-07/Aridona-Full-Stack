@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageCircle } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
+import { ShopContext } from '../context/ShopContext';
 
 const getImageUrl = (image) => {
   const first = Array.isArray(image) ? image[0] : image;
@@ -12,21 +13,20 @@ const SHIFT_CLASSES = [
   'top-1 left-1 rotate-[-3deg] z-10 group-hover:-translate-y-1.5 group-hover:-translate-x-1.5',
   'top-3 right-1 rotate-[4deg] z-20 group-hover:translate-y-1 group-hover:translate-x-1.5',
   'bottom-1 left-3 rotate-[2deg] z-20 group-hover:translate-y-1.5 group-hover:-translate-x-1',
-  'bottom-2 right-2 rotate-[-4deg] z-30 group-hover:-translate-y-1 group-hover:translate-x-1',
+  'bottom-2 right-2 rotate-[-4deg] z-10 group-hover:-translate-y-1 group-hover:translate-x-1',
 ];
 
-export default function PackCard({ pack, whatsappNum }) {
+export default function PackCard({ pack }) {
+  const { ajouterPackAuPanier } = useContext(ShopContext);
   if (!pack) return null;
 
   const totalItems = pack.produits?.length || 0;
   const remainingCount = totalItems - 3;
 
-  const orderPack = (e) => {
+  const handleAjouterPanier = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const items = pack.produits?.map(({ produit, quantite }) => `${produit?.nom || 'Bijou'} x${quantite}`).join(', ');
-    const message = `Bonjour Aridona Bijoux !\n\nJe souhaite commander le pack « ${pack.nom} ».\nComposition : ${items}\nPrix : ${Number(pack.prix).toLocaleString('fr-FR')} FCFA\n\nMerci de me confirmer la disponibilité et la livraison.`;
-    window.open(`https://wa.me/${whatsappNum || '22872656485'}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+    ajouterPackAuPanier(pack);
   };
 
   return (
@@ -84,7 +84,7 @@ export default function PackCard({ pack, whatsappNum }) {
           </p>
         </div>
 
-        {/* Pied de la carte (Prix & Bouton WhatsApp) */}
+        {/* Pied de la carte (Prix & Bouton Ajouter au panier) */}
         <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between gap-3">
           <div>
             <span className="block text-[10px] font-semibold uppercase tracking-wider text-stone-400">Total Pack</span>
@@ -93,13 +93,13 @@ export default function PackCard({ pack, whatsappNum }) {
             </span>
           </div>
 
-          <button 
-            type="button" 
-            onClick={orderPack} 
-            aria-label={`Commander ${pack.nom} sur WhatsApp`}
-            className="inline-flex items-center gap-2 rounded-full bg-green-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition-all duration-300 hover:bg-amber-900 hover:shadow-md active:scale-95 z-10"
+          <button
+            type="button"
+            onClick={handleAjouterPanier}
+            aria-label={`Ajouter ${pack.nom} au panier`}
+            className="inline-flex items-center gap-2 rounded-full bg-amber-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition-all duration-300 hover:bg-amber-950 hover:shadow-md active:scale-95 z-10"
           >
-            <MessageCircle size={15} /> Commander
+            <ShoppingBag size={15} /> Ajouter au panier
           </button>
         </div>
       </article>

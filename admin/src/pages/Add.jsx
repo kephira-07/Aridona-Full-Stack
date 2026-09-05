@@ -27,7 +27,7 @@ const Add = ({ token }) => {
   const [categoriesList, setCategoriesList] = useState([]);
 
   const [matiere, setMatiere] = useState('Acier Inoxydable');
-  const [couleurs, setCouleurs] = useState(['Doré']); // Alignés avec enum ["Doré", "Argenté", "Or Rose"]
+  const [couleurs, setCouleurs] = useState(['Doré']); // Alignés avec enum ["Doré", "Argenté", "Rosé"]
   const [sizes, setSizes] = useState([]);
   const [meilleurVente, setMeilleurVente] = useState(false);
   const [loading, setLoading] = useState(false);

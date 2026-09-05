@@ -10,7 +10,7 @@ import Titre from '../composant/Titre';
 import BoutonRetour from '../composant/BoutonRetour';
 
 export default function Packs() {
-  const { backendUrl, whatsappNum } = useContext(ShopContext);
+  const { backendUrl } = useContext(ShopContext);
   const [packs, setPacks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,11 +23,11 @@ export default function Packs() {
   return (
     <div className="min-h-screen bg-[#FAF8F5] px-4 py-6 sm:px-6 lg:px-8">
       <Helmet>
-        <title>Packs de bijoux | Aridona Bijoux</title>
-        <meta name="description" content="Découvrez les packs de bijoux Aridona, des compositions élégantes en acier inoxydable à commander sur WhatsApp." />
+        <title>Packs de Bijoux | Aridona Bijoux</title>
+        <meta name="description" content="Nos packs assemblent plusieurs bijoux en acier inoxydable 316L à prix plus doux : le cadeau tout trouvé ou la silhouette complète en un geste. Livrés à Lomé et partout au Togo." />
         <link rel="canonical" href="https://aridona.store/packs" />
-        <meta property="og:title" content="Packs de bijoux | Aridona Bijoux" />
-        <meta property="og:description" content="Des compositions de bijoux pensées pour offrir ou compléter votre style." />
+        <meta property="og:title" content="Packs de Bijoux | Aridona Bijoux" />
+        <meta property="og:description" content="Le cadeau tout trouvé, ou la silhouette complète en un seul geste — nos packs de bijoux en acier inoxydable à prix plus doux." />
         <meta property="og:url" content="https://aridona.store/packs" />
         <meta property="og:type" content="website" />
       </Helmet>
@@ -40,7 +40,7 @@ export default function Packs() {
           <div>
             <Titre text1="Découvrez" text2="Nos Packs" />
             <p id="packs-title" className="mt-3 max-w-xl text-sm leading-relaxed text-stone-600">
-              Des associations pensées pour offrir ou composer une silhouette complète, à un prix privilégié.
+              Le cadeau tout trouvé, ou la silhouette complète en un seul geste : nos packs assemblent plusieurs pièces à un prix plus doux que si vous les achetiez séparément.
             </p>
           </div>
           <Link 
@@ -59,7 +59,7 @@ export default function Packs() {
         ) : (
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
             {packs.map((pack) => (
-              <PackCard key={pack._id} pack={pack} whatsappNum={whatsappNum} />
+              <PackCard key={pack._id} pack={pack} />
             ))}
           </div>
         )}

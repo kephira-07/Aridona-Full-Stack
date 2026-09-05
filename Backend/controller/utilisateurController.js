@@ -347,7 +347,8 @@ const getUtilisateurPanier = async (req, res) => {
     }
 
     const cartData = userData.cartData || {};
-    return res.json({ success: true, cartData });
+    const cartPacks = userData.cartPacks || {};
+    return res.json({ success: true, cartData, cartPacks });
   } catch (error) {
     console.error("Erreur récupération panier :", error);
     return res.status(500).json({ success: false, message: error.message });
@@ -445,6 +446,81 @@ const deletePanier = async (req, res) => {
   }
 };
 
+// Ajouter un pack au panier BDD (toujours +1)
+const ajouterPackAuPanier = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { packId } = req.body;
+
+    if (!mongoose.isValidObjectId(packId)) {
+      return res.status(400).json({ success: false, message: "Identifiant de pack invalide." });
+    }
+
+    const userData = await utilisateurModel.findById(userId);
+    const cartPacks = userData.cartPacks || {};
+    cartPacks[packId] = (cartPacks[packId] || 0) + 1;
+
+    await utilisateurModel.findByIdAndUpdate(userId, { cartPacks });
+    return res.json({ success: true, message: "Pack ajouté au panier BDD" });
+  } catch (error) {
+    console.error("Erreur ajout pack panier BDD :", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Mettre à jour la quantité d'un pack dans le panier BDD (quantity <= 0 = suppression)
+const updatePanierPack = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { packId, quantity } = req.body;
+
+    if (!mongoose.isValidObjectId(packId)) {
+      return res.status(400).json({ success: false, message: "Identifiant de pack invalide." });
+    }
+
+    const userData = await utilisateurModel.findById(userId);
+    const cartPacks = userData.cartPacks || {};
+
+    if (quantity <= 0) {
+      delete cartPacks[packId];
+    } else {
+      cartPacks[packId] = quantity;
+    }
+
+    await utilisateurModel.findByIdAndUpdate(userId, { cartPacks });
+    return res.json({ success: true, message: "Panier de packs mis à jour" });
+  } catch (error) {
+    console.error("Erreur mise à jour pack panier BDD :", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Supprimer un pack du panier BDD
+const deletePanierPack = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { packId } = req.body;
+
+    if (!mongoose.isValidObjectId(packId)) {
+      return res.status(400).json({ success: false, message: "Identifiant de pack invalide." });
+    }
+
+    const userData = await utilisateurModel.findById(userId);
+    const cartPacks = userData.cartPacks || {};
+
+    if (!cartPacks[packId]) {
+      return res.status(404).json({ success: false, message: "Pack introuvable dans le panier" });
+    }
+
+    delete cartPacks[packId];
+    await utilisateurModel.findByIdAndUpdate(userId, { cartPacks });
+    return res.json({ success: true, message: "Pack supprimé du panier" });
+  } catch (error) {
+    console.error("Erreur suppression pack panier BDD :", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 export { 
   registerutilisateur, 
@@ -459,5 +535,8 @@ export {
   getUtilisateurPanier,
   ajouterAuPanier,
   updatePanier,
-  deletePanier  
+  deletePanier,
+  ajouterPackAuPanier,
+  updatePanierPack,
+  deletePanierPack
 };

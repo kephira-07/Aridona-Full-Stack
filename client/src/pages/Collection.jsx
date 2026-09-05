@@ -16,41 +16,45 @@ import { Helmet } from 'react-helmet-async';
 const SEO_TEXTS = {
     default: {
         title: "Bijoux en Acier Inoxydable",
-        description: "Découvrez notre collection complète de bijoux en acier inoxydable, vendue en ligne à Lomé, Togo. Des créations waterproof, hypoallergéniques et conçues pour résister au temps sans perdre leur éclat."
+        description: "Bagues, colliers, bracelets et boucles en acier inoxydable 316L : ils ne noircissent pas, n'irritent pas la peau et gardent leur éclat des années. Vendus en ligne à Lomé, Togo."
     },
     bague: {
         title: "Bagues en Acier Inoxydable",
-        description: "Explorez nos bagues en acier inoxydable dorées et argentées, disponibles à Lomé, Togo. Des modèles ajustables, résistants à l'eau et hypoallergéniques à porter seuls ou en accumulation."
+        description: "Ajustables, dorées ou argentées : nos bagues en acier inoxydable se portent sous la douche, à la mer, tous les jours, sans jamais noircir votre doigt. Livrées à Lomé, Togo."
     },
     collier: {
         title: "Colliers & Ras de Cou en Acier Inoxydable",
-        description: "Sublimez votre décolleté avec nos colliers en acier inoxydable, livrés à Lomé, Togo. Ras de cou, chaînes et pendentifs waterproof qui ne noircissent pas au contact de l'eau."
+        description: "Ras de cou, chaînes fines et pendentifs en acier inoxydable waterproof, pour sublimer votre décolleté sans jamais ternir, même au contact de l'eau. Livrés à Lomé, Togo."
     },
     bracelet: {
         title: "Bracelets & Joncs en Acier Inoxydable",
-        description: "Trouvez le bracelet en acier inoxydable parfait, livré à Lomé, Togo : joncs rigides, chaînettes dorées et maillons tendance conçus pour résister à votre quotidien."
+        description: "Joncs rigides, chaînettes dorées, maillons tendance : nos bracelets en acier inoxydable résistent à l'eau et au quotidien le plus chargé. Livrés à Lomé, Togo."
     },
     boucle: {
         title: "Boucles d'Oreilles en Acier Inoxydable",
-        description: "Parcourez notre sélection de créoles, puces et pendantes en acier inoxydable, vendue à Lomé, Togo. Des bijoux légers et doux pour les peaux sensibles."
+        description: "Créoles, puces ou pendantes en acier inoxydable, légères et douces même pour les oreilles sensibles — sans nickel, sans irritation. Livrées à Lomé, Togo."
     },
     braceletDeBras: {
         title: "Bracelets de Bras en Acier Inoxydable",
-        description: "Découvrez nos bracelets de bras en acier inoxydable, disponibles à Lomé, Togo. Parfaits pour un look audacieux et élégant, conçus pour durer et résister à l'eau."
+        description: "Pour un look audacieux qui dure : nos bracelets de bras en acier inoxydable résistent à l'eau et ne perdent jamais leur éclat. Livrés à Lomé, Togo."
     },
     ceintureChaine: {
         title: "Ceintures Chaîne en Acier Inoxydable",
-        description: "Découvrez nos ceintures chaîne en acier inoxydable, vendues à Lomé, Togo. Un accessoire tendance qui sublime silhouettes et tenues, résistant et durable."
+        description: "L'accessoire qui sublime chaque silhouette : nos ceintures chaîne en acier inoxydable sont résistantes, durables et ne ternissent jamais. Livrées à Lomé, Togo."
     },
     chainedelunnette: {
         title: "Chaînes de Lunettes en Acier Inoxydable",
-        description: "Ajoutez une touche de style à vos lunettes avec nos chaînes en acier inoxydable, livrées à Lomé, Togo. Élégantes, durables et résistantes à l'eau."
+        description: "Élégantes et increvables : nos chaînes de lunettes en acier inoxydable résistent à l'eau et accompagnent vos lunettes partout, tous les jours. Livrées à Lomé, Togo."
     },
     parure: {
         title: "Parures & Ensembles de Bijoux en Acier Inoxydable",
-        description: "Découvrez nos parures et ensembles de bijoux 2, 3 ou 4 pièces en acier inoxydable, vendus à Lomé, Togo. Colliers, bagues, bracelets et boucles d'oreilles assortis, waterproof et résistant à l'eau."
+        description: "Collier, bague, bracelet et boucles assortis : nos parures en acier inoxydable waterproof composent une tenue complète, prête à offrir. Livrées à Lomé, Togo."
     }
 };
+
+// Rappel de livraison partagé par toutes les pages catégorie — évite de répéter la même
+// information dans les 8 descriptions (déjà proches de la limite recommandée pour le SEO).
+const LIVRAISON_INFO = "Livraison rapide, à Lomé et partout au Togo.";
 
 const Collection = () => {
     const { produits, recherche } = useContext(ShopContext);
@@ -220,6 +224,9 @@ const Collection = () => {
                     </h1>
                     <p className="text-xs sm:text-sm text-gray-500 max-w-3xl leading-relaxed">
                         {currentSeo.description}
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-amber-700 font-medium mt-1.5">
+                        {LIVRAISON_INFO}
                     </p>
                 </div>
 

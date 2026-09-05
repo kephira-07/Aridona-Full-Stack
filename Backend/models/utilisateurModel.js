@@ -34,9 +34,14 @@ const utilisateurSchema = new mongoose.Schema({
     default: "" 
   },
 
-  cartData: { 
-    type: Object, 
-    default: {} 
+  cartData: {
+    type: Object,
+    default: {}
+  },
+  // Panier des packs : { [packId]: quantite } — séparé de cartData car un pack n'a pas de taille.
+  cartPacks: {
+    type: Object,
+    default: {}
   },
   telephone: { 
     type: String, 

@@ -47,7 +47,7 @@ const articles = [
           <li>Préparer, confirmer et livrer vos commandes de bijoux.</li>
           <li>Vous contacter au sujet d'une commande, d'une livraison ou d'une question client.</li>
           <li>Créer et sécuriser votre espace client, si vous en ouvrez un.</li>
-          <li>Afficher, une fois modérés, les avis que vous choisissez de publier sur nos créations.</li>
+          <li>Afficher, une fois modérés, les avis que vous choisissez de publier sur nos bijoux.</li>
           <li>Améliorer notre catalogue et notre service, à partir de statistiques anonymisées.</li>
           <li>Vous informer de nouvelles collections, uniquement si vous y avez consenti.</li>
         </ul>

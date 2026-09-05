@@ -15,7 +15,7 @@ export default function APropos() {
 
   const NUMERO_WHATSAPP = whatsappNum || "22872656485";
   const EMAIL_CONTACT = "aridonabijoux@gmail.com";
-  const ADRESSE = "Lomé, Togo (Livraison Internationale & Locale)";
+  const ADRESSE = "Lomé, Togo (livraison à Lomé et partout au Togo)";
 
   const [formData, setFormData] = useState({ nom: '', email: '', sujet: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
@@ -49,11 +49,15 @@ export default function APropos() {
   const faqs = [
     {
       q: "Vos bijoux résistent-ils vraiment à l'eau et aux douches ?",
-      r: "Absolument. Nos pièces sont confectionnées en acier inoxydable 316L de grade médical, plaquées sous vide (PVD) à l'or fin. Elles ne rouillent pas, ne verdissent pas la peau et résistent à l'eau douce, de mer, ainsi qu'aux parfums."
+      r: "Absolument. Nos pièces sont en acier inoxydable 316L de grade médical, plaquées sous vide (PVD) à l'or fin. Elles ne rouillent pas, ne verdissent pas la peau et résistent à l'eau douce, à l'eau de mer, ainsi qu'aux parfums."
     },
     {
-      q: "Quels sont les délais de livraison à Lomé et à l'international ?",
-      r: "À Lomé, la livraison s'effectue en 24h à 48h selon votre quartier. Pour la sous-région et l'international, nous collaborons avec des services de coursier sécurisés (livraison estimée entre 3 et 7 jours ouvrés)."
+      q: "Quels sont les délais de livraison à Lomé et dans le reste du Togo ?",
+      r: "À Lomé, comptez entre 24h et 48h selon votre quartier. Dans les autres villes du Togo, la livraison prend généralement entre 2 et 5 jours ouvrés. Vous êtes tenue informée à chaque étape directement sur WhatsApp."
+    },
+    {
+      q: "Comment se passe le paiement de ma commande ?",
+      r: "Aridona ne prend aucun paiement en ligne. Vous composez votre sélection sur le site, puis confirmez votre commande sur WhatsApp : le règlement se fait à la livraison, en espèces ou par Mobile Money."
     },
     {
       q: "Proposez-vous un emballage cadeau ?",
@@ -65,10 +69,10 @@ export default function APropos() {
     <div className="bg-[#FAF8F5] text-stone-800 min-h-screen pt-8 pb-28 font-sans selection:bg-amber-100 selection:text-amber-900">
       
       <Helmet>
-        <title>Maison Aridona Bijoux | Haute Joaillerie Fine & Conciergerie à Lomé</title>
-        <meta 
-          name="description" 
-          content="Inspirée par l'élégance contemporaine, la Maison Aridona façonne des bijoux en acier 316L waterproof, intemporels et hypoallergéniques. Service conciergerie sur-mesure à Lomé." 
+        <title>Aridona Bijoux | Notre Histoire & Nos Engagements à Lomé</title>
+        <meta
+          name="description"
+          content="Aridona Bijoux sélectionne pour vous des bijoux en acier inoxydable 316L waterproof, hypoallergéniques et durables. Découvrez notre histoire et nos engagements qualité. Livraison rapide à Lomé et partout au Togo."
         />
       </Helmet>
 
@@ -80,12 +84,12 @@ export default function APropos() {
         <section className="text-center flex flex-col items-center relative">
       
           <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl text-stone-900 font-normal tracking-tight leading-[1.1] max-w-4xl">
-            Révéler la lumière <br className="hidden sm:inline" />
-            <span className="italic text-amber-900 font-serif">de chaque instant.</span>
+            L'éclat qui ne vous quitte jamais, <br className="hidden sm:inline" />
+            <span className="italic text-amber-900 font-serif">à Lomé comme partout au Togo.</span>
           </h1>
 
           <p className="mt-8 text-stone-600 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed font-light">
-            Une joaillerie fine pensée pour sublimer la femme moderne. Des créations au design minimaliste et audacieux, façonnées pour résister aux épreuves du temps sans perdre leur éclat.
+            Vous ne devriez jamais avoir à choisir entre la beauté et la tranquillité. Nos bijoux en acier inoxydable 316L traversent votre douche, votre sport, la mer et vos journées les plus chargées — sans jamais ternir, sans jamais irriter votre peau.
           </p>
 
           {/* Grille de statistiques / Chiffres clés */}
@@ -103,8 +107,8 @@ export default function APropos() {
               <span className="text-[11px] uppercase tracking-wider text-stone-500 font-medium">Risque d'Allergie</span>
             </div>
             <div>
-              <span className="block font-serif text-3xl md:text-4xl font-light text-amber-900">24/48h</span>
-              <span className="text-[11px] uppercase tracking-wider text-stone-500 font-medium">Livraison Lomé</span>
+              <span className="block font-serif text-3xl md:text-4xl font-light text-amber-900">Rapide</span>
+              <span className="text-[11px] uppercase tracking-wider text-stone-500 font-medium">Livraison au Togo</span>
             </div>
           </div>
         </section>
@@ -119,10 +123,10 @@ export default function APropos() {
               L'alliance parfaite entre luxe accessible et durabilité.
             </h2>
             <p className="text-stone-600 text-xs sm:text-sm leading-relaxed font-light">
-              Née à Lomé de la volonté de redéfinir la bijouterie du quotidien, <strong className="text-stone-900 font-normal">Aridona Bijoux</strong> s'affranchit des contraintes traditionnelles. Nous avions marre des bijoux fantaisie qui ternissent au bout de quelques jours ou de l'or massif trop précieux pour le quotidien.
+              Née à Lomé de la volonté de simplifier la bijouterie du quotidien, <strong className="text-stone-900 font-normal">Aridona Bijoux</strong> sélectionne et vous propose des pièces qui durent. Nous en avions assez des bijoux fantaisie qui ternissent en quelques jours, ou de l'or massif trop précieux pour un usage de tous les jours.
             </p>
             <p className="text-stone-600 text-xs sm:text-sm leading-relaxed font-light">
-              Nous sélectionnons des alliages inoxydables de haute qualité dorés à l'or fin selon des procédés PVD respectueux de l'environnement, garantissant une brillance inaltérable même lors de vos activités quotidiennes.
+              Nous choisissons avec exigence des pièces en acier inoxydable de haute qualité, plaquées à l'or fin par un procédé PVD reconnu pour sa résistance et son respect de l'environnement — pour une brillance inaltérable, même au quotidien.
             </p>
           </div>
 
@@ -131,7 +135,7 @@ export default function APropos() {
               <div className="p-6 rounded-2xl bg-[#FAF8F5] border border-stone-200/60 space-y-2">
                 <Gem className="text-amber-800" size={24} />
                 <h4 className="font-serif text-base font-semibold text-stone-900">Design Intemporel</h4>
-                <p className="text-[11px] text-stone-500 leading-relaxed">Créations pensées pour être empilées et associées au gré des envies.</p>
+                <p className="text-[11px] text-stone-500 leading-relaxed">Des pièces pensées pour être empilées et associées au gré de vos envies.</p>
               </div>
               <div className="p-6 rounded-2xl bg-amber-950 text-stone-100 space-y-2">
                 <Sparkles className="text-amber-400" size={24} />
@@ -183,7 +187,7 @@ export default function APropos() {
               </div>
               <h3 className="font-serif text-lg font-medium text-stone-900">Expédition Rapide</h3>
               <p className="text-xs text-stone-500 leading-relaxed font-light">
-                Livraison à domicile ou au bureau à Lomé et expédition sécurisée dans toute la région ouest-africaine.
+                Livraison rapide à domicile ou au bureau, à Lomé et partout au Togo, avec un suivi personnalisé sur WhatsApp.
               </p>
             </div>
 

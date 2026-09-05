@@ -12,7 +12,10 @@ import {
   getUtilisateurPanier,
   ajouterAuPanier,
   updatePanier,
-  deletePanier
+  deletePanier,
+  ajouterPackAuPanier,
+  updatePanierPack,
+  deletePanierPack
 } from '../controller/utilisateurController.js';
 
 // Importation du middleware d'authentification RBAC
@@ -46,6 +49,9 @@ utilisateurRouter.post('/panier/ajouter', auth(), ajouterAuPanier);
 utilisateurRouter.post('/panier/update', auth(), updatePanier);
 utilisateurRouter.post('/panier/supprimer', auth(), deletePanier);
 utilisateurRouter.delete('/panier/supprimer', auth(), deletePanier); // Le client appelle axios.delete() sur cette route
+utilisateurRouter.post('/panier/pack/ajouter', auth(), ajouterPackAuPanier);
+utilisateurRouter.post('/panier/pack/update', auth(), updatePanierPack);
+utilisateurRouter.post('/panier/pack/supprimer', auth(), deletePanierPack);
 // --- 3. Routes Protégées Administrateur ---
 // Utilisation directe du contrôle de rôle intégré dans auth(['admin'])
 utilisateurRouter.get('/liste', auth(['admin']), listerUtilisateurs);

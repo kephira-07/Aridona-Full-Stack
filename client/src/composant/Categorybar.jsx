@@ -105,7 +105,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
         top: !isHomePage 
           ? '6rem'
           : isSticky 
-            ? '6rem' 
+            ? '4rem' 
             : '0px'
       }}
     >

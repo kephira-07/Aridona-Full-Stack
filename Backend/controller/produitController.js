@@ -1,7 +1,7 @@
 import produitModel from '../models/produitModel.js';
 import { v2 as cloudinary } from 'cloudinary';
-import slugify from 'slugify';
 import fs from 'fs';
+import generateUniqueSlug from '../utils/slug.js';
 
 // Helper pour parser les tableaux (sizes, couleurs) en toute sécurité
 const parseArrayHelper = (input) => {
@@ -62,18 +62,11 @@ const parseTagsHelper = (input) => {
   return rawArray.map(tag => tag.trim().toLowerCase()).filter(Boolean);
 };
 
-// Génère un slug unique en ajoutant -2, -3... si le slug de base est déjà pris
-// (par un autre produit, ou par ce produit-là si excludeId n'est pas fourni).
-const generateUniqueSlug = async (nom, excludeId = null) => {
-  const baseSlug = slugify(nom, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
-  let slug = baseSlug;
-  let counter = 2;
-  while (await produitModel.exists(excludeId ? { slug, _id: { $ne: excludeId } } : { slug })) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
-  }
-  return slug;
-};
+// "Or Rose" a été renommé en "Rosé" dans l'enum du modèle — remappe toute valeur héritée
+// envoyée par un client non à jour (ex. bundle admin en cache) pour ne jamais faire
+// planter la validation Mongoose sur une couleur qui n'existe plus.
+const LEGACY_COULEURS = { 'Or Rose': 'Rosé' };
+const parseCouleursHelper = (input) => parseArrayHelper(input).map((c) => LEGACY_COULEURS[c] || c);
 
 // 1. Ajouter un produit
 const addproduit = async (req, res) => {
@@ -83,6 +76,12 @@ const addproduit = async (req, res) => {
     if (!nom || !description || !prix || !categorie) {
       cleanLocalFiles(req.files);
       return res.status(400).json({ success: false, message: "Les champs nom, description, prix et catégorie sont obligatoires." });
+    }
+
+    const prixValue = Number(prix);
+    if (!Number.isSafeInteger(prixValue) || prixValue < 0) {
+      cleanLocalFiles(req.files);
+      return res.status(400).json({ success: false, message: "Le prix doit être un entier XOF valide." });
     }
 
     const image1 = req.files?.image1?.[0];
@@ -107,9 +106,9 @@ const addproduit = async (req, res) => {
     // Supprimer les fichiers temporaires après upload Cloudinary
     cleanLocalFiles(req.files);
 
-    const slug = await generateUniqueSlug(nom);
+    const slug = await generateUniqueSlug(produitModel, nom);
     const parsedSizes = parseArrayHelper(sizes);
-    const parsedCouleurs = parseArrayHelper(couleurs);
+    const parsedCouleurs = parseCouleursHelper(couleurs);
     const parsedTags = parseTagsHelper(tags); // Traitement des tags
 
     const stockValue = stock === '' || stock === undefined ? null : Number(stock);
@@ -120,7 +119,7 @@ const addproduit = async (req, res) => {
     const produitData = {
       nom,
       description,
-      prix: Number(prix),
+      prix: prixValue,
       categorie,
       matiere: matiere || "Acier Inoxydable",
       couleurs: parsedCouleurs.length > 0 ? parsedCouleurs : ["Doré"],
@@ -212,13 +211,20 @@ const updateproduit = async (req, res) => {
     const updateData = {};
     if (nom) {
       updateData.nom = nom;
-      updateData.slug = await generateUniqueSlug(nom, id);
+      updateData.slug = await generateUniqueSlug(produitModel, nom, id);
     }
     if (description) updateData.description = description;
-    if (prix) updateData.prix = Number(prix);
+    if (prix !== undefined) {
+      const prixValue = Number(prix);
+      if (!Number.isSafeInteger(prixValue) || prixValue < 0) {
+        cleanLocalFiles(req.files);
+        return res.status(400).json({ success: false, message: "Le prix doit être un entier XOF valide." });
+      }
+      updateData.prix = prixValue;
+    }
     if (categorie) updateData.categorie = categorie;
     if (matiere) updateData.matiere = matiere;
-    if (couleurs) updateData.couleurs = parseArrayHelper(couleurs);
+    if (couleurs) updateData.couleurs = parseCouleursHelper(couleurs);
     if (sizes) updateData.sizes = parseArrayHelper(sizes);
     if (tags !== undefined) updateData.tags = parseTagsHelper(tags); // Prise en compte de la mise à jour des tags
     if (meilleurVente !== undefined) updateData.meilleurVente = (meilleurVente === "true" || meilleurVente === true);
@@ -228,7 +234,16 @@ const updateproduit = async (req, res) => {
         return res.status(400).json({ success: false, message: "Le stock doit être un entier positif ou nul." });
       }
       updateData.stock = stockValue;
-      if (stockValue !== null) updateData.enStock = stockValue > 0;
+      // N'aligne enStock sur le stock QUE si le nombre a réellement changé : le formulaire
+      // d'édition renvoie toujours le champ stock (même non modifié), donc sans ce garde-fou
+      // on écraserait silencieusement, à chaque simple retouche du produit, un basculement
+      // manuel fait depuis /changer-stock (liste des produits).
+      if (stockValue !== null) {
+        const stockActuel = await produitModel.findById(id).select('stock');
+        if (!stockActuel || stockActuel.stock !== stockValue) {
+          updateData.enStock = stockValue > 0;
+        }
+      }
     }
     if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
     if (metaDescription !== undefined) updateData.metaDescription = metaDescription;

@@ -52,7 +52,7 @@ export const getDashboardStats = async (req, res) => {
                 },
                 {
                     $lookup: {
-                        from: "produits", // Assure-toi que la collection s'appelle "produits" dans MongoDB
+                        from: produitModel.collection.name, // nom réel de la collection, jamais en dur
                         localField: "_id",
                         foreignField: "_id",
                         as: "details"

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
-import { Trash, ShoppingBag, ArrowRight, AlertCircle } from 'lucide-react';
+import { Trash, ShoppingBag, ArrowRight, AlertCircle, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
@@ -9,7 +9,7 @@ import BoutonRetour from '../composant/BoutonRetour';
 
 const Panier = () => {
   // 1. Tous les contextes doivent être extraits en haut du composant
-  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier, supprimerDuPanier, estTailleValidePourProduit } = useContext(ShopContext);
+  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier, supprimerDuPanier, estTailleValidePourProduit, panierPacks, updateQuantityPack, packs } = useContext(ShopContext);
   
   const [panierData, setPanierData] = useState([]);
   const navigate = useNavigate();
@@ -105,21 +105,21 @@ const Panier = () => {
         <Titre text1='' text2='Votre Panier' />
       </div>
 
-      {panierData.length === 0 ? (
+      {panierData.length === 0 && Object.keys(panierPacks).length === 0 ? (
         <div className='flex flex-col items-center justify-center py-24 border border-dashed bg-stone-50/50 max-w-2xl mx-auto px-6 text-center shadow-sm'>
           <div className='p-5 bg-stone-100 rounded-full mb-5 text-stone-400'>
             <ShoppingBag size={45} strokeWidth={1.2} />
           </div>
           <p className='text-xl font-medium text-stone-800'>Votre écrin est vide</p>
           <p className='text-sm text-stone-500 mt-2 max-w-sm font-light'>
-            Laissez-vous tenter par nos créations exclusives et commencez votre sélection de bijoux.
+            Laissez-vous tenter par nos bijoux et commencez votre sélection.
           </p>
           <button
             type="button"
             onClick={() => navigate('/collection')}
             className='mt-8 bg-amber-900 text-white text-xs tracking-widest uppercase px-8 py-3.5 hover:bg-amber-950 transition-all shadow-md font-medium cursor-pointer'
           >
-            Découvrir nos créations
+            Découvrir nos bijoux
           </button>
         </div>
       ) : (
@@ -220,6 +220,79 @@ const Panier = () => {
                     <button
                       type="button"
                       onClick={() => supprimerDuPanier(item._id, item.sizes)}
+                      className='p-2 group text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 cursor-pointer'
+                      title="Retirer du panier"
+                    >
+                      <Trash size={18} className='transform group-hover:scale-105 transition-transform' />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {Object.keys(panierPacks).map((packId) => {
+              const quantite = panierPacks[packId];
+              if (quantite <= 0) return null;
+              const packInfo = (packs || []).find((p) => String(p._id) === String(packId));
+              if (!packInfo) return null;
+              const imgPack = packInfo.produits?.find((c) => c.produit?.image?.[0])?.produit?.image?.[0];
+              const imgUrl = typeof imgPack === 'object' ? imgPack?.url : imgPack;
+
+              return (
+                <div
+                  key={`pack-${packId}`}
+                  className='py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:bg-stone-50/30 px-2'
+                >
+                  <div className='flex items-center gap-5 w-full sm:w-auto'>
+                    <div className='w-20 h-24 bg-stone-50 border border-stone-100 overflow-hidden flex-shrink-0 flex items-center justify-center p-1 shadow-sm relative'>
+                      {imgUrl ? (
+                        <img
+                          src={imgUrl}
+                          className='w-full h-full object-cover object-center'
+                          alt={packInfo.nom}
+                        />
+                      ) : (
+                        <Gift className='text-stone-300' size={24} />
+                      )}
+                    </div>
+
+                    <div className='space-y-2 w-full sm:w-auto'>
+                      <div className='flex items-center gap-2'>
+                        <p className='text-sm sm:text-base font-medium text-stone-800 tracking-wide'>{packInfo.nom}</p>
+                        <span className='inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded'>
+                          Pack
+                        </span>
+                      </div>
+
+                      <p className='text-sm font-semibold text-stone-900'>{Number(packInfo.prix).toLocaleString()} {monnaie || 'FCFA'}</p>
+                    </div>
+                  </div>
+
+                  <div className='flex items-center justify-between sm:justify-end gap-8 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-none border-stone-100'>
+                    <div className='flex items-center border border-stone-300 bg-white shadow-inner'>
+                      <button
+                        type="button"
+                        disabled={quantite <= 1}
+                        onClick={() => updateQuantityPack(packId, quantite - 1)}
+                        className='px-2.5 py-1 text-stone-500 hover:text-stone-800 disabled:opacity-30 transition-colors text-base font-light cursor-pointer'
+                      >
+                        -
+                      </button>
+                      <span className='px-3 py-1 text-xs font-medium text-stone-800 font-mono w-8 text-center'>
+                        {quantite}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => updateQuantityPack(packId, quantite + 1)}
+                        className='px-2.5 py-1 text-stone-500 hover:text-stone-800 transition-colors text-base font-light cursor-pointer'
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => updateQuantityPack(packId, 0)}
                       className='p-2 group text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-300 cursor-pointer'
                       title="Retirer du panier"
                     >

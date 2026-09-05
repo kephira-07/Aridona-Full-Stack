@@ -1,8 +1,8 @@
 import categorieModel from "../models/categorieModel.js";
 import produitModel from "../models/produitModel.js"; // 👈 Pour la gestion des bijoux orphelins
 import { v2 as cloudinary } from 'cloudinary';
-import slugify from 'slugify';
 import fs from 'fs';
+import generateUniqueSlug from '../utils/slug.js';
 
 // Helper pour nettoyer le fichier temporaire créé par Multer
 const cleanLocalFile = (file) => {
@@ -65,11 +65,7 @@ export const addCategorie = async (req, res) => {
         // Nettoyage disque local
         cleanLocalFile(imageFile);
 
-        const slug = slugify(nom, {
-            lower: true,
-            strict: true,
-            remove: /[*+~.()'"!:@]/g
-        });
+        const slug = await generateUniqueSlug(categorieModel, nom);
 
         const nouvelleCategorie = new categorieModel({ 
             nom: nom.trim(), 
@@ -124,7 +120,7 @@ export const updateCategorie = async (req, res) => {
             }
 
             donneesMiseAJour.nom = nomNettoye;
-            donneesMiseAJour.slug = slugify(nomNettoye, { lower: true, strict: true, remove: /[*+~.()'"!:@]/g });
+            donneesMiseAJour.slug = await generateUniqueSlug(categorieModel, nomNettoye, id);
         }
 
         // Si une NOUVELLE image est fournie

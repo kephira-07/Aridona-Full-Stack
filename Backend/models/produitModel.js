@@ -17,7 +17,7 @@ const produitSchema = new mongoose.Schema({
 
   categorie: { type: mongoose.Schema.Types.ObjectId, ref: 'categorie', required: true },
   matiere: { type: String, default: "Acier Inoxydable" },
-  couleurs: { type: [String], enum: ["Doré", "Argenté", "Or Rose"], default: ["Doré"] },
+  couleurs: { type: [String], enum: ["Doré", "Argenté", "Rosé"], default: ["Doré"] },
   tags: { type: [String], default: [], index: true }, // index utile pour { tags: "choker" }
   sizes: { type: [String], default: [] },
   slug: { type: String, required: true, unique: true }, // unique crée déjà l'index, pas besoin de index: true

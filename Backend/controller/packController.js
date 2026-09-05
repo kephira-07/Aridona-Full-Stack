@@ -1,17 +1,7 @@
 import mongoose from 'mongoose';
-import slugify from 'slugify';
 import packModel from '../models/packModel.js';
 import produitModel from '../models/produitModel.js';
-
-const generateUniqueSlug = async (nom, excludeId = null) => {
-  const base = slugify(nom, { lower: true, strict: true });
-  let slug = base;
-  let suffix = 2;
-  while (await packModel.exists(excludeId ? { slug, _id: { $ne: excludeId } } : { slug })) {
-    slug = `${base}-${suffix++}`;
-  }
-  return slug;
-};
+import generateUniqueSlug from '../utils/slug.js';
 
 const populatePack = (query) => query.populate({
   path: 'produits.produit',
@@ -68,7 +58,7 @@ export const createPack = async (req, res) => {
     if (!nom?.trim() || !description?.trim() || !items || !Number.isSafeInteger(price) || price < 0) {
       return res.status(400).json({ success: false, message: 'Nom, description, produits et prix XOF valides sont obligatoires.' });
     }
-    const pack = await packModel.create({ nom: nom.trim(), description: description.trim(), prix: price, produits: items, actif: actif !== false, slug: await generateUniqueSlug(nom) });
+    const pack = await packModel.create({ nom: nom.trim(), description: description.trim(), prix: price, produits: items, actif: actif !== false, slug: await generateUniqueSlug(packModel, nom) });
     res.status(201).json({ success: true, pack: await populatePack(packModel.findById(pack._id)) });
   } catch (error) {
     console.error('Erreur création pack:', error);
@@ -81,7 +71,7 @@ export const updatePack = async (req, res) => {
     const { id } = req.params;
     const { nom, description, prix, produits, actif } = req.body;
     const updateData = {};
-    if (nom !== undefined) { updateData.nom = nom.trim(); updateData.slug = await generateUniqueSlug(nom, id); }
+    if (nom !== undefined) { updateData.nom = nom.trim(); updateData.slug = await generateUniqueSlug(packModel, nom, id); }
     if (description !== undefined) updateData.description = description.trim();
     if (prix !== undefined) {
       const price = Number(prix);

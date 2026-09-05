@@ -12,12 +12,14 @@ const PasserCommande = () => {
   const {
     monnaie = 'FCFA',
     panierProduits = {},
+    panierPacks = {},
+    packs = [],
     produits = [],
     getPanierMontant,
     delivery_free = 0,
     backendUrl,
     token,
-    setPanierProduits,
+    viderPanier,
     whatsappNum
   } = useContext(ShopContext);
 
@@ -88,6 +90,7 @@ const PasserCommande = () => {
               const mainImg = getImageUrl(itemInfo.image);
               orderItems.push({
                 _id: String(itemInfo._id || itemInfo.id),
+                type: 'produit',
                 nom: String(itemInfo.nom || itemInfo.name || "Bijou Aridona"),
                 prix: Number(itemInfo.prix || itemInfo.price || 0),
                 size: String(size),
@@ -95,6 +98,26 @@ const PasserCommande = () => {
                 image: mainImg ? [mainImg] : []
               });
             }
+          }
+        }
+      }
+
+      for (const packId in panierPacks) {
+        const quantite = panierPacks[packId];
+        if (quantite > 0) {
+          const packInfo = (packs || []).find((p) => String(p._id) === String(packId));
+          if (packInfo) {
+            const imgPack = packInfo.produits?.find((c) => c.produit?.image?.[0])?.produit?.image?.[0];
+            const imgUrl = getImageUrl(imgPack);
+            orderItems.push({
+              _id: String(packId),
+              type: 'pack',
+              nom: String(packInfo.nom || "Pack Aridona"),
+              prix: Number(packInfo.prix || 0),
+              size: 'Coffret',
+              quantity: Number(quantite),
+              image: imgUrl ? [imgUrl] : []
+            });
           }
         }
       }
@@ -148,6 +171,10 @@ const PasserCommande = () => {
         message += `🛍️ *DÉTAILS DU PANIER :*\n`;
 
         orderItems.forEach((item, index) => {
+          if (item.type === 'pack') {
+            message += `${index + 1}. 🎁 *Pack ${item.nom}* x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString()} ${monnaie}\n`;
+            return;
+          }
           let tailleFormatee = item.size;
           if (!tailleFormatee || tailleFormatee.trim() === "" || tailleFormatee === '""' || tailleFormatee.toLowerCase() === "unique") {
             tailleFormatee = "Unique";
@@ -162,8 +189,8 @@ const PasserCommande = () => {
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
-        if (typeof setPanierProduits === 'function') {
-          setPanierProduits({});
+        if (typeof viderPanier === 'function') {
+          viderPanier();
         }
 
         // La confirmation et l'éventuelle invite à créer un compte se font maintenant

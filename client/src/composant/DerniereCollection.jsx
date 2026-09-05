@@ -20,10 +20,8 @@ const DerniereCollection = () => {
       <div className='text-center text-2xl sm:text-3xl pb-6 px-4'>
         <Titre text1='Nouveautés' text2='Dernière collection' />
         
-        {/* 🎯 PARAGRAPHE CLÉ OPTIMISÉ POUR LA CONFORMITÉ GOOGLE OAUTH */}
         <p className='max-w-2xl mx-auto text-xs sm:text-sm font-dmsans text-stone-600 mt-2 leading-relaxed'>
-          Explorez nos derniers <strong className='font-medium text-stone-800'>bijoux en acier inoxydable 316L</strong>. 
-          Commandez vos bagues, colliers et bracelets directement en ligne et bénéficiez de notre <strong className='font-medium text-amber-700'>livraison rapide à domicile</strong>.
+          Les toutes dernières pièces arrivées en boutique, en <strong className='font-medium text-stone-800'>acier inoxydable 316L</strong> — à découvrir avant qu'elles ne partent. <strong className='font-medium text-amber-700'>Livraison rapide, à Lomé et partout au Togo.</strong>
         </p>
       </div>
 
