@@ -1,6 +1,14 @@
 import express from 'express';
-import { placeOrder, userOrders, allOrders, updateStatus } from '../controller/orderController.js';
-import auth from '../middleware/auth.js'; 
+import {
+	placeOrder,
+	userOrders,
+	allOrders,
+	updateStatus,
+	initierPaiementCinetPay,
+	verifierPaiementCinetPay,
+	webhookCinetPay
+} from '../controller/orderController.js';
+import auth from '../middleware/auth.js';
 import rateLimit from 'express-rate-limit';
 
 const orderRouter = express.Router();
@@ -18,6 +26,11 @@ const orderLimiter = rateLimit({
 // Client
 orderRouter.post('/place', orderLimiter, placeOrder);
 orderRouter.get('/userorders', auth(), userOrders);
+
+// Paiement en ligne CinetPay
+orderRouter.post('/payer', orderLimiter, initierPaiementCinetPay);
+orderRouter.get('/verifier-paiement', verifierPaiementCinetPay);
+orderRouter.post('/webhook/cinetpay', webhookCinetPay);
 
 // Admin
 orderRouter.get('/list', auth(['admin']), allOrders);

@@ -3,7 +3,7 @@ import { ShopContext } from '../context/ShopContext';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Check } from "lucide-react"; 
 
-const ProduitItem = ({ id, slug, image, nom, prix, enStock }) => {
+const ProduitItem = ({ id, slug, image, nom, prix, enStock, stock }) => {
     const { monnaie, ajouterPanier, favoris, toggleFavori } = useContext(ShopContext);
     const [isAdded, setIsAdded] = useState(false);
 
@@ -142,9 +142,16 @@ const ProduitItem = ({ id, slug, image, nom, prix, enStock }) => {
                             {nom || "Création unique"}
                         </h3>
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-amber-950 mt-1.5">
-                        {Number(prix || 0).toLocaleString()} {monnaie || 'FCFA'}
-                    </p>
+                    <div className="flex items-center justify-between gap-2 mt-1.5">
+                        <p className="text-xs sm:text-sm font-bold text-amber-950">
+                            {Number(prix || 0).toLocaleString()} {monnaie || 'FCFA'}
+                        </p>
+                        {enStock !== false && stock !== null && stock !== undefined && stock <= 5 && (
+                            <span className="text-[10px] font-semibold text-amber-800 whitespace-nowrap">
+                                Plus que {stock}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </Link>
         </article>

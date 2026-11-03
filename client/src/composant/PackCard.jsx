@@ -74,7 +74,7 @@ export default function PackCard({ pack }) {
           </h3>
           
           {/* Nombre de pièces */}
-          <span className="inline-block mt-1 text-[11px] font-medium text-amber-800/90 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/50">
+          <span className="inline-block mt-1 text-[11px] font-medium text-amber-800/90 bg-white/10 px-2.5 py-0.5 border border-amber-700">
             Ensemble de {totalItems} pièce{totalItems > 1 ? 's' : ''}
           </span>
 
@@ -85,7 +85,10 @@ export default function PackCard({ pack }) {
         </div>
 
         {/* Pied de la carte (Prix & Bouton Ajouter au panier) */}
-        <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between gap-3">
+        {/* flex-wrap : évite que le bouton se compresse/déborde quand la carte est étroite
+            (ex: grille à 2 colonnes sur tablette) — il passe proprement à la ligne plutôt
+            que d'écraser son texte. */}
+        <div className="mt-6 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3">
           <div>
             <span className="block text-[10px] font-semibold uppercase tracking-wider text-stone-400">Total Pack</span>
             <span className="text-lg font-semibold text-stone-900">
@@ -97,7 +100,7 @@ export default function PackCard({ pack }) {
             type="button"
             onClick={handleAjouterPanier}
             aria-label={`Ajouter ${pack.nom} au panier`}
-            className="inline-flex items-center gap-2 rounded-full bg-amber-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition-all duration-300 hover:bg-amber-950 hover:shadow-md active:scale-95 z-10"
+            className="inline-flex items-center gap-2 bg-amber-900 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-white transition-all duration-300 hover:bg-amber-950 hover:shadow-md active:scale-95 z-10 w-full sm:w-auto justify-center"
           >
             <ShoppingBag size={15} /> Ajouter au panier
           </button>

@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { IconInstagram, IconFacebook, IconTikTok } from './SocialIcons';
 import { ShopContext } from '../context/ShopContext';
 import logo from '../assets/logo.png';
 
@@ -49,6 +50,37 @@ const Footer = () => {
               Contact & Support :{' '}
               <a href="mailto:aridonabijoux@gmail.com" className="text-amber-500 hover:underline font-medium">
                 aridonabijoux@gmail.com
+              </a>
+            </div>
+
+            {/* Réseaux sociaux */}
+            <div className="flex items-center gap-4 pt-2">
+              <a
+                href="https://www.instagram.com/aridonabijoux/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Aridona Bijoux sur Instagram"
+                className="text-stone-400 hover:text-amber-500 transition-colors duration-300"
+              >
+                <IconInstagram size={18} />
+              </a>
+              <a
+                href="https://www.facebook.com/profile.php?id=61593227000931"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Aridona Bijoux sur Facebook"
+                className="text-stone-400 hover:text-amber-500 transition-colors duration-300"
+              >
+                <IconFacebook size={18} />
+              </a>
+              <a
+                href="https://www.tiktok.com/@aridonabijoux"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Aridona Bijoux sur TikTok"
+                className="text-stone-400 hover:text-amber-500 transition-colors duration-300"
+              >
+                <IconTikTok size={18} />
               </a>
             </div>
           </div>

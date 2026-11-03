@@ -21,7 +21,7 @@ export default function PacksSection() {
   if (!packs.length) return null;
 
   return (
-    <section className="border-y border-stone-200/80 bg-[#FAF8F5] py-8 sm:py-12" aria-labelledby="packs-title">
+    <section className="border-y border-stone-200/80  py-8 sm:py-12" aria-labelledby="packs-title">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-4">
         
         {/* En-tête de section */}
@@ -42,7 +42,10 @@ export default function PacksSection() {
         </div>
 
         {/* Grille des 3 packs principaux utilisant le composant PackCard */}
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+        {/* 2 colonnes seulement à partir de lg (1024px) : à md (tablette, 768-1023px), 2
+            colonnes rendaient chaque carte plus étroite que sur mobile et écrasaient son
+            contenu — une tablette garde donc 1 carte pleine largeur par ligne, comme le mobile. */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-3">
           {packs.slice(0, 3).map((pack) => (
             <PackCard key={pack._id} pack={pack} />
           ))}

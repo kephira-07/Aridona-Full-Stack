@@ -36,6 +36,7 @@ const DerniereCollection = () => {
               image={item.image}
               nom={item.nom}
               prix={item.prix}
+              stock={item.stock}
               enStock={item.enStock}
             />
           ))

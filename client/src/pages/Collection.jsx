@@ -260,6 +260,7 @@ const Collection = () => {
                             slug={item.slug}
                             nom={item.nom} 
                             prix={item.prix}
+                            stock={item.stock}
                             image={item.image}
                             enStock={item.enStock}
                         />
@@ -378,7 +379,7 @@ const Collection = () => {
                         </button>
                         <button 
                             onClick={() => setShowFilter(false)}
-                            className="flex-1 py-3 bg-slate-900 text-white text-xs font-semibold tracking-wide shadow-md hover:bg-slate-800 transition-colors"
+                            className="flex-1 py-3 bg-amber-900 text-white text-xs font-semibold tracking-wide shadow-md hover:bg-amber-950 transition-colors"
                         >
                             Voir les résultats
                         </button>

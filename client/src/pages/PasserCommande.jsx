@@ -4,7 +4,7 @@ import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
-import { MessageSquare, MapPin, Loader2 } from 'lucide-react';
+import { MessageSquare, MapPin, Loader2, CreditCard } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import axios from 'axios';
 
@@ -34,7 +34,8 @@ const PasserCommande = () => {
     country: 'Togo',
     city: 'Lomé',
     neighborhood: '',
-    phone: ''
+    phone: '',
+    email: ''
   });
 
   const getImageUrl = (imgData) => {
@@ -142,7 +143,7 @@ const PasserCommande = () => {
         address: {
           firstName: firstName,
           lastName: lastName,
-          email: "client-whatsapp@Aridona.com",
+          email: formData.email.trim() || "client-whatsapp@Aridona.com",
           street: formData.neighborhood.trim() || "Non spécifié",
           city: formData.city.trim(),
           zipcode: "00228",
@@ -150,7 +151,7 @@ const PasserCommande = () => {
         },
         items: orderItems,
         amount: totalFinal,
-        paymentMethod: methode === 'cod' ? 'COD' : 'Mobile Money'
+        paymentMethod: methode === 'cod' ? 'COD' : methode === 'cinetpay' ? 'CinetPay' : 'Mobile Money'
       };
 
       const headers = {};
@@ -163,6 +164,25 @@ const PasserCommande = () => {
       const response = await axios.post(urlDestination, commandeBackendData, { headers });
 
       if (response.data && response.data.success) {
+        // Paiement en ligne : on quitte immédiatement vers la page de paiement CinetPay,
+        // pas de message WhatsApp ici (le paiement fait foi, la confirmation viendra après coup).
+        if (methode === 'cinetpay') {
+          const paiementResponse = await axios.post(`${backendUrl || ''}/api/order/payer`, {
+            orderId: response.data.orderId
+          });
+
+          if (paiementResponse.data?.success && paiementResponse.data?.link) {
+            if (typeof viderPanier === 'function') {
+              viderPanier();
+            }
+            window.location.href = paiementResponse.data.link;
+            return;
+          }
+
+          toast.error("Impossible d'initier le paiement en ligne. Réessayez ou choisissez un autre mode de règlement.", { theme: "dark" });
+          return;
+        }
+
         let message = `✨ *NOUVELLE COMMANDE — Aridona BIJOUX* ✨\n\n`;
         message += `👤 *Client :* ${formData.fullName.trim()}\n`;
         message += `📞 *Téléphone :* ${formData.phone.trim()}\n`;
@@ -324,7 +344,7 @@ const PasserCommande = () => {
               <MapPin size={16} className='text-amber-800' /> Mode de règlement
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
               <div
                 onClick={() => setMethode('cod')}
                 className={`flex items-center gap-3 border p-4 cursor-pointer transition-all ${
@@ -352,7 +372,38 @@ const PasserCommande = () => {
                 </div>
                 <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>Mobile Money</span>
               </div>
+
+              <div
+                onClick={() => setMethode('cinetpay')}
+                className={`flex items-center gap-3 border p-4 cursor-pointer transition-all ${
+                  methode === 'cinetpay' ? 'border-amber-900 bg-white shadow-sm' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
+                }`}
+              >
+                <div className={`w-3.5 h-3.5 border rounded-full flex items-center justify-center ${
+                  methode === 'cinetpay' ? 'border-amber-900' : 'border-stone-300'
+                }`}>
+                  {methode === 'cinetpay' && <span className='w-1.5 h-1.5 bg-amber-900 rounded-full'></span>}
+                </div>
+                <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>Payer en ligne</span>
+              </div>
             </div>
+
+            {methode === 'cinetpay' && (
+              <div>
+                <label className='text-xs font-medium uppercase tracking-wider text-stone-600 block mb-1.5'>
+                  Email (pour le reçu de paiement) *
+                </label>
+                <input
+                  required
+                  name='email'
+                  onChange={onChangeHandler}
+                  value={formData.email}
+                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
+                  type="email"
+                  placeholder='vous@email.com'
+                />
+              </div>
+            )}
           </div>
 
           <div className='pt-2'>
@@ -364,7 +415,12 @@ const PasserCommande = () => {
               {loading ? (
                 <>
                   <Loader2 size={16} className='animate-spin' />
-                  <span>Enregistrement...</span>
+                  <span>{methode === 'cinetpay' ? 'Redirection vers le paiement...' : 'Enregistrement...'}</span>
+                </>
+              ) : methode === 'cinetpay' ? (
+                <>
+                  <CreditCard size={16} />
+                  <span>Payer maintenant</span>
                 </>
               ) : (
                 <>

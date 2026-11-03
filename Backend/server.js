@@ -35,6 +35,8 @@ connectCloudinary();
 // Middlewares
 app.use(helmet());
 app.use(express.json({ limit: '100kb' }));
+// CinetPay envoie sa notification de paiement (webhook) en application/x-www-form-urlencoded.
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // Origines autorisées : domaine de prod (client + admin servi sous /admin sur le même domaine)
 // + ports de dev locaux. Personnalisable via CORS_ORIGIN (liste séparée par des virgules) sans

@@ -1,0 +1,80 @@
+ARIDONA BIJOUX — BASE DE CONNAISSANCE PUBLICITÉS GOOGLE ADS
+=================================================================
+Dernière mise à jour : 18 septembre 2026
+Usage : à injecter dans un agent IA pour générer des annonces Google Ads (Search, Display, Shopping) cohérentes avec la marque Aridona Bijoux.
+
+1. CONTEXTE CAMPAGNE
+------------------------
+- Marque : Aridona Bijoux — vente en ligne de bijoux en acier inoxydable 316L, basée à Lomé, Togo.
+- Site : aridona.store
+- Objectif type : campagnes Search sur des requêtes d'intention d'achat ("acheter bijoux acier inoxydable Togo"), campagnes Shopping sur le catalogue produit, Display pour la notoriété/remarketing.
+- Zone géographique à cibler : Togo (prioritairement Lomé et grandes villes togolaises). Ne pas cibler d'autres pays sauf demande explicite.
+
+2. MOTS-CLÉS RECOMMANDÉS (Search)
+--------------------------------------
+Exact/large à tester :
+- bijoux acier inoxydable Togo
+- bijoux acier inoxydable Lomé
+- acheter bague acier inoxydable
+- collier acier inoxydable femme
+- bracelet acier inoxydable homme
+- boucles d'oreilles acier inoxydable
+- bijoux qui ne noircissent pas
+- bijoux hypoallergéniques Togo
+- boutique bijoux en ligne Lomé
+- pack bijoux cadeau Togo
+Mots-clés négatifs recommandés :
+- or massif, argent massif, bijoux en or (Aridona vend de l'acier inoxydable, pas de métaux précieux massifs — éviter le trafic hors-cible)
+- gratuit, pas cher arnaque (éviter le trafic non qualifié)
+
+3. STRUCTURE D'ANNONCE SEARCH (RSA — Responsive Search Ads)
+------------------------------------------------------------------
+Titres (30 caractères max chacun) — exemples :
+- "Bijoux Acier Inoxydable Togo"
+- "Ne Noircissent Jamais"
+- "Livraison Rapide à Lomé"
+- "Hypoallergéniques & Waterproof"
+- "Découvrez le Catalogue Aridona"
+- "Packs Bijoux à Prix Doux"
+- "Commandez en Ligne Facilement"
+
+Descriptions (90 caractères max chacune) — exemples :
+- "Bijoux en acier inoxydable 316L : ne noircissent pas, hypoallergéniques, résistants à l'eau."
+- "Livraison rapide, à Lomé et partout au Togo. Paiement à la livraison : espèces, Flooz ou Mixx by Yas."
+- "Bagues, colliers, bracelets, boucles d'oreilles et packs cadeaux. Commandez sur aridona.store."
+
+Chemin d'affichage (display path) : aridona.store/bijoux ou aridona.store/collection
+
+4. EXTENSIONS D'ANNONCE RECOMMANDÉES
+-----------------------------------------
+- Extensions de liens annexes : "Bagues", "Colliers", "Bracelets", "Boucles d'oreilles", "Packs"
+- Extension d'appel : numéro WhatsApp/téléphone +228 72 65 64 85 (si compatible avec la campagne)
+- Extension de prix : par catégorie si les prix sont stables
+- Extension d'accroche : "Livraison rapide", "Paiement à la livraison", "Hypoallergénique", "Résiste à l'eau"
+
+5. CAMPAGNE SHOPPING
+------------------------
+- Utiliser le flux produit du catalogue (nom, image, prix, disponibilité, catégorie).
+- Titre produit recommandé : "[Type de bijou] Acier Inoxydable 316L — Aridona Bijoux"
+- Toujours inclure la matière "acier inoxydable" dans le titre produit (différenciateur clé de recherche).
+
+6. RÈGLES DE CONFORMITÉ GOOGLE ADS
+----------------------------------------
+- Ne jamais utiliser de superlatifs non prouvés ("le meilleur", "n°1 au Togo") sans preuve vérifiable.
+- Ne jamais dire "fabriqué par nos artisans" — Aridona est un revendeur, pas un fabricant (voir business_rules.txt).
+- Ne jamais mentionner de boutique physique ou de rendez-vous en magasin.
+- Rester factuel sur le paiement : pas de paiement en ligne par carte, seulement à la livraison (espèces, Flooz, Mixx by Yas), avec un acompte pour les grosses commandes.
+- Rester factuel sur la livraison : Togo uniquement.
+- Éviter les délais de livraison détaillés (jour par jour) dans les annonces — préférer "Livraison rapide".
+
+7. PAGE DE DESTINATION (LANDING PAGE) — COHÉRENCE ATTENDUE
+------------------------------------------------------------------
+- L'annonce doit toujours renvoyer vers une page pertinente : catégorie correspondante, page Packs, ou page produit précise — jamais uniquement la page d'accueil si l'intention de recherche est spécifique.
+- La landing page doit reprendre les mêmes messages clés que l'annonce (acier inoxydable, ne noircit pas, hypoallergénique, livraison Lomé/Togo) pour un bon Quality Score.
+
+8. INFOS PRATIQUES OBLIGATOIRES
+------------------------------------
+- Site : aridona.store
+- Zone de livraison : Lomé et partout au Togo
+- Paiement : à la livraison, en espèces ou via Mobile Money (Flooz, Mixx by Yas), confirmé via WhatsApp. Acompte demandé avant livraison pour les grosses commandes.
+- Contact : WhatsApp +228 72 65 64 85 / email contact@aridona.store

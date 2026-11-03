@@ -450,16 +450,16 @@ const { slug } = useParams();
               {produitData.prix ? Number(produitData.prix).toLocaleString() : 0} {monnaie || 'FCFA'}
             </p>
 
-            {produitData.stock !== null && produitData.stock !== undefined && (
-              <span className="text-sm text-stone-500">
-                {produitData.stock > 0 ? `${produitData.stock} disponible${produitData.stock > 1 ? 's' : ''}` : 'Rupture de stock'}
-              </span>
-            )}
-
-            {produitData.enStock === false && (
+            {produitData.enStock === false ? (
               <span className="px-3 py-1 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-full uppercase tracking-wider">
                 Rupture de stock
               </span>
+            ) : produitData.stock !== null && produitData.stock !== undefined && produitData.stock <= 5 ? (
+              <span className="px-3 py-1 bg-amber-50 border border-amber-300 text-amber-800 text-xs font-semibold rounded-full uppercase tracking-wider animate-pulse">
+                Plus que {produitData.stock} en stock
+              </span>
+            ) : (
+              <span className="text-sm text-emerald-700">En stock</span>
             )}
           </div>
           

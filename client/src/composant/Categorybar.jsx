@@ -105,7 +105,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
         top: !isHomePage 
           ? '6rem'
           : isSticky 
-            ? '4rem' 
+            ? '5rem' 
             : '0px'
       }}
     >
@@ -146,7 +146,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
             >
               <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
                 isLarge 
-                  ? 'w-30 h-25 md:w-40 md:h-35 hover:scale-105' 
+                  ? 'w-30 h-30 md:w-40 md:h-40 hover:scale-105' 
                   : 'w-10 h-10 md:w-12 md:h-12'
               } ${
                 isAllSelected 
@@ -181,7 +181,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   }`}
                 >
                   <div className={`rounded-full bg-gray-200 aspect-square flex-shrink-0 ${
-                    isLarge ? 'w-24 h-24 md:w-28 md:h-28' : 'w-10 h-10 md:w-12 md:h-12'
+                    isLarge ? 'w-30 h-30 md:w-40 md:h-40' : 'w-10 h-10 md:w-12 md:h-12'
                   }`} />
                   {!isLarge && <div className="h-3 w-16 bg-gray-200 rounded" />}
                 </div>
@@ -202,7 +202,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                   >
                     <div className={`rounded-full overflow-hidden border border-gray-100 shadow-xs aspect-square flex-shrink-0 transition-all duration-300 ${
                       isLarge 
-                        ? 'w-30 h-25 md:w-40 md:h-35 hover:scale-105' 
+                        ? 'w-30 h-30 md:w-50 md:h-50 hover:scale-105' 
                         : 'w-10 h-10 md:w-12 md:h-12'
                     } ${isChecked ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
                       <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />

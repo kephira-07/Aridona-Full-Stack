@@ -92,6 +92,7 @@ const ApparenteProduit = ({ categorie, matiere, actuelId }) => {
                 nom={item.nom || item.name}
                 prix={item.prix || item.price}
                 enStock={item.enStock}
+                stock={item.stock}
               />
             );
           })}

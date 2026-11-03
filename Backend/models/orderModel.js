@@ -32,8 +32,12 @@ const orderSchema = new mongoose.Schema({
     // n'a jamais stocké le nom/téléphone/adresse du client malgré la validation en amont.
     address: { type: addressSchema, required: true },
     amount: { type: Number, required: true, min: 0 },
-    paymentMethod: { type: String, required: true, enum: ["COD", "Mobile Money", "Manuel"], default: "Manuel" },
+    paymentMethod: { type: String, required: true, enum: ["COD", "Mobile Money", "Manuel", "CinetPay"], default: "Manuel" },
     payment: { type: Boolean, required: true, default: false },
+    // Identifiant unique envoyé à CinetPay pour la tentative de paiement en cours
+    // (régénéré à chaque nouvelle tentative, car CinetPay exige un transaction_id jamais réutilisé).
+    txRef: { type: String, default: null, index: true, sparse: true },
+    cinetpayPaymentMethod: { type: String, default: null },
     status: { 
         type: String, 
         required: true, 

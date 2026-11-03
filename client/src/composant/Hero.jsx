@@ -176,7 +176,11 @@ export default function Hero() {
       <div className="max-w-10xl mx-auto">
     
         {/* ================= DESIGN PC ================= */}
-        <div className="hidden md:grid grid-cols-2 w-full md:aspect-[18/8] ">
+        {/* Sur tablette (md, 768-1023px), l'aspect-ratio très large "18/8" écrasait la hauteur
+            au point de couper le titre/description/bouton (contenu centré en absolute, clippé
+            par overflow-hidden). On lui donne une hauteur minimale confortable sur tablette et
+            on ne réactive le ratio ultra-large qu'à partir de lg, où l'espace horizontal le permet. */}
+        <div className="hidden md:grid grid-cols-2 w-full md:min-h-115 lg:min-h-0 lg:aspect-18/8">
                     
           <div className="relative overflow-hidden group shadow-md flex items-center justify-center">
             <img 

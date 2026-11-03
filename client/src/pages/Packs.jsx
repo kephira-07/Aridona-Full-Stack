@@ -57,7 +57,7 @@ export default function Packs() {
         ) : packs.length === 0 ? (
           <div className="py-20 text-center text-sm text-stone-500">Aucun pack disponible pour le moment.</div>
         ) : (
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-3">
             {packs.map((pack) => (
               <PackCard key={pack._id} pack={pack} />
             ))}

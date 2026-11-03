@@ -1,0 +1,59 @@
+ARIDONA BIJOUX — BASE DE CONNAISSANCE PUBLICITÉS FACEBOOK/INSTAGRAM (META ADS)
+====================================================================================
+Dernière mise à jour : 18 septembre 2026
+Usage : à injecter dans un agent IA pour générer des textes de publicités Facebook/Instagram (Meta Ads) cohérents avec la marque Aridona Bijoux.
+
+1. CONTEXTE CAMPAGNE
+------------------------
+- Marque : Aridona Bijoux — vente en ligne de bijoux en acier inoxydable 316L, basée à Lomé, Togo.
+- Objectif type des campagnes : trafic vers aridona.store, ajout au panier, conversions (commande + confirmation WhatsApp), notoriété locale.
+- Audience : hommes et femmes au Togo (prioritairement Lomé et grandes villes), 18-45 ans, intéressés par la mode, les bijoux, les cadeaux, le shopping en ligne.
+- Bouton d'action recommandé : "Acheter" / "En savoir plus" / "Envoyer un message" (si campagne orientée WhatsApp).
+
+2. ANGLES D'ACCROCHE (HOOKS) VALIDÉS
+-----------------------------------------
+- Douleur/problème : "Vos bijoux noircissent après quelques semaines ? Pas les nôtres."
+- Bénéfice direct : "Des bijoux en acier inoxydable qui ne noircissent jamais, même à l'eau."
+- Urgence/offre : "Pack complet à prix doux — pour vous ou en cadeau."
+- Preuve sociale (uniquement si de vrais avis existent) : "Déjà des centaines de clients satisfaits à Lomé."
+- Local : "Livraison rapide, à Lomé et partout au Togo."
+
+3. STRUCTURE TYPE D'UNE PUBLICITÉ
+--------------------------------------
+1) Accroche (hook) — 1 phrase forte, émotionnelle ou orientée bénéfice.
+2) Corps — 2-3 phrases : bénéfices clés (ne noircit pas, hypoallergénique, résiste à l'eau), variété du catalogue, praticité de la commande.
+3) Réassurance — livraison rapide (Lomé + Togo), paiement à la livraison ou Mobile Money.
+4) Call-to-action — clair et incitatif : "Commandez maintenant", "Découvrez le catalogue", "Ajoutez à votre panier".
+
+4. EXEMPLES DE TEXTES PUBLICITAIRES (modèles réutilisables/adaptables)
+---------------------------------------------------------------------------
+Exemple 1 (bénéfice produit) :
+"Des bijoux qui ne noircissent pas, ne provoquent aucune allergie, et résistent à l'eau. Découvrez la collection Aridona Bijoux en acier inoxydable, livrée rapidement à Lomé et partout au Togo. Commandez en quelques clics sur aridona.store."
+
+Exemple 2 (pack cadeau) :
+"Envie d'offrir un cadeau qui dure ? Nos packs bijoux (bague + collier + bracelet) sont à prix groupé, plus doux que si vous les achetiez séparément. Livraison rapide partout au Togo. Découvrez les packs sur aridona.store."
+
+Exemple 3 (réassurance paiement) :
+"Commandez en ligne, payez à la livraison en espèces, Flooz ou Mixx by Yas — simple et sans risque. Bijoux en acier inoxydable, hypoallergéniques et waterproof. aridona.store."
+
+5. RÈGLES DE CONFORMITÉ META ADS (à respecter)
+----------------------------------------------------
+- Ne jamais promettre un résultat garanti sur la santé/peau au-delà de "hypoallergénique" (pas de claims médicaux type "anti-allergique à 100%" sans preuve).
+- Ne pas utiliser de "avant/après" trompeurs.
+- Ne pas mentionner de prix barré fictif — seulement de vraies promotions si elles existent réellement sur le site.
+- Ne jamais dire "fabriqué par nos artisans" — Aridona est un revendeur (voir business_rules.txt).
+- Ne jamais mentionner de boutique physique ou de rendez-vous en magasin.
+- Toujours rester factuel sur la livraison : Togo uniquement, pas d'international sauf indication contraire.
+
+6. INFOS PRATIQUES OBLIGATOIRES DANS LES PUBS TRANSACTIONNELLES
+----------------------------------------------------------------------
+- Site : aridona.store
+- Zone de livraison : Lomé et partout au Togo
+- Paiement : à la livraison, en espèces ou via Mobile Money (Flooz, Mixx by Yas) — pas de carte en ligne. Pour une grosse commande, un acompte est versé avant la livraison, le solde à la réception.
+- Contact : WhatsApp +228 72 65 64 85
+
+7. FORMATS RECOMMANDÉS
+--------------------------
+- Publicité image/carrousel produit : mettre en avant 3-4 pièces phares ou un pack.
+- Vidéo courte : bijou porté au quotidien + mention "résiste à l'eau" en superposition texte.
+- Story Instagram : CTA direct "Swipe up" / "Voir le catalogue".
