@@ -1,19 +1,20 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
 
-// Page sur laquelle CinetPay redirige le client une fois le paiement en ligne
-// tenté (réussi ou non). La confirmation définitive vient du webhook côté serveur ;
-// cette page ne fait qu'appeler /verifier-paiement pour donner un retour immédiat au client.
+// Page de retour de paiement (CinetPay)
 const PaiementRetour = () => {
   const { backendUrl, monnaie = 'FCFA' } = useContext(ShopContext);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [statut, setStatut] = useState('verification'); // verification | succes | echec
   const [montant, setMontant] = useState(null);
+  
+  // Empêche le double appel en mode strict de React
+  const verificationEffectuee = useRef(false);
 
   useEffect(() => {
     const transactionId = searchParams.get('transaction_id');
@@ -23,7 +24,14 @@ const PaiementRetour = () => {
       return;
     }
 
-    axios.get(`${backendUrl}/api/order/verifier-paiement`, {
+    // Si déjà vérifié, on stoppe pour éviter un double appel
+    if (verificationEffectuee.current) return;
+    verificationEffectuee.current = true;
+
+    // S'assure de nettoyer l'URL de base si elle finit par un slash
+    const cleanBaseUrl = backendUrl ? backendUrl.replace(/\/+$/, '') : '';
+
+    axios.get(`${cleanBaseUrl}/api/order/verifier-paiement`, {
       params: { transaction_id: transactionId }
     })
       .then(({ data }) => {
@@ -34,7 +42,10 @@ const PaiementRetour = () => {
           setStatut('echec');
         }
       })
-      .catch(() => setStatut('echec'));
+      .catch((error) => {
+        console.error("Erreur lors de la vérification du paiement :", error);
+        setStatut('echec');
+      });
   }, [backendUrl, searchParams]);
 
   return (
