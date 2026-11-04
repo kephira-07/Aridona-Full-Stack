@@ -8,7 +8,8 @@ import {
   updateproduit,
   searchProduits,
   changerStatutStock,
-  getProductFeed
+  getProductFeed,
+  analyzeProductImage
 } from '../controller/produitController.js';
 import { getDashboardStats } from "../controller/dashbordController.js";
 import upload from '../middleware/multer.js';
@@ -30,6 +31,7 @@ produitRouter.get('/single/:id', singleproduit);
 produitRouter.get('/search', searchProduits);
 produitRouter.get('/feed.xml', getProductFeed); // Google Merchant Center
 
+
 // --- Routes Protégées Administrateur ---
 // L'appel auth(['admin']) vérifie le JWT + le rôle 'admin' + l'email administrateur
 produitRouter.post('/add', auth(['admin']), uploadFields, addproduit);
@@ -37,5 +39,5 @@ produitRouter.put('/update/:id', auth(['admin']), uploadFields, updateproduit);
 produitRouter.delete('/remove/:id', auth(['admin']), removeproduit);
 produitRouter.put('/changer-stock/:id', auth(['admin']), changerStatutStock);
 produitRouter.get('/stats-dashboard', auth(['admin']), getDashboardStats);
-
+produitRouter.get('/analyze-image/:id', auth(['admin']), analyzeProductImage);
 export default produitRouter;

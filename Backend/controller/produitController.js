@@ -2,6 +2,58 @@ import produitModel from '../models/produitModel.js';
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 import generateUniqueSlug from '../utils/slug.js';
+import { GoogleGenAI } from '@google/genai';
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+// Contrôleur pour l'analyse IA
+const analyzeProductImage = async (req, res) => {
+  try {
+    const { imageBase64, mimeType } = req.body;
+
+    if (!imageBase64) {
+      return res.status(400).json({ success: false, message: "Aucune image fournie." });
+    }
+
+    const prompt = `
+      Tu es un expert en e-commerce de bijoux en acier inoxydable pour Aridona Bijoux.
+      Analyse l\'image de ce bijou et génère une fiche produit au format JSON strict (sans aucun texte autour, sans balises markdown \`\`\`json).
+      Le JSON doit contenir exactement ces clés :
+      - "nom": Un titre élégant et vendeur en français.
+      - "description": Une description poétique et raffinée mettant en valeur la résistance et l\'acier inoxydable.
+      - "tags": Une liste de 4 à 6 mots-clés séparés par des virgules (ex: collier, acier inoxydable, doré, minimaliste).
+      - "metaTitle": Un titre SEO accrocheur de moins de 70 caractères.
+      - "metaDescription": Une description SEO engageante de moins de 160 caractères.
+      - "couleurs": Un tableau parmi ces choix exacts selon la couleur dominante: ["Doré", "Argenté", "Rosé"].
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-1.5-flash',
+      contents: [
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: mimeType || 'image/jpeg',
+            data: imageBase64,
+          },
+        },
+      ],
+    });
+
+    let rawText = response.text.trim();
+    rawText = rawText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+
+    const productData = JSON.parse(rawText);
+
+    return res.json({ success: true, product: productData });
+
+  } catch (error) {
+    console.error("Erreur analyse Gemini :", error);
+    return res.status(500).json({ success: false, message: "Erreur lors de l\'analyse de l\'image par l\'IA." });
+  }
+};
+
+
 
 // Helper pour parser les tableaux (sizes, couleurs) en toute sécurité
 const parseArrayHelper = (input) => {
@@ -442,4 +494,4 @@ ${items.join('\n')}
   }
 };
 
-export { addproduit, listproduits, removeproduit, singleproduit, singleproduitBySlug, updateproduit, searchProduits, changerStatutStock, getProductFeed };
+export { addproduit, listproduits,analyzeProductImage, removeproduit, singleproduit, singleproduitBySlug, updateproduit, searchProduits, changerStatutStock, getProductFeed };
