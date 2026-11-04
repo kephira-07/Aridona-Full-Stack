@@ -75,9 +75,7 @@ export default function Navbar() {
 
           {/* Icônes Actions (Compte, Favoris, Panier) */}
           <div className="flex items-center gap-6">
-            <Link to="/packs" className="text-[11px] font-semibold uppercase tracking-widest text-amber-900 hover:text-amber-700 transition-colors">
-              Packs
-            </Link>
+          
             <Link to="/login" aria-label="Mon compte" className="text-stone-800 hover:text-amber-900 transition-colors p-1">
               <User className="w-5 h-5 stroke-[1.75]" />
             </Link>
