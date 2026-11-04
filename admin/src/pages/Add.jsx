@@ -9,7 +9,8 @@ import {
   Loader2, 
   Check, 
   PackagePlus, 
-  Palette
+  Palette,
+  Wand2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { availableSizes, availableColors, availableMatieres } from '../constants/produit';
@@ -27,14 +28,13 @@ const Add = ({ token }) => {
   const [categoriesList, setCategoriesList] = useState([]);
 
   const [matiere, setMatiere] = useState('Acier Inoxydable');
-  const [couleurs, setCouleurs] = useState(['Doré']); // Alignés avec enum ["Doré", "Argenté", "Rosé"]
+  const [couleurs, setCouleurs] = useState(['Doré']);
   const [sizes, setSizes] = useState([]);
   const [meilleurVente, setMeilleurVente] = useState(false);
   const [loading, setLoading] = useState(false);
-   const [tagsInput, setTagsInput] = useState('');
+  const [aiLoading, setAiLoading] = useState(false); // État de chargement pour l'IA
+  const [tagsInput, setTagsInput] = useState('');
 
-  // Texte alternatif par image (SEO/accessibilité) — laissé vide, le backend
-  // retombe alors sur "{nom} - vue {n}" automatiquement.
   const [alts, setAlts] = useState(['', '', '', '']);
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
@@ -75,6 +75,61 @@ const Add = ({ token }) => {
     const newAlts = [...alts];
     newAlts[index] = value;
     setAlts(newAlts);
+  };
+
+  // --- FONCTION D'ANALYSE IA (GEMINI) ---
+  const handleAiAutoFill = async () => {
+    const mainImage = images[0];
+    if (!mainImage) {
+      toast.warning("Veuillez d'abord ajouter une photo principale (Photo 1) pour que l'IA puisse l'analyser.");
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      // Convertir l'image en Base64
+      const reader = new FileReader();
+      reader.readAsDataURL(mainImage);
+      
+      reader.onloadend = async () => {
+        const base64String = reader.result.split(',')[1];
+        const mimeType = mainImage.type;
+
+        // Appel vers la route backend qui gère Gemini
+        const response = await axios.post(
+          `${backendUrl}/api/produit/ai-analyze`,
+          { imageBase64: base64String, mimeType },
+          { headers: { token, Authorization: `Bearer ${token}` } }
+        );
+
+        if (response.data.success) {
+          const data = response.data.product;
+          
+          // Remplissage automatique des champs du formulaire
+          if (data.nom) setNom(data.nom);
+          if (data.description) setDescription(data.description);
+          if (data.prix) setPrix(data.prix.toString());
+          if (data.tags) setTagsInput(data.tags);
+          if (data.metaTitle) setMetaTitle(data.metaTitle);
+          if (data.metaDescription) setMetaDescription(data.metaDescription);
+
+          // Correspondance des couleurs si reconnues
+          if (data.couleurs && Array.isArray(data.couleurs)) {
+            const validColors = data.couleurs.filter(c => availableColors.includes(c));
+            if (validColors.length > 0) setCouleurs(validColors);
+          }
+
+          toast.success("✨ Fiche produit générée avec succès par l'IA !");
+        } else {
+          toast.error("L'IA n'a pas pu analyser l'image.");
+        }
+        setAiLoading(false);
+      };
+    } catch (error) {
+      console.error("Erreur IA Auto-fill:", error);
+      toast.error(error.response?.data?.message || "Erreur lors de la communication avec l'IA.");
+      setAiLoading(false);
+    }
   };
 
   // Toggle Tailles & Couleurs
@@ -119,17 +174,14 @@ const Add = ({ token }) => {
       formData.append("categorie", categorie); 
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
-      formData.append("tags", tagsInput); // Trans
+      formData.append("tags", tagsInput);
       formData.append("metaTitle", metaTitle);
       formData.append("metaDescription", metaDescription);
 
-      // Transmis sous format JSON pour le parseArrayHelper backend
       formData.append("sizes", JSON.stringify(sizes));
       formData.append("couleurs", JSON.stringify(couleurs));
-      // Alignés positionnellement avec image1..image4 (alts[i] correspond à imageN, N = i+1)
       formData.append("alts", JSON.stringify(alts));
 
-      // Append des images (image1, image2, image3, image4)
       images.forEach((img, idx) => {
         if (img) formData.append(`image${idx + 1}`, img);
       });
@@ -137,29 +189,15 @@ const Add = ({ token }) => {
       const response = await axios.post(
         `${backendUrl}/api/produit/add`, 
         formData, 
-        { 
-          headers: { 
-            token: token,
-            Authorization: `Bearer ${token}` 
-          } 
-        }
+        { headers: { token, Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
         toast.success("✨ Bijou ajouté avec succès au catalogue !");
-        // Réinitialisation du formulaire
-        setNom(''); 
-        setDescription(''); 
-        setPrix(''); 
-        setStock('');
-        setSizes([]); 
-        setCouleurs(['Doré']);
-        setTagsInput('');
-        setMeilleurVente(false);
-        setImages([null, null, null, null]);
-        setAlts(['', '', '', '']);
-        setMetaTitle('');
-        setMetaDescription('');
+        setNom(''); setDescription(''); setPrix(''); setStock('');
+        setSizes([]); setCouleurs(['Doré']); setTagsInput('');
+        setMeilleurVente(false); setImages([null, null, null, null]);
+        setAlts(['', '', '', '']); setMetaTitle(''); setMetaDescription('');
       } else {
         toast.error(response.data.message || "Erreur lors de la création.");
       }
@@ -175,17 +213,40 @@ const Add = ({ token }) => {
     <div className="max-w-4xl font-sans text-stone-800">
       
       {/* En-tête */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold uppercase tracking-widest mb-1">
-          <PackagePlus className="w-4 h-4" />
-          <span>Atelier & Catalogue</span>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold uppercase tracking-widest mb-1">
+            <PackagePlus className="w-4 h-4" />
+            <span>Atelier & Catalogue</span>
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
+            Ajouter un Nouveau Bijou
+          </h1>
+          <p className="text-xs text-stone-500 mt-1">
+            Complétez les caractéristiques de la pièce ou laissez l'IA l'analyser pour vous.
+          </p>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
-          Ajouter un Nouveau Bijou
-        </h1>
-        <p className="text-xs text-stone-500 mt-1">
-          Complétez les caractéristiques de la pièce pour l'enregistrer dans votre inventaire.
-        </p>
+
+        {/* BOUTON MAGIQUE IA */}
+        <button
+          type="button"
+          onClick={handleAiAutoFill}
+          disabled={aiLoading || !images[0]}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-800 to-amber-950 hover:from-amber-900 hover:to-stone-900 text-white text-xs font-medium uppercase tracking-wider rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          title={!images[0] ? "Ajoutez une photo principale d'abord" : "Remplir automatiquement via l'IA"}
+        >
+          {aiLoading ? (
+            <>
+              <Loader2 size={15} className="animate-spin text-amber-300" />
+              <span>Analyse en cours...</span>
+            </>
+          ) : (
+            <>
+              <Wand2 size={15} className="text-amber-300" />
+              <span>✨ Remplir avec l'IA</span>
+            </>
+          )}
+        </button>
       </div>
 
       <form onSubmit={onSubmitHandler} className="space-y-8 bg-white p-6 sm:p-8 rounded-2xl border border-stone-200/80 shadow-xs">
@@ -197,7 +258,7 @@ const Add = ({ token }) => {
               <Upload size={14} className="text-amber-800" />
               <span>Visuels de la création (4 max)</span>
             </label>
-            <span className="text-[11px] text-stone-400">Glisser-déposer ou sélectionner</span>
+            <span className="text-[11px] text-stone-400">La photo 1 sert de base à l'IA</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -214,14 +275,14 @@ const Add = ({ token }) => {
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md"
+                        className="absolute top-1.5 right-1.5 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md cursor-pointer"
                         title="Supprimer la photo"
                       >
                         <X size={14} />
                       </button>
                       {index === 0 && (
                         <span className="absolute bottom-1.5 left-1.5 px-2 py-0.5 bg-amber-900/90 text-white text-[9px] font-medium tracking-wider uppercase rounded">
-                          Couverture
+                          Couverture & IA
                         </span>
                       )}
                     </div>
@@ -230,7 +291,7 @@ const Add = ({ token }) => {
                       onChange={(e) => handleAltChange(index, e.target.value)}
                       className="w-full border border-stone-200 bg-stone-50/30 rounded-lg px-2 py-1 text-[10px] outline-none focus:bg-white focus:border-stone-900 transition-all"
                       type="text"
-                      placeholder={`Texte alternatif (SEO), ex: ${nom || 'Bijou'} - vue ${index + 1}`}
+                      placeholder={`Texte alt (SEO), ex: ${nom || 'Bijou'} vue ${index + 1}`}
                     />
                   </div>
                 ) : (
@@ -242,7 +303,7 @@ const Add = ({ token }) => {
                       <Plus size={16} />
                     </div>
                     <span className="text-[11px] font-medium text-stone-500 group-hover:text-stone-800">
-                      Photo {index + 1}
+                      {index === 0 ? "Photo principale *" : `Photo ${index + 1}`}
                     </span>
                     <input 
                       onChange={(e) => handleImageChange(index, e.target.files[0])} 
@@ -262,7 +323,6 @@ const Add = ({ token }) => {
 
         {/* --- 2. INFORMATIONS PRINCIPALES --- */}
         <div className="space-y-5">
-          {/* Nom */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
               Nom de la création *
@@ -277,7 +337,6 @@ const Add = ({ token }) => {
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
               Description & Histoire du bijou *
@@ -292,7 +351,6 @@ const Add = ({ token }) => {
             />
           </div>
 
-          {/* Prix / Catégorie / Matière */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
@@ -348,50 +406,51 @@ const Add = ({ token }) => {
                 )}
               </select>
             </div>
-              {/* SAISIE DES TAGS (SEO & Recherche) */}
-      <div className="w-full">
-        <p className="mb-1 text-xs font-medium text-stone-700">
-          Tags / Mots-clés SEO <span className="text-stone-400 font-normal">(séparés par des virgules)</span>
-        </p>
-        <input 
-          value={tagsInput} 
-          onChange={(e) => setTagsInput(e.target.value)} 
-          className="w-full px-3 py-2 border border-stone-300 rounded text-sm outline-none focus:border-stone-900" 
-          type="text" 
-          placeholder="ex: collier, double rang, fermoir T, choker, t-bar, doré" 
-        />
-        {tagsInput && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {tagsInput.split(',').map((tag, idx) => tag.trim() && (
-              <span key={idx} className="bg-stone-100 text-stone-700 text-[11px] px-2 py-0.5 rounded border border-stone-200">
-                #{tag.trim()}
-              </span>
-            ))}
           </div>
-        )}
-      </div>
 
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Matière Principale
-              </label>
-              <select 
-                onChange={(e) => setMatiere(e.target.value)} 
-                value={matiere} 
-                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all cursor-pointer"
-              >
-                {availableMatieres.map((mat) => (
-                  <option key={mat} value={mat}>{mat}</option>
+          {/* SAISIE DES TAGS */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+              Tags / Mots-clés SEO <span className="text-stone-400 font-normal">(séparés par des virgules)</span>
+            </label>
+            <input 
+              value={tagsInput} 
+              onChange={(e) => setTagsInput(e.target.value)} 
+              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all" 
+              type="text" 
+              placeholder="ex: collier, double rang, fermoir T, choker, doré" 
+            />
+            {tagsInput && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {tagsInput.split(',').map((tag, idx) => tag.trim() && (
+                  <span key={idx} className="bg-amber-900/5 text-amber-900 text-[11px] px-2.5 py-1 rounded-lg border border-amber-900/10 font-medium">
+                    #{tag.trim()}
+                  </span>
                 ))}
-              </select>
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Surcharges SEO (optionnelles) */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+              Matière Principale
+            </label>
+            <select 
+              onChange={(e) => setMatiere(e.target.value)} 
+              value={matiere} 
+              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all cursor-pointer"
+            >
+              {availableMatieres.map((mat) => (
+                <option key={mat} value={mat}>{mat}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Surcharges SEO */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Titre SEO <span className="text-stone-400 font-normal normal-case">(optionnel, sinon le nom est utilisé)</span>
+                Titre SEO <span className="text-stone-400 font-normal normal-case">(optionnel)</span>
               </label>
               <input
                 onChange={(e) => setMetaTitle(e.target.value)}
@@ -405,7 +464,7 @@ const Add = ({ token }) => {
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Meta Description <span className="text-stone-400 font-normal normal-case">(optionnel, sinon la description est tronquée)</span>
+                Meta Description <span className="text-stone-400 font-normal normal-case">(optionnel)</span>
               </label>
               <input
                 onChange={(e) => setMetaDescription(e.target.value)}
@@ -413,7 +472,7 @@ const Add = ({ token }) => {
                 maxLength={160}
                 className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
                 type="text"
-                placeholder="Résumé accrocheur affiché dans les résultats Google"
+                placeholder="Résumé accrocheur pour Google"
               />
               <span className="text-[10px] text-stone-400">{metaDescription.length}/160</span>
             </div>
@@ -424,7 +483,6 @@ const Add = ({ token }) => {
 
         {/* --- 3. COULEURS & TAILLES --- */}
         <div className="space-y-6">
-          {/* Couleurs (Enum du Modèle) */}
           <div>
             <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2">
               <Palette size={14} className="text-amber-800" />
@@ -438,7 +496,7 @@ const Add = ({ token }) => {
                     key={color} 
                     type="button"
                     onClick={() => handleColorToggle(color)}
-                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-2 ${
+                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-2 cursor-pointer ${
                       isSelected 
                         ? 'bg-amber-900 text-white border-amber-900 shadow-xs' 
                         : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
@@ -452,7 +510,6 @@ const Add = ({ token }) => {
             </div>
           </div>
 
-          {/* Tailles */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-2">
               Tailles Disponibles
@@ -465,7 +522,7 @@ const Add = ({ token }) => {
                     key={size} 
                     type="button"
                     onClick={() => handleSizeToggle(size)}
-                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5 ${
+                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${
                       isSelected 
                         ? 'bg-stone-900 text-white border-stone-900 shadow-xs' 
                         : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
@@ -479,7 +536,6 @@ const Add = ({ token }) => {
             </div>
           </div>
 
-          {/* Option Meilleure Vente */}
           <div className="p-4 bg-stone-50/80 border border-stone-200/60 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-100/60 text-amber-800 rounded-lg">
