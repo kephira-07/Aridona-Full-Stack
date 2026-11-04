@@ -34,6 +34,7 @@ const BACKEND_URL = process.env.VITE_BACKEND_URL || readEnvVar('VITE_BACKEND_URL
 const STATIC_PAGES = [
   { loc: '/', changefreq: 'daily', priority: '1.0' },
   { loc: '/collection', changefreq: 'daily', priority: '0.8' },
+  { loc: '/packs', changefreq: 'daily', priority: '0.9' },
   { loc: '/blog', changefreq: 'weekly', priority: '0.6' },
   { loc: '/a-propos', changefreq: 'monthly', priority: '0.5' },
   { loc: '/contact', changefreq: 'monthly', priority: '0.4' },
@@ -108,11 +109,29 @@ const fetchArticleEntries = async () => {
   }));
 };
 
+const fetchPackEntries = async () => {
+  const data = await safeFetchJson('/api/packs');
+  if (!data || !data.success || !Array.isArray(data.packs)) {
+    console.warn(`[sitemap] Impossible de récupérer les packs.`);
+    return [];
+  }
+
+  return data.packs
+    .filter((pack) => pack.slug)
+    .map((pack) => ({
+      loc: `/pack/${pack.slug}`,
+      changefreq: 'weekly',
+      priority: '0.8',
+      lastmod: pack.updatedAt ? new Date(pack.updatedAt).toISOString().split('T')[0] : undefined,
+    }));
+};
+
 console.log(`[sitemap] Connexion au backend sur : ${BACKEND_URL}`);
 
 const produitEntries = await fetchProduitEntries();
 const articleEntries = await fetchArticleEntries();
-const xml = buildXml([...STATIC_PAGES, ...produitEntries, ...articleEntries]);
+const packEntries = await fetchPackEntries();
+const xml = buildXml([...STATIC_PAGES, ...produitEntries, ...articleEntries, ...packEntries]);
 
 writeFileSync(join(clientRoot, 'public', 'sitemap.xml'), xml, 'utf-8');
 
@@ -120,5 +139,5 @@ writeFileSync(join(clientRoot, 'public', 'sitemap.xml'), xml, 'utf-8');
 const oldSitemapTxt = join(clientRoot, 'public', 'sitemap.txt');
 if (existsSync(oldSitemapTxt)) unlinkSync(oldSitemapTxt);
 
-const total = STATIC_PAGES.length + produitEntries.length + articleEntries.length;
-console.log(`[sitemap] sitemap.xml généré avec ${total} URLs (${produitEntries.length} produits, ${articleEntries.length} articles).`);
+const total = STATIC_PAGES.length + produitEntries.length + articleEntries.length + packEntries.length;
+console.log(`[sitemap] sitemap.xml généré avec ${total} URLs (${produitEntries.length} produits, ${articleEntries.length} articles, ${packEntries.length} packs).`);

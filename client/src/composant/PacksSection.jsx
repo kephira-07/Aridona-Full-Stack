@@ -14,22 +14,23 @@ export default function PacksSection() {
     let active = true;
     axios.get(`${backendUrl}/api/packs`)
       .then(({ data }) => { if (active && data.success) setPacks(data.packs || []); })
-      .catch(() => {});
+      .catch((error) => console.error('Erreur lors du chargement des packs:', error.message));
     return () => { active = false; };
   }, [backendUrl]);
 
   if (!packs.length) return null;
 
   return (
-    <section className="border-y border-stone-200/80  py-8 sm:py-12" aria-labelledby="packs-title">
+    <section className="border-y border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-stone-50 py-10 sm:py-16" aria-labelledby="packs-title">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-4">
         
         {/* En-tête de section */}
-        <div className="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+        <div className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div>
+            <span className="inline-flex items-center rounded-full bg-amber-900 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">Économisez en beauté</span>
             <Titre text1="Découvrez" text2="Nos Packs" />
             <p id="packs-title" className="mt-3 max-w-xl text-sm leading-relaxed text-stone-600">
-              Le cadeau tout trouvé, ou la silhouette complète en un seul geste : nos packs assemblent plusieurs pièces à un prix plus doux que si vous les achetiez séparément.
+              Des bijoux assortis réunis dans une seule offre, à prix privilégié. Le cadeau idéal à Lomé ou partout au Togo.
             </p>
           </div>
           <Link 

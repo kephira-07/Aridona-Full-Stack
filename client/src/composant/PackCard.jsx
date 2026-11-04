@@ -22,6 +22,11 @@ export default function PackCard({ pack }) {
 
   const totalItems = pack.produits?.length || 0;
   const remainingCount = totalItems - 3;
+  const prixSeul = pack.produits?.reduce(
+    (total, { produit, quantite = 1 }) => total + Number(produit?.prix || 0) * quantite,
+    0
+  ) || 0;
+  const economie = prixSeul - Number(pack.prix || 0);
 
   const handleAjouterPanier = (e) => {
     e.preventDefault();
@@ -72,6 +77,11 @@ export default function PackCard({ pack }) {
           <h3 className="font-ebgaramond text-2xl font-medium text-stone-900 transition-colors group-hover:text-amber-800 line-clamp-1">
             {pack.nom}
           </h3>
+          {economie > 0 && (
+            <span className="mt-2 inline-block bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-amber-900">
+              Économisez {economie.toLocaleString('fr-FR')} FCFA
+            </span>
+          )}
           
           {/* Nombre de pièces */}
           <span className="inline-block mt-1 text-[11px] font-medium text-amber-800/90 bg-white/10 px-2.5 py-0.5 border border-amber-700">

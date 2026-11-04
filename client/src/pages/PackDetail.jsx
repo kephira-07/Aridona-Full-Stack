@@ -35,6 +35,22 @@ export default function PackDetail() {
     ajouterPackAuPanier(pack);
   };
 
+  const productSchema = pack ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: pack.nom,
+    description: pack.description,
+    url: `https://aridona.store/pack/${pack.slug}`,
+    image: pack.produits?.map(({ produit }) => getImageUrl(produit?.image)).filter(Boolean),
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'XOF',
+      price: Number(pack.prix),
+      availability: 'https://schema.org/InStock',
+      url: `https://aridona.store/pack/${pack.slug}`,
+    },
+  } : null;
+
   if (loading) return <div className="py-40 text-center text-sm text-stone-500" role="status">Chargement du pack...</div>;
   
   if (notFound || !pack) return (
@@ -61,6 +77,7 @@ export default function PackDetail() {
         <meta property="og:description" content={pack.description} />
         <meta property="og:type" content="product" />
         <meta property="og:url" content={`https://aridona.store/pack/${pack.slug}`} />
+        <script type="application/ld+json">{JSON.stringify(productSchema)}</script>
       </Helmet>
         <BoutonRetour/>
       <div className="mx-auto max-w-6xl">

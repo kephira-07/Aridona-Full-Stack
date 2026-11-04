@@ -20,6 +20,20 @@ export default function Packs() {
       .finally(() => setLoading(false));
   }, [backendUrl]);
 
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Packs de bijoux Aridona',
+    url: 'https://aridona.store/packs',
+    numberOfItems: packs.length,
+    itemListElement: packs.map((pack, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `https://aridona.store/pack/${pack.slug}`,
+      name: pack.nom,
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] px-4 py-6 sm:px-6 lg:px-8">
       <Helmet>
@@ -29,6 +43,7 @@ export default function Packs() {
         <meta property="og:title" content="Packs de Bijoux | Aridona Bijoux" />
         <meta property="og:description" content="Le cadeau tout trouvé, ou la silhouette complète en un seul geste — nos packs de bijoux en acier inoxydable à prix plus doux." />
         <meta property="og:url" content="https://aridona.store/packs" />
+        <script type="application/ld+json">{JSON.stringify(itemListSchema)}</script>
         <meta property="og:type" content="website" />
       </Helmet>
       
@@ -38,9 +53,10 @@ export default function Packs() {
         {/* En-tête éditorial */}
    <header className="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <div>
+            <span className="inline-flex items-center rounded-full bg-amber-900 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">Offres exclusives</span>
             <Titre text1="Découvrez" text2="Nos Packs" />
             <p id="packs-title" className="mt-3 max-w-xl text-sm leading-relaxed text-stone-600">
-              Le cadeau tout trouvé, ou la silhouette complète en un seul geste : nos packs assemblent plusieurs pièces à un prix plus doux que si vous les achetiez séparément.
+              Plusieurs bijoux assortis réunis dans une offre avantageuse : des idées cadeaux prêtes à offrir, livrées à Lomé et partout au Togo.
             </p>
           </div>
           <Link 

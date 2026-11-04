@@ -93,6 +93,14 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
             </div>
 
             <nav className="divide-y divide-stone-100/70">
+              <NavLink
+                to="/packs"
+                onClick={() => setVisible(false)}
+                className="flex items-center justify-between px-6 py-3.5 text-left group transition-colors hover:bg-amber-50"
+              >
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-900">Packs de bijoux</span>
+                <ChevronRight className="w-4 h-4 text-amber-700 group-hover:translate-x-1 transition-all" />
+              </NavLink>
               {/* Tout voir */}
               <button
                 onClick={() => handleCategoryClick('all')}

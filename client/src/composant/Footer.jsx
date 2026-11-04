@@ -89,6 +89,7 @@ const Footer = () => {
           <div className="flex flex-col">
             <h3 className="text-[12px] font-bold tracking-[0.25em] uppercase mb-6 text-stone-100">Collections</h3>
             <ul className="space-y-3.5 text-sm font-light text-stone-400">
+              <li><Link onClick={scrollToTop} to="/packs" className="font-semibold text-amber-500 hover:text-amber-300 transition-colors duration-200">Packs de bijoux</Link></li>
               {categories && categories.length > 0 ? (
                 categories.slice(0, 4).map((cat) => (
                   <li key={cat._id}>
