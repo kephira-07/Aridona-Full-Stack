@@ -1,19 +1,8 @@
 import categorieModel from "../models/categorieModel.js";
 import produitModel from "../models/produitModel.js"; // 👈 Pour la gestion des bijoux orphelins
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
 import generateUniqueSlug from '../utils/slug.js';
-
-// Helper pour nettoyer le fichier temporaire créé par Multer
-const cleanLocalFile = (file) => {
-    if (file && file.path && fs.existsSync(file.path)) {
-        try { 
-            fs.unlinkSync(file.path); 
-        } catch (error) { 
-            console.error("Erreur nettoyage fichier temporaire:", error); 
-        }
-    }
-};
+import { cleanLocalFile } from '../utils/cleanLocalFile.js';
 
 // Helper pour extraire le public_id de Cloudinary
 const getPublicIdFromUrl = (url) => {
@@ -78,7 +67,7 @@ export const addCategorie = async (req, res) => {
 
     } catch (error) {
         cleanLocalFile(req.file);
-        return res.status(500).json({ success: false, message: "Erreur lors de l'ajout", error: error.message });
+        return res.status(500).json({ success: false, message: "Erreur lors de l'ajout" });
     }
 };
 
@@ -88,7 +77,7 @@ export const getCategories = async (req, res) => {
         const categories = await categorieModel.find({}).sort({ nom: 1 });
         return res.status(200).json({ success: true, data: categories });
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Erreur de récupération", error: error.message });
+        return res.status(500).json({ success: false, message: "Erreur de récupération" });
     }
 };
 
@@ -152,7 +141,7 @@ export const updateCategorie = async (req, res) => {
         return res.status(200).json({ success: true, message: "Catégorie mise à jour avec succès !", data: categorieModifiee });
     } catch (error) {
         cleanLocalFile(req.file);
-        return res.status(500).json({ success: false, message: "Erreur lors de la modification", error: error.message });
+        return res.status(500).json({ success: false, message: "Erreur lors de la modification" });
     }
 };
 
@@ -190,6 +179,6 @@ export const deleteCategorie = async (req, res) => {
         
         return res.status(200).json({ success: true, message: "Catégorie et son image supprimées avec succès !" });
     } catch (error) {
-        return res.status(500).json({ success: false, message: "Erreur lors de la suppression", error: error.message });
+        return res.status(500).json({ success: false, message: "Erreur lors de la suppression" });
     }
 };

@@ -2,14 +2,8 @@ import articleModel from '../models/articleModel.js';
 import produitModel from '../models/produitModel.js';
 import mongoose from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
 import generateUniqueSlug from '../utils/slug.js';
-
-const cleanLocalFile = (file) => {
-  if (file && file.path && fs.existsSync(file.path)) {
-    try { fs.unlinkSync(file.path); } catch (e) { console.error("Erreur nettoyage fichier temporaire:", e); }
-  }
-};
+import { cleanLocalFile } from '../utils/cleanLocalFile.js';
 
 const getPublicIdFromUrl = (url) => {
   try {
@@ -78,7 +72,7 @@ const ajouterArticle = async (req, res) => {
   } catch (error) {
     cleanLocalFile(req.file);
     console.error("Erreur ajout article:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -88,7 +82,7 @@ const listerArticles = async (req, res) => {
     const articles = await articleModel.find({ publie: true }).populate('produit', 'nom slug image').sort({ createdAt: -1 });
     return res.status(200).json({ success: true, articles });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -98,7 +92,7 @@ const listerArticlesAdmin = async (req, res) => {
     const articles = await articleModel.find({}).populate('produit', 'nom slug image').sort({ createdAt: -1 });
     return res.status(200).json({ success: true, articles });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -112,7 +106,7 @@ const getArticleParSlug = async (req, res) => {
     }
     return res.status(200).json({ success: true, article });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -162,7 +156,7 @@ const modifierArticle = async (req, res) => {
   } catch (error) {
     cleanLocalFile(req.file);
     console.error("Erreur modification article:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -183,7 +177,7 @@ const supprimerArticle = async (req, res) => {
     await articleModel.findByIdAndDelete(id);
     return res.status(200).json({ success: true, message: "Article supprimé avec succès !" });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 

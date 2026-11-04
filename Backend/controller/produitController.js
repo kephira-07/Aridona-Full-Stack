@@ -1,8 +1,8 @@
 import produitModel from '../models/produitModel.js';
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
 import generateUniqueSlug from '../utils/slug.js';
 import { GoogleGenAI } from '@google/genai';
+import { cleanLocalFiles } from '../utils/cleanLocalFile.js';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -70,17 +70,6 @@ const parseArrayHelper = (input) => {
   }
 };
 
-// Helper pour nettoyer les fichiers temporaires locaux de Multer
-const cleanLocalFiles = (files) => {
-  if (!files) return;
-  Object.values(files).flatMap(f => f).forEach(file => {
-    if (file && file.path && fs.existsSync(file.path)) {
-      try { fs.unlinkSync(file.path); } catch (e) { console.error("Erreur suppression temp file:", e); }
-    }
-  });
-};
-
-
 const listproduits = async (req, res) => {
   try {
     const { categorieId } = req.query;
@@ -92,7 +81,7 @@ const listproduits = async (req, res) => {
     return res.status(200).json({ success: true, produits });
   } catch (error) {
     console.error("Erreur listproduits :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -193,7 +182,7 @@ const addproduit = async (req, res) => {
   } catch (error) {
     cleanLocalFiles(req.files);
     console.error("Erreur ajout produit:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -219,7 +208,7 @@ const removeproduit = async (req, res) => {
     await produitModel.findByIdAndDelete(id);
     return res.status(200).json({ success: true, message: "Bijou et ses images supprimés avec succès !" });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -235,7 +224,7 @@ const singleproduit = async (req, res) => {
 
     return res.status(200).json({ success: true, produit });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -376,7 +365,7 @@ const updateproduit = async (req, res) => {
     return res.status(200).json({ success: true, message: "Produit modifié avec succès !", produit: produitModifie });
   } catch (error) {
     cleanLocalFiles(req.files);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -429,7 +418,7 @@ const changerStatutStock = async (req, res) => {
       produit
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 

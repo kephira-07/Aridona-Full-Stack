@@ -14,6 +14,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
+const isSafeImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  return url.startsWith('blob:') || url.startsWith('https://');
+};
+
 export default function Categories({ token }) {
   const [categories, setCategories] = useState([]);
   const [nom, setNom] = useState('');
@@ -56,7 +61,7 @@ export default function Categories({ token }) {
     if (idEdition) {
       // Si en édition, on réaffiche la photo Cloudinary d'origine
       const catCurrent = categories.find(c => c._id === idEdition);
-      setPreview(catCurrent ? catCurrent.image : null);
+      setPreview(catCurrent && isSafeImageUrl(catCurrent.image) ? catCurrent.image : null);
     } else {
       setPreview(null);
     }
@@ -66,7 +71,7 @@ export default function Categories({ token }) {
   const chargerEdition = (cat) => {
     setIdEdition(cat._id);
     setNom(cat.nom);
-    setPreview(cat.image); // Aperçu Cloudinary par défaut
+    setPreview(isSafeImageUrl(cat.image) ? cat.image : null); // Aperçu Cloudinary par défaut
     setImage(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -212,7 +217,7 @@ export default function Categories({ token }) {
                 Illustration {idEdition && "(Optionnelle)"}
               </label>
 
-              {preview ? (
+              {isSafeImageUrl(preview) ? (
                 <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-stone-200 group">
                   <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
                   {image && (
@@ -321,7 +326,7 @@ export default function Categories({ token }) {
                     >
                       <td className="py-3.5 pl-2">
                         <div className="w-12 h-12 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 flex-shrink-0">
-                          {cat.image ? (
+                          {isSafeImageUrl(cat.image) ? (
                             <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-stone-400">

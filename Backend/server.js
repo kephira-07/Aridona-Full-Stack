@@ -29,6 +29,10 @@ EventEmitter.defaultMaxListeners = 25;
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Render (et la plupart des hébergeurs) passent par un reverse proxy.
+// Sans ça, express-rate-limit voit l'IP du proxy au lieu de celle du client.
+app.set('trust proxy', 1);
+
 // Config synchrone de Cloudinary
 connectCloudinary();
 

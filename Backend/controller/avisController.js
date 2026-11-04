@@ -42,7 +42,7 @@ const ajouterAvis = async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur ajout avis :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -65,7 +65,7 @@ const listAvisProduit = async (req, res) => {
     return res.status(200).json({ success: true, avis, moyenne, total });
   } catch (error) {
     console.error("Erreur liste avis produit :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -79,7 +79,7 @@ const listAvisAdmin = async (req, res) => {
     return res.status(200).json({ success: true, avis });
   } catch (error) {
     console.error("Erreur liste avis admin :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -96,7 +96,7 @@ const approuverAvis = async (req, res) => {
     return res.status(200).json({ success: true, message: "Avis approuvé et publié.", avis });
   } catch (error) {
     console.error("Erreur approbation avis :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -113,7 +113,7 @@ const supprimerAvis = async (req, res) => {
     return res.status(200).json({ success: true, message: "Avis supprimé." });
   } catch (error) {
     console.error("Erreur suppression avis :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 

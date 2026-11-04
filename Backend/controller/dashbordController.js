@@ -128,8 +128,7 @@ export const getDashboardStats = async (req, res) => {
         console.error("Erreur Dashboard Stats Réelles:", error);
         return res.status(500).json({ 
             success: false, 
-            message: "Erreur lors du calcul des statistiques réelles", 
-            error: error.message 
+            message: "Erreur lors du calcul des statistiques réelles"
         });
     }
 };

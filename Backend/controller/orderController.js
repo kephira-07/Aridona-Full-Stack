@@ -235,7 +235,7 @@ const placeOrder = async (req, res) => {
 
     } catch (error) {
         console.error("Erreur PlaceOrder:", error);
-        return res.status(500).json({ success: false, message: "Erreur lors de la création de la commande.", error: error.message });
+        return res.status(500).json({ success: false, message: "Erreur lors de la création de la commande." });
     }
 };
 

@@ -25,14 +25,20 @@ const googleLogin = async (req, res) => {
       return res.status(400).json({ success: false, message: "Jeton d'accès Google manquant." });
     }
 
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      console.error("GOOGLE_CLIENT_ID manquant : connexion Google refusée.");
+      return res.status(503).json({ success: false, message: "Connexion Google temporairement indisponible." });
+    }
+
     // Vérifier que le token appartient bien à cette application Google.
     const tokenInfo = await axios.get('https://oauth2.googleapis.com/tokeninfo', {
       params: { access_token },
     });
-    if (process.env.GOOGLE_CLIENT_ID && tokenInfo.data.aud !== process.env.GOOGLE_CLIENT_ID) {
+    if (tokenInfo.data.aud !== process.env.GOOGLE_CLIENT_ID) {
       return res.status(401).json({ success: false, message: 'Token Google non autorisé.' });
     }
-    if (tokenInfo.data.email_verified !== 'true') {
+    const emailVerified = tokenInfo.data.email_verified;
+    if (emailVerified !== true && emailVerified !== 'true') {
       return res.status(401).json({ success: false, message: 'Adresse Google non vérifiée.' });
     }
 
@@ -57,12 +63,12 @@ const googleLogin = async (req, res) => {
     }
 
     // Génération de votre token JWT
-    const token = createToken(user._id);
+    const token = createToken(user._id, 'user', user.email);
 
     return res.status(200).json({ success: true, token });
   } catch (error) {
     console.error("Erreur Backend googleLogin:", error.response?.data || error.message);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -119,7 +125,7 @@ const loginutilisateur = async (req, res) => {
     }
 
     const utilisateur = await utilisateurModel.findOne({ email: email.toLowerCase() });
-    if (!utilisateur) {
+    if (!utilisateur || !utilisateur.password || !utilisateur.password.startsWith('$2')) {
       return res.status(401).json({ success: false, message: "Identifiants incorrects." });
     }
 
@@ -186,7 +192,7 @@ const getProfilUtilisateur = async (req, res) => {
     }
     return res.json({ success: true, utilisateur });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -208,7 +214,7 @@ const updateProfilUtilisateur = async (req, res) => {
       utilisateur: utilisateurMisAJour 
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -351,7 +357,7 @@ const getUtilisateurPanier = async (req, res) => {
     return res.json({ success: true, cartData, cartPacks });
   } catch (error) {
     console.error("Erreur récupération panier :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -378,7 +384,7 @@ const ajouterAuPanier = async (req, res) => {
     return res.json({ success: true, message: "Ajouté au panier BDD" });
   } catch (error) {
     console.error("Erreur ajout panier BDD :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -415,7 +421,7 @@ const updatePanier = async (req, res) => {
     return res.json({ success: true, message: "Panier mis à jour" });
   } catch (error) {
     console.error("Erreur mise à jour panier BDD :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 // Supprimer un article du panier BDD
@@ -442,7 +448,7 @@ const deletePanier = async (req, res) => {
     return res.status(404).json({ success: false, message: "Article introuvable dans le panier" });
   } catch (error) {
     console.error("Erreur suppression panier BDD :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -464,7 +470,7 @@ const ajouterPackAuPanier = async (req, res) => {
     return res.json({ success: true, message: "Pack ajouté au panier BDD" });
   } catch (error) {
     console.error("Erreur ajout pack panier BDD :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -491,7 +497,7 @@ const updatePanierPack = async (req, res) => {
     return res.json({ success: true, message: "Panier de packs mis à jour" });
   } catch (error) {
     console.error("Erreur mise à jour pack panier BDD :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
@@ -517,7 +523,7 @@ const deletePanierPack = async (req, res) => {
     return res.json({ success: true, message: "Pack supprimé du panier" });
   } catch (error) {
     console.error("Erreur suppression pack panier BDD :", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
   }
 };
 
