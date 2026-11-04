@@ -1,11 +1,10 @@
 import { useContext, useEffect, useState } from 'react';
-
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { ShopContext } from '../context/ShopContext';
-import PackCard from '../composant/PackCard'; // Ajustez le chemin vers votre PackCard si nécessaire
+import PackCard from '../composant/PackCard';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import Titre from '../composant/Titre';
 import BoutonRetour from '../composant/BoutonRetour';
 
@@ -35,7 +34,7 @@ export default function Packs() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] px-4 py-6 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen bg-[#FBF9F5] overflow-hidden">
       <Helmet>
         <title>Packs de Bijoux | Aridona Bijoux</title>
         <meta name="description" content="Nos packs assemblent plusieurs bijoux en acier inoxydable 316L à prix plus doux : le cadeau tout trouvé ou la silhouette complète en un geste. Livrés à Lomé et partout au Togo." />
@@ -46,36 +45,55 @@ export default function Packs() {
         <script type="application/ld+json">{JSON.stringify(itemListSchema)}</script>
         <meta property="og:type" content="website" />
       </Helmet>
-      
 
-      <div className="mx-auto max-w-7xl">
-        <BoutonRetour/>
-        {/* En-tête éditorial */}
-   <header className="mb-12 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-          <div>
-            <span className="inline-flex items-center rounded-full bg-amber-900 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">Offres exclusives</span>
+      {/* Éléments décoratifs de fond luxueux et discrets */}
+      <div className="absolute top-0 right-0 -z-10 h-96 w-96 rounded-full bg-amber-100/40 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-0 -z-10 h-96 w-96 rounded-full bg-stone-200/30 blur-3xl pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 sm:py-12">
+        <div className="mb-6">
+          <BoutonRetour />
+        </div>
+
+        {/* En-tête éditorial raffiné */}
+        <header className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-900/5 px-3.5 py-1 text-xs font-medium tracking-wider text-amber-900 border border-amber-900/10">
+              <Sparkles size={13} className="text-amber-700" />
+              <span>Offres exclusives</span>
+            </div>
+            
             <Titre text1="Découvrez" text2="Nos Packs" />
-            <p id="packs-title" className="mt-3 max-w-xl text-sm leading-relaxed text-stone-600">
+            
+            <p id="packs-title" className="max-w-xl text-sm leading-relaxed text-stone-600 font-light">
               Plusieurs bijoux assortis réunis dans une offre avantageuse : des idées cadeaux prêtes à offrir, livrées à Lomé et partout au Togo.
             </p>
           </div>
+
           <Link 
             to="/collection" 
-            className="inline-flex items-center gap-2.5 border border-amber-900 bg-amber-900 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white shadow-xs transition-all duration-300 hover:border-amber-900/30 hover:bg-amber-50/80 hover:text-amber-950 hover:shadow-md group"
+            className="group inline-flex items-center gap-3 rounded-full bg-amber-900 px-6 py-3 text-xs font-medium uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-amber-950 hover:shadow-md"
           >
             <span>Découvrir la collection</span>
-            <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1.5" />
           </Link>
         </header>
 
+        {/* États de chargement et d'affichage */}
         {loading ? (
-          <div className="py-20 text-center text-sm text-stone-500" role="status">Chargement des packs...</div>
+          <div className="py-24 text-center text-sm font-light tracking-wide text-stone-500 animate-pulse" role="status">
+            Chargement des packs d'exception...
+          </div>
         ) : packs.length === 0 ? (
-          <div className="py-20 text-center text-sm text-stone-500">Aucun pack disponible pour le moment.</div>
+          <div className="py-24 text-center text-sm text-stone-500 font-light">
+            Aucun pack disponible pour le moment.
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-3">
             {packs.map((pack) => (
-              <PackCard key={pack._id} pack={pack} />
+              <div key={pack._id} className="transition-all duration-300 hover:-translate-y-1">
+                <PackCard pack={pack} />
+              </div>
             ))}
           </div>
         )}

@@ -1,9 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from './Titre';
-import PackCard from '../composant/PackCard'; // Assurez-vous que le chemin est correct
+import PackCard from '../composant/PackCard';
 import axios from 'axios';
 
 export default function PacksSection() {
@@ -21,34 +21,43 @@ export default function PacksSection() {
   if (!packs.length) return null;
 
   return (
-    <section className="border-y border-amber-200/80 bg-gradient-to-br from-amber-50 via-white to-stone-50 py-10 sm:py-16" aria-labelledby="packs-title">
-      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-4">
+    <section className="relative overflow-hidden bg-[#FBF9F5] py-16 sm:py-24 border-y border-amber-900/10" aria-labelledby="packs-title">
+      {/* Éléments de fond décoratifs luxueux et discrets */}
+      <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-amber-100/50 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-stone-200/40 blur-3xl pointer-events-none" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
-        {/* En-tête de section */}
-        <div className="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-          <div>
-            <span className="inline-flex items-center rounded-full bg-amber-900 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">Économisez en beauté</span>
+        {/* En-tête de section raffiné */}
+        <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-900/5 px-3.5 py-1 text-xs font-medium tracking-wider text-amber-900 border border-amber-900/10">
+              <Sparkles size={13} className="text-amber-700" />
+              <span>Offres Exclusives</span>
+            </div>
+            
             <Titre text1="Découvrez" text2="Nos Packs" />
-            <p id="packs-title" className="mt-3 max-w-xl text-sm leading-relaxed text-stone-600">
-              Des bijoux assortis réunis dans une seule offre, à prix privilégié. Le cadeau idéal à Lomé ou partout au Togo.
+            
+            <p id="packs-title" className="max-w-xl text-sm leading-relaxed text-stone-600 font-light">
+              Des parures de bijoux harmonieuses réunies dans une seule offre à prix d'exception. Le raffinement à porter ou à offrir à Lomé et partout au Togo.
             </p>
           </div>
+
           <Link 
             to="/packs" 
-            className="inline-flex items-center gap-2.5 border border-amber-900 bg-amber-900 px-5 py-2.5 text-xs font-semibold uppercase tracking-widest text-white shadow-xs transition-all mx-5 duration-300 hover:border-amber-900/30 hover:bg-amber-50/80 hover:text-amber-950 hover:shadow-md group"
+            className="group inline-flex items-center gap-3 rounded-full bg-amber-900 px-6 py-3 text-xs font-medium uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-amber-950 hover:shadow-md"
           >
             <span>Découvrir tous les packs</span>
-            <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1.5" />
           </Link>
         </div>
 
-        {/* Grille des 3 packs principaux utilisant le composant PackCard */}
-        {/* 2 colonnes seulement à partir de lg (1024px) : à md (tablette, 768-1023px), 2
-            colonnes rendaient chaque carte plus étroite que sur mobile et écrasaient son
-            contenu — une tablette garde donc 1 carte pleine largeur par ligne, comme le mobile. */}
+        {/* Grille des packs */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-3">
           {packs.slice(0, 3).map((pack) => (
-            <PackCard key={pack._id} pack={pack} />
+            <div key={pack._id} className="transition-all duration-300 hover:-translate-y-1">
+              <PackCard pack={pack} />
+            </div>
           ))}
         </div>
 
