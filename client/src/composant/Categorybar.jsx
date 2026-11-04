@@ -73,8 +73,11 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
   };
 
   const handleCategoryClick = (id) => {
+    const category = categories.find((cat) => cat._id === id);
     if (isHomePage) {
-      navigate('/collection', { state: { initialCategory: id } });
+      navigate(category?.slug ? `/collection/${category.slug}` : '/collection', {
+        state: category?.slug ? undefined : { initialCategory: id }
+      });
     } else {
       toggleCategorie(id);
     }

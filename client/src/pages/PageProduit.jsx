@@ -354,8 +354,7 @@ const { slug } = useParams();
           <>
             <span className="mx-2">/</span>
             <Link
-              to="/collection"
-              state={categorySlug ? { initialCategorySlug: categorySlug } : undefined}
+              to={categorySlug ? `/collection/${categorySlug}` : '/collection'}
               className="hover:text-amber-800 hover:underline"
             >
               {nomCategorie}

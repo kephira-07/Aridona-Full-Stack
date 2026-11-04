@@ -173,7 +173,7 @@ export default function BarRecherche({ isNavbar }) {
   const handleCategoryClick = (slug) => {
     setRecherche('');
     fermerTout();
-    navigate('/collection', { state: { initialCategorySlug: slug } });
+    navigate(`/collection/${slug}`);
   };
 
   const handlePackClick = (pack) => {

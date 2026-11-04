@@ -94,8 +94,8 @@ const Footer = () => {
                   <li key={cat._id}>
                     <Link 
                       onClick={scrollToTop} 
-                      to="/collection" 
-                      state={{ initialCategory: cat._id }}
+                      to={cat.slug ? `/collection/${cat.slug}` : '/collection'}
+                      state={cat.slug ? undefined : { initialCategory: cat._id }}
                       className="hover:text-amber-500 transition-colors duration-200 capitalize"
                     >
                       {cat.nom}

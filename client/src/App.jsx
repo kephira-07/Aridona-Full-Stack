@@ -57,6 +57,7 @@ function App() {
             <Route path="/home" element={<Home />} />
             
             <Route path="/collection" element={<Collection />} />
+            <Route path="/collection/:categorySlug" element={<Collection />} />
             <Route path="/produit/:slug" element={<PageProduit />} />
             
             <Route path="/panier" element={<Panier />} />

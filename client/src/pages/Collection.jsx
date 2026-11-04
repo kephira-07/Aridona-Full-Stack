@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import { ShopContext } from '../context/ShopContext';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { SlidersHorizontal, X, ArrowUpDown } from "lucide-react";
 import Titre from '../composant/Titre';
 import ProduitItem from "../composant/ProduitItem";
@@ -59,6 +59,8 @@ const LIVRAISON_INFO = "Livraison rapide, à Lomé et partout au Togo.";
 const Collection = () => {
     const { produits, recherche } = useContext(ShopContext);
     const location = useLocation();
+    const navigate = useNavigate();
+    const { categorySlug } = useParams();
     
     const [categoriesList, setCategoriesList] = useState([]); 
     const [showFilter, setShowFilter] = useState(false);
@@ -82,6 +84,16 @@ const Collection = () => {
         fetchCategories();
     }, []);
 
+    // Synchroniser la catégorie sélectionnée avec le slug présent dans l'URL.
+    useEffect(() => {
+        if (!categorySlug || categoriesList.length === 0) return;
+
+        const category = categoriesList.find((item) => item.slug === categorySlug);
+        if (category) {
+            setSelectedCategories([category._id]);
+        }
+    }, [categorySlug, categoriesList]);
+
     // Intercepter la catégorie cliquée depuis la Home Page (Categorybar → id direct)
     // ou depuis la barre de recherche (BarRecherche → slug, à résoudre une fois les
     // catégories chargées).
@@ -102,10 +114,15 @@ const Collection = () => {
     }, [location.state, categoriesList]);
 
     const toggleCategorie = (id) => {
+        const category = categoriesList.find((item) => item._id === id);
         if (selectedCategories.includes(id)) {
             setSelectedCategories([]); 
+            navigate('/collection');
         } else {
             setSelectedCategories([id]); 
+            navigate(category?.slug ? `/collection/${category.slug}` : '/collection', {
+                state: category?.slug ? undefined : { initialCategory: id }
+            });
         }
     };
 
@@ -211,7 +228,10 @@ const Collection = () => {
             <Categorybar 
                 selectedCategories={selectedCategories} 
                 toggleCategorie={toggleCategorie}
-                clearCategories={() => setSelectedCategories([])}
+                clearCategories={() => {
+                    setSelectedCategories([]);
+                    navigate('/collection');
+                }}
             />
             <BoutonRetour />
 

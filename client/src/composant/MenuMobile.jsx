@@ -41,12 +41,14 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
     if (visible) fetchCategories();
   }, [visible, context]);
 
-  const handleCategoryClick = (id) => {
+  const handleCategoryClick = (id, slug) => {
     setVisible(false);
     if (id === 'all') {
       navigate('/collection');
     } else {
-      navigate('/collection', { state: { initialCategory: id } });
+      navigate(slug ? `/collection/${slug}` : '/collection', {
+        state: slug ? undefined : { initialCategory: id }
+      });
     }
   };
 
@@ -106,7 +108,7 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
               {categories.map((cat) => (
                 <button 
                   key={cat._id || cat.id} 
-                  onClick={() => handleCategoryClick(cat._id || cat.id)}
+                  onClick={() => handleCategoryClick(cat._id || cat.id, cat.slug)}
                   className="flex items-center justify-between px-6 py-3.5 w-full text-left group transition-colors hover:bg-stone-50"
                 >
                   <span className="text-xs font-medium uppercase tracking-wider text-stone-700 group-hover:text-amber-800 transition-colors">
