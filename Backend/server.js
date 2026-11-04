@@ -38,10 +38,14 @@ app.use(express.json({ limit: '100kb' }));
 // CinetPay envoie sa notification de paiement (webhook) en application/x-www-form-urlencoded.
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
-// Origines autorisées : domaine de prod (client + admin servi sous /admin sur le même domaine)
-// + ports de dev locaux. Personnalisable via CORS_ORIGIN (liste séparée par des virgules) sans
-// avoir à retoucher le code si l'admin finit un jour sur un sous-domaine séparé.
-const defaultOrigins = ['https://aridona.store', 'http://localhost:5173', 'http://localhost:5174'];
+// Origines autorisées : client et dashboard admin en production + ports de dev locaux.
+// Personnalisable via CORS_ORIGIN (liste séparée par des virgules).
+const defaultOrigins = [
+  'https://aridona.store',
+  'https://aridona-bijoux-admin.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
   : defaultOrigins;

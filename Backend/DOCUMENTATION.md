@@ -41,7 +41,7 @@ Un gestionnaire d'erreurs global est placé **après** toutes les routes : il in
 | `CLOUDINARY_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | SDK Cloudinary |
 | `RESEND_API_KEY` | Envoi d'emails (mot de passe oublié, formulaire de contact) via Resend — domaine `aridona.store` vérifié (DNS chez Namecheap), expéditeur `contact@aridona.store` |
 | `FRONTEND_URL` | Base du lien inséré dans l'email de réinitialisation (`/reset-password/:token`) |
-| `CORS_ORIGIN` *(optionnel)* | Liste d'origines autorisées séparées par des virgules ; remplace la liste par défaut codée dans `server.js` si présente |
+| `CORS_ORIGIN` *(optionnel)* | Liste d'origines autorisées séparées par des virgules ; remplace la liste par défaut codée dans `server.js` si présente. En production, inclure `https://aridona.store,https://aridona-bijoux-admin.onrender.com` |
 
 ### Authentification (`middleware/auth.js`)
 
