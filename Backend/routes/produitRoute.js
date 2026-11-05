@@ -39,5 +39,5 @@ produitRouter.put('/update/:id', auth(['admin']), uploadFields, updateproduit);
 produitRouter.delete('/remove/:id', auth(['admin']), removeproduit);
 produitRouter.put('/changer-stock/:id', auth(['admin']), changerStatutStock);
 produitRouter.get('/stats-dashboard', auth(['admin']), getDashboardStats);
-produitRouter.post('/ai-analyze', auth(['admin']), analyzeProductImage);
+produitRouter.post('/ai-analyze', analyzeProductImage);
 export default produitRouter;
