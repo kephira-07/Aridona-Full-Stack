@@ -4,9 +4,10 @@ import generateUniqueSlug from '../utils/slug.js';
 import { GoogleGenAI } from '@google/genai';
 import { cleanLocalFiles } from '../utils/cleanLocalFile.js';
 
+// Initialisation correcte du SDK Google GenAI
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Contrôleur pour l'analyse IA
+// Contrôleur pour l'analyse IA (Corrigé)
 const analyzeProductImage = async (req, res) => {
   try {
     const { imageBase64, mimeType } = req.body;
@@ -17,30 +18,37 @@ const analyzeProductImage = async (req, res) => {
 
     const prompt = `
       Tu es un expert en e-commerce de bijoux en acier inoxydable pour Aridona Bijoux.
-      Analyse l\'image de ce bijou et génère une fiche produit au format JSON strict (sans aucun texte autour, sans balises markdown \`\`\`json).
+      Analyse l'image de ce bijou et génère une fiche produit au format JSON strict (sans aucun texte autour, sans balises markdown \`\`\`json).
       Le JSON doit contenir exactement ces clés :
       - "nom": Un titre élégant et vendeur en français.
-      - "description": Une description poétique et raffinée mettant en valeur la résistance et l\'acier inoxydable.
+      - "description": Une description poétique et raffinée mettant en valeur la résistance et l'acier inoxydable.
       - "tags": Une liste de 4 à 6 mots-clés séparés par des virgules (ex: collier, acier inoxydable, doré, minimaliste).
       - "metaTitle": Un titre SEO accrocheur de moins de 70 caractères.
       - "metaDescription": Une description SEO engageante de moins de 160 caractères.
       - "couleurs": Un tableau parmi ces choix exacts selon la couleur dominante: ["Doré", "Argenté", "Rosé"].
     `;
 
+    // Correction de l'appel au modèle Gemini avec le SDK @google/genai
     const response = await ai.models.generateContent({
       model: 'gemini-1.5-flash',
       contents: [
-        { text: prompt },
         {
-          inlineData: {
-            mimeType: mimeType || 'image/jpeg',
-            data: imageBase64,
-          },
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: mimeType || 'image/jpeg',
+                data: imageBase64,
+              },
+            },
+          ],
         },
       ],
     });
 
-    let rawText = response.text.trim();
+    // Récupération sécurisée du texte généré
+    let rawText = response.text ? response.text.trim() : "";
     rawText = rawText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
 
     const productData = JSON.parse(rawText);
@@ -48,8 +56,8 @@ const analyzeProductImage = async (req, res) => {
     return res.json({ success: true, product: productData });
 
   } catch (error) {
-    console.error("Erreur analyse Gemini :", error);
-    return res.status(500).json({ success: false, message: "Erreur lors de l\'analyse de l\'image par l\'IA." });
+    console.error("Erreur détaillée analyse Gemini :", error);
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de l'analyse de l'image par l'IA." });
   }
 };
 
@@ -75,7 +83,6 @@ const listproduits = async (req, res) => {
     const { categorieId } = req.query;
     const filtre = categorieId ? { categorie: categorieId } : {};
 
-    // On récupère les produits
     const produits = await produitModel.find(filtre).populate("categorie", "nom name");
 
     return res.status(200).json({ success: true, produits });
@@ -91,8 +98,8 @@ const getPublicIdFromUrl = (url) => {
     const after = url.split('/upload/')[1];
     if (!after) return null;
     const parts = after.split('/');
-    if (/^v\d+$/.test(parts[0])) parts.shift();      // retire le segment de version vNNN
-    return parts.join('/').replace(/\.[^.]+$/, '');  // retire l'extension
+    if (/^v\d+$/.test(parts[0])) parts.shift();      
+    return parts.join('/').replace(/\.[^.]+$/, '');  
   } catch {
     return null;
   }
@@ -103,9 +110,6 @@ const parseTagsHelper = (input) => {
   return rawArray.map(tag => tag.trim().toLowerCase()).filter(Boolean);
 };
 
-// "Or Rose" a été renommé en "Rosé" dans l'enum du modèle — remappe toute valeur héritée
-// envoyée par un client non à jour (ex. bundle admin en cache) pour ne jamais faire
-// planter la validation Mongoose sur une couleur qui n'existe plus.
 const LEGACY_COULEURS = { 'Or Rose': 'Rosé' };
 const parseCouleursHelper = (input) => parseArrayHelper(input).map((c) => LEGACY_COULEURS[c] || c);
 
@@ -144,13 +148,12 @@ const addproduit = async (req, res) => {
       alt: (parsedAlts[i] && String(parsedAlts[i]).trim()) || `${nom} - vue ${i + 1}`,
     }));
 
-    // Supprimer les fichiers temporaires après upload Cloudinary
     cleanLocalFiles(req.files);
 
     const slug = await generateUniqueSlug(produitModel, nom);
     const parsedSizes = parseArrayHelper(sizes);
     const parsedCouleurs = parseCouleursHelper(couleurs);
-    const parsedTags = parseTagsHelper(tags); // Traitement des tags
+    const parsedTags = parseTagsHelper(tags);
 
     const stockValue = stock === '' || stock === undefined ? null : Number(stock);
     if (stockValue !== null && (!Number.isInteger(stockValue) || stockValue < 0)) {
@@ -165,7 +168,7 @@ const addproduit = async (req, res) => {
       matiere: matiere || "Acier Inoxydable",
       couleurs: parsedCouleurs.length > 0 ? parsedCouleurs : ["Doré"],
       sizes: parsedSizes,
-      tags: parsedTags, // Ajout des tags
+      tags: parsedTags,
       meilleurVente: meilleurVente === "true" || meilleurVente === true,
       stock: stockValue,
       enStock: stockValue === null ? true : stockValue > 0,
@@ -267,7 +270,7 @@ const updateproduit = async (req, res) => {
     if (matiere) updateData.matiere = matiere;
     if (couleurs) updateData.couleurs = parseCouleursHelper(couleurs);
     if (sizes) updateData.sizes = parseArrayHelper(sizes);
-    if (tags !== undefined) updateData.tags = parseTagsHelper(tags); // Prise en compte de la mise à jour des tags
+    if (tags !== undefined) updateData.tags = parseTagsHelper(tags);
     if (meilleurVente !== undefined) updateData.meilleurVente = (meilleurVente === "true" || meilleurVente === true);
     if (stock !== undefined) {
       const stockValue = stock === '' ? null : Number(stock);
@@ -275,10 +278,6 @@ const updateproduit = async (req, res) => {
         return res.status(400).json({ success: false, message: "Le stock doit être un entier positif ou nul." });
       }
       updateData.stock = stockValue;
-      // N'aligne enStock sur le stock QUE si le nombre a réellement changé : le formulaire
-      // d'édition renvoie toujours le champ stock (même non modifié), donc sans ce garde-fou
-      // on écraserait silencieusement, à chaque simple retouche du produit, un basculement
-      // manuel fait depuis /changer-stock (liste des produits).
       if (stockValue !== null) {
         const stockActuel = await produitModel.findById(id).select('stock');
         if (!stockActuel || stockActuel.stock !== stockValue) {
@@ -289,11 +288,6 @@ const updateproduit = async (req, res) => {
     if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
     if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
 
-    // Le manifeste décrit l'état voulu de chacun des 4 emplacements (image1..image4) :
-    // { type: 'existing', url, publicId, alt } pour une image conservée (alt éditable),
-    // { type: 'new', alt } pour un emplacement dont le fichier est envoyé à part (imageN),
-    // { type: 'empty' } (ou absent) pour un emplacement vidé.
-    // Sans ce champ, les images ne sont pas touchées (compatibilité des autres appels).
     let ancienProduit = null;
     let removedPublicIds = [];
     if (imagesManifest !== undefined) {
@@ -356,8 +350,6 @@ const updateproduit = async (req, res) => {
       return res.status(404).json({ success: false, message: "Produit introuvable" });
     }
 
-    // On ne supprime les anciennes images de Cloudinary qu'après confirmation
-    // que le nouveau document est bien enregistré, pour ne rien perdre en cas d'échec.
     for (const publicId of removedPublicIds) {
       await cloudinary.uploader.destroy(publicId);
     }
@@ -377,7 +369,6 @@ const searchProduits = async (req, res) => {
       return res.status(400).json({ success: false, message: "Veuillez entrer un mot clé" });
     }
 
-    // Grâce à l'index text mis à jour sur le schéma, cette recherche inclura automatiquement les tags !
     const resultats = await produitModel.find(
       { $text: { $search: query } },
       { score: { $meta: "textScore" } }
@@ -390,7 +381,6 @@ const searchProduits = async (req, res) => {
     return res.status(500).json({ success: false, message: "Erreur lors de la recherche" });
   }
 };
-
 
 // 7. Changer le statut du stock
 const changerStatutStock = async (req, res) => {
@@ -422,10 +412,8 @@ const changerStatutStock = async (req, res) => {
   }
 };
 
-// 8. Flux produits pour Google Merchant Center (RSS 2.0 + espace de noms Google Shopping)
-// Généré en direct depuis la base à chaque requête (contrairement au sitemap, construit au
-// build) : Merchant Center exige un prix/stock à jour, pas un instantané figé au dernier déploiement.
-const SITE_URL = 'https://aridona.store';
+// 8. Flux produits pour Google Merchant Center
+const SITE_URL = '[https://aridona.store](https://aridona.store)';
 
 const escapeXml = (str) => String(str ?? '')
   .replace(/&/g, '&amp;')
@@ -444,7 +432,7 @@ const getProductFeed = async (req, res) => {
       const lien = `${SITE_URL}/produit/${p.slug || p._id}`;
 
       const additionalImages = imagesSupplementaires
-        .slice(0, 10) // limite Google
+        .slice(0, 10)
         .map((img) => `      <g:additional_image_link>${escapeXml(img.url)}</g:additional_image_link>`)
         .join('\n');
 
@@ -466,7 +454,7 @@ ${additionalImages}
     });
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+<rss xmlns:g="[http://base.google.com/ns/1.0](http://base.google.com/ns/1.0)" version="2.0">
   <channel>
     <title>Aridona Bijoux — Catalogue</title>
     <link>${SITE_URL}</link>
@@ -483,4 +471,4 @@ ${items.join('\n')}
   }
 };
 
-export { addproduit, listproduits,analyzeProductImage, removeproduit, singleproduit, singleproduitBySlug, updateproduit, searchProduits, changerStatutStock, getProductFeed };
+export { addproduit, listproduits, analyzeProductImage, removeproduit, singleproduit, singleproduitBySlug, updateproduit, searchProduits, changerStatutStock, getProductFeed };
