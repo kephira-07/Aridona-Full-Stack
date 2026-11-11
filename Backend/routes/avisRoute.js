@@ -13,13 +13,21 @@ const avisLimiter = rateLimit({
 	message: { success: false, message: 'Trop d’avis envoyés. Réessayez plus tard.' },
 });
 
+const apiLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	limit: 200,
+	standardHeaders: 'draft-8',
+	legacyHeaders: false,
+	message: { success: false, message: 'Trop de requêtes. Réessayez plus tard.' },
+});
+
 // --- Routes Publiques ---
 avisRouter.post('/ajouter', avisLimiter, ajouterAvis);
-avisRouter.get('/produit/:produitId', listAvisProduit);
+avisRouter.get('/produit/:produitId', apiLimiter, listAvisProduit);
 
 // --- Routes Protégées Administrateur (modération) ---
-avisRouter.get('/admin', auth(['admin']), listAvisAdmin);
-avisRouter.put('/approuver/:id', auth(['admin']), approuverAvis);
-avisRouter.delete('/supprimer/:id', auth(['admin']), supprimerAvis);
+avisRouter.get('/admin', apiLimiter, auth(['admin']), listAvisAdmin);
+avisRouter.put('/approuver/:id', apiLimiter, auth(['admin']), approuverAvis);
+avisRouter.delete('/supprimer/:id', apiLimiter, auth(['admin']), supprimerAvis);
 
 export default avisRouter;

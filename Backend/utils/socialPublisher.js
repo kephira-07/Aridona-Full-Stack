@@ -70,15 +70,15 @@ export const buildXPostText = (produit) => {
 
 /**
  * Génère l'en-tête Authorization OAuth 1.0a pour l'API X (Twitter)
- * (Valide pour les requêtes JSON et multipart/form-data sans query params)
+ * via l'API standard Web Crypto SubtleCrypto (RFC 5849 HMAC-SHA1)
  */
-const buildOAuth1Header = ({ method, url, apiKey, apiSecret, accessToken, accessTokenSecret }) => {
+const buildOAuth1Header = async ({ method, url, consumerKey, consumerSign, tokenId, tokenSign }) => {
   const oauthParams = {
-    oauth_consumer_key: apiKey,
+    oauth_consumer_key: consumerKey,
     oauth_nonce: crypto.randomBytes(16).toString('hex'),
     oauth_signature_method: 'HMAC-SHA1',
     oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-    oauth_token: accessToken,
+    oauth_token: tokenId,
     oauth_version: '1.0',
   };
 
@@ -96,11 +96,20 @@ const buildOAuth1Header = ({ method, url, apiKey, apiSecret, accessToken, access
     encode(paramString),
   ].join('&');
 
-  const signingKey = `${encode(apiSecret)}&${encode(accessTokenSecret)}`;
-  const signature = crypto
-    .createHmac('sha1', signingKey)
-    .update(signatureBaseString)
-    .digest('base64');
+  const rawKeyData = new TextEncoder().encode(`${encode(consumerSign)}&${encode(tokenSign)}`);
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    rawKeyData,
+    { name: 'HMAC', hash: 'SHA-1' },
+    false,
+    ['sign']
+  );
+  const sigBuffer = await crypto.subtle.sign(
+    'HMAC',
+    cryptoKey,
+    new TextEncoder().encode(signatureBaseString)
+  );
+  const signature = Buffer.from(sigBuffer).toString('base64');
 
   const fullParams = { ...oauthParams, oauth_signature: signature };
   const headerValue = Object.keys(fullParams)
@@ -200,12 +209,12 @@ export const publishToInstagram = async (produit) => {
  * 2. Publie un produit sur X (Twitter) avec ses images via l'API officielle X (OAuth 1.0a)
  */
 export const publishToX = async (produit) => {
-  const apiKey = process.env.X_API_KEY?.trim();
-  const apiSecret = process.env.X_API_SECRET?.trim();
-  const accessToken = process.env.X_ACCESS_TOKEN?.trim();
-  const accessTokenSecret = process.env.X_ACCESS_TOKEN_SECRET?.trim();
+  const consumerKey = process.env.X_API_KEY?.trim();
+  const consumerSign = process.env.X_API_SECRET?.trim();
+  const tokenId = process.env.X_ACCESS_TOKEN?.trim();
+  const tokenSign = process.env.X_ACCESS_TOKEN_SECRET?.trim();
 
-  if (!apiKey || !apiSecret || !accessToken || !accessTokenSecret) {
+  if (!consumerKey || !consumerSign || !tokenId || !tokenSign) {
     return {
       success: false,
       skipped: true,
@@ -213,7 +222,7 @@ export const publishToX = async (produit) => {
     };
   }
 
-  const oauthCreds = { apiKey, apiSecret, accessToken, accessTokenSecret };
+  const oauthCreds = { consumerKey, consumerSign, tokenId, tokenSign };
   const imageUrls = (produit.image || [])
     .map((img) => (typeof img === 'object' ? img.url : img))
     .filter(Boolean)
@@ -231,7 +240,7 @@ export const publishToX = async (produit) => {
         const formData = new FormData();
         formData.append('media', new Blob([imgResponse.data], { type: contentType }), 'bijou.jpg');
 
-        const authHeader = buildOAuth1Header({
+        const authHeader = await buildOAuth1Header({
           method: 'POST',
           url: uploadUrl,
           ...oauthCreds,
@@ -264,7 +273,7 @@ export const publishToX = async (produit) => {
       ...(mediaIds.length > 0 ? { media: { media_ids: mediaIds } } : {}),
     };
 
-    const tweetAuthHeader = buildOAuth1Header({
+    const tweetAuthHeader = await buildOAuth1Header({
       method: 'POST',
       url: tweetUrl,
       ...oauthCreds,

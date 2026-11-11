@@ -8,22 +8,20 @@ import {
   Upload, 
   X, 
   Loader2, 
-  Sparkles, 
   Layers,
   Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const isSafeImageUrl = (url) => {
-  if (!url || typeof url !== 'string') return false;
-  return url.startsWith('blob:') || url.startsWith('https://');
+const isRemoteHttpsUrl = (url) => {
+  return typeof url === 'string' && url.startsWith('https://');
 };
 
 export default function Categories({ token }) {
   const [categories, setCategories] = useState([]);
   const [nom, setNom] = useState('');
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null); 
+  const [images, setImages] = useState([null]);
+  const [existingImage, setExistingImage] = useState('');
   const [loading, setLoading] = useState(false);
 
   // --- ÉTATS POUR LA MODIFICATION ---
@@ -47,32 +45,25 @@ export default function Categories({ token }) {
   }, []);
 
   // 2. Gérer le changement d'image
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleImageChange = (index, file) => {
     if (file) {
-      setImage(file);
-      setPreview(URL.createObjectURL(file)); 
+      const next = [...images];
+      next[index] = file;
+      setImages(next);
     }
   };
 
   // Supprimer l'image sélectionnée
   const handleRemoveImage = () => {
-    setImage(null);
-    if (idEdition) {
-      // Si en édition, on réaffiche la photo Cloudinary d'origine
-      const catCurrent = categories.find(c => c._id === idEdition);
-      setPreview(catCurrent && isSafeImageUrl(catCurrent.image) ? catCurrent.image : null);
-    } else {
-      setPreview(null);
-    }
+    setImages([null]);
   };
 
   // Activer le mode édition pour une catégorie
   const chargerEdition = (cat) => {
     setIdEdition(cat._id);
     setNom(cat.nom);
-    setPreview(isSafeImageUrl(cat.image) ? cat.image : null); // Aperçu Cloudinary par défaut
-    setImage(null);
+    setExistingImage(isRemoteHttpsUrl(cat.image) ? cat.image : '');
+    setImages([null]);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -80,8 +71,8 @@ export default function Categories({ token }) {
   const annulerEdition = () => {
     setIdEdition(null);
     setNom('');
-    setImage(null);
-    setPreview(null);
+    setImages([null]);
+    setExistingImage('');
   };
 
   // 3. Soumettre le formulaire d'ajout OU de modification
@@ -89,12 +80,13 @@ export default function Categories({ token }) {
     e.preventDefault();
     
     const nomNettoye = nom.trim();
+    const selectedFile = images[0];
     if (!nomNettoye) {
       toast.warning("Le nom de la catégorie est requis");
       return;
     }
     
-    if (!idEdition && !image) {
+    if (!idEdition && !selectedFile) {
       toast.warning("Veuillez sélectionner une image d'illustration");
       return;
     }
@@ -103,8 +95,8 @@ export default function Categories({ token }) {
 
     const formData = new FormData();
     formData.append('nom', nomNettoye);
-    if (image) {
-      formData.append('image', image);
+    if (selectedFile) {
+      formData.append('image', selectedFile);
     }
 
     try {
@@ -127,7 +119,7 @@ export default function Categories({ token }) {
       }
 
       if (response.data.success) {
-        toast.success(idEdition ? "✨ Catégorie modifiée avec succès !" : "✨ Catégorie créée avec succès !");
+        toast.success(idEdition ? "Catégorie modifiée avec succès !" : "Catégorie créée avec succès !");
         annulerEdition();
         fetchCategories(); 
       } else {
@@ -165,6 +157,8 @@ export default function Categories({ token }) {
       }
     }
   };
+
+  const selectedFile = images[0];
 
   return (
     <div className="max-w-6xl font-sans text-stone-800">
@@ -217,22 +211,43 @@ export default function Categories({ token }) {
                 Illustration {idEdition && "(Optionnelle)"}
               </label>
 
-              {isSafeImageUrl(preview) ? (
+              {selectedFile ? (
                 <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-stone-200 group">
-                  <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
-                  {image && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md"
-                      title="Retirer la nouvelle image"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
+                  <div
+                    role="img"
+                    aria-label="Aperçu nouvelle image"
+                    className="w-full h-full bg-cover bg-center"
+                    style={{ backgroundImage: `url("${URL.createObjectURL(selectedFile)}")` }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 p-1 bg-stone-900/80 hover:bg-stone-900 text-white rounded-full transition-colors shadow-md cursor-pointer"
+                    title="Retirer la nouvelle image"
+                  >
+                    <X size={14} />
+                  </button>
                   <div className="absolute inset-x-0 bottom-0 bg-stone-900/60 backdrop-blur-xs py-1 px-3 text-center">
                     <span className="text-[10px] text-white font-medium">
-                      {image ? "Nouvelle image sélectionnée" : "Image actuelle Cloudinary"}
+                      Nouvelle image sélectionnée
+                    </span>
+                  </div>
+                </div>
+              ) : isRemoteHttpsUrl(existingImage) ? (
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-stone-200 group">
+                  <img src={existingImage} alt="Aperçu" className="w-full h-full object-cover" />
+                  <label className="absolute top-2 right-2 px-2.5 py-1 bg-stone-900/80 hover:bg-stone-900 text-white text-[10px] rounded-full transition-colors shadow-md cursor-pointer">
+                    Changer
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(0, e.target.files[0])}
+                      className="hidden"
+                    />
+                  </label>
+                  <div className="absolute inset-x-0 bottom-0 bg-stone-900/60 backdrop-blur-xs py-1 px-3 text-center">
+                    <span className="text-[10px] text-white font-medium">
+                      Image actuelle Cloudinary
                     </span>
                   </div>
                 </div>
@@ -248,7 +263,7 @@ export default function Categories({ token }) {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={handleImageChange}
+                    onChange={(e) => handleImageChange(0, e.target.files[0])}
                     className="hidden"
                     required={!idEdition}
                   />
@@ -273,10 +288,7 @@ export default function Categories({ token }) {
                     <span>Enregistrement...</span>
                   </>
                 ) : (
-                  <>
-                    <Sparkles size={14} className="text-amber-400" />
-                    <span>{idEdition ? "Enregistrer les modifications" : "Créer la catégorie"}</span>
-                  </>
+                  <span>{idEdition ? "Enregistrer les modifications" : "Créer la catégorie"}</span>
                 )}
               </button>
 
@@ -326,7 +338,7 @@ export default function Categories({ token }) {
                     >
                       <td className="py-3.5 pl-2">
                         <div className="w-12 h-12 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 flex-shrink-0">
-                          {isSafeImageUrl(cat.image) ? (
+                          {isRemoteHttpsUrl(cat.image) ? (
                             <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-stone-400">
