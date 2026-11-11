@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import axios from 'axios';
 
-const SITE_URL = process.env.FRONTEND_URL || 'https://aridona.store';
+const cleanEnv = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/g, '').trim() : '');
+const SITE_URL = cleanEnv(process.env.FRONTEND_URL) || 'https://aridona.store';
 const GRAPH_API_VERSION = 'v21.0';
 
 /**
@@ -193,8 +194,8 @@ const resolveInstagramAccountId = async (accessToken, configuredId, graphHost) =
  * 1. Publie un produit sur Instagram via Meta Graph API (Photo unique ou Carrousel jusqu'à 4 photos)
  */
 export const publishToInstagram = async (produit) => {
-  const configuredId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim();
-  const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN?.trim();
+  const configuredId = cleanEnv(process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID);
+  const accessToken = cleanEnv(process.env.INSTAGRAM_ACCESS_TOKEN);
 
   if (!accessToken) {
     return {
@@ -287,10 +288,10 @@ export const publishToInstagram = async (produit) => {
  * 2. Publie un produit sur X (Twitter) avec ses images via l'API officielle X (OAuth 1.0a)
  */
 export const publishToX = async (produit) => {
-  const consumerKey = process.env.X_API_KEY?.trim();
-  const consumerSign = process.env.X_API_SECRET?.trim();
-  const tokenId = process.env.X_ACCESS_TOKEN?.trim();
-  const tokenSign = process.env.X_ACCESS_TOKEN_SECRET?.trim();
+  const consumerKey = cleanEnv(process.env.X_API_KEY);
+  const consumerSign = cleanEnv(process.env.X_API_SECRET);
+  const tokenId = cleanEnv(process.env.X_ACCESS_TOKEN);
+  const tokenSign = cleanEnv(process.env.X_ACCESS_TOKEN_SECRET);
 
   if (!consumerKey || !consumerSign || !tokenId || !tokenSign) {
     return {

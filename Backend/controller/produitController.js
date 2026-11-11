@@ -7,10 +7,12 @@ import { cleanLocalFiles } from '../utils/cleanLocalFile.js';
 import { publishProductToSocials } from '../utils/socialPublisher.js';
 
 // Initialisation du SDK Google GenAI (supporte les clés Google AI Studio "AIza..." et Vertex AI Express "AQ....")
+const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/g, '').trim() : '');
+
 const getGenAIClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  const apiKey = cleanEnvValue(process.env.GEMINI_API_KEY);
   if (!apiKey) {
-    throw new Error("La variable GEMINI_API_KEY est manquante dans la configuration du serveur (.env).");
+    throw new Error("La variable GEMINI_API_KEY est manquante dans la configuration du serveur (.env / Render).");
   }
   const isVertexExpressKey = apiKey.startsWith('AQ.');
   return new GoogleGenAI({
@@ -24,10 +26,11 @@ const analyzeProductImage = async (req, res) => {
   try {
     const { imageBase64, mimeType } = req.body;
 
-    if (!imageBase64) {
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
       return res.status(400).json({ success: false, message: "Aucune image fournie." });
     }
 
+    const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
     const ai = getGenAIClient();
 
     const prompt = [
@@ -43,30 +46,53 @@ const analyzeProductImage = async (req, res) => {
       '- "alt": Un texte alternatif SEO court décrivant visuellement le bijou sur la photo.'
     ].join('\n');
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
+    const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    let response = null;
+    let lastError = null;
+
+    for (const modelName of candidateModels) {
+      try {
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: [
             {
-              inlineData: {
-                mimeType: mimeType || 'image/jpeg',
-                data: imageBase64,
-              },
+              role: 'user',
+              parts: [
+                { text: prompt },
+                {
+                  inlineData: {
+                    mimeType: typeof mimeType === 'string' && mimeType ? mimeType : 'image/jpeg',
+                    data: cleanBase64,
+                  },
+                },
+              ],
             },
           ],
-        },
-      ],
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
+          config: {
+            responseMimeType: 'application/json',
+          },
+        });
+        if (response) break;
+      } catch (modelErr) {
+        lastError = modelErr;
+        console.warn(`Échec modèle ${modelName}:`, modelErr.message);
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("Aucun modèle Gemini n'a pu répondre.");
+    }
 
     // Récupération sécurisée du texte généré
-    let rawText = typeof response.text === 'function' ? response.text() : (response.text || '');
-    rawText = rawText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    const candidateText =
+      (typeof response.text === 'function' ? response.text() : response.text) ||
+      response.candidates?.[0]?.content?.parts?.[0]?.text ||
+      '';
+    let rawText = String(candidateText).trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      rawText = jsonMatch[0];
+    }
 
     const productData = JSON.parse(rawText);
 

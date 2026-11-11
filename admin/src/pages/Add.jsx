@@ -95,12 +95,48 @@ const Add = ({ token }) => {
   };
 
   // --- FONCTION D'ANALYSE IA (GEMINI) ---
-  const fileToBase64 = (file) =>
+  const fileToCompressedBase64 = (file) =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = typeof reader.result === 'string' ? reader.result : '';
-        resolve(result.split(',')[1] || '');
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDim = 1024;
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            resolve({
+              base64String: dataUrl.split(',')[1] || '',
+              mimeType: 'image/jpeg',
+            });
+          } catch {
+            resolve({
+              base64String: result.split(',')[1] || '',
+              mimeType: file.type || 'image/jpeg',
+            });
+          }
+        };
+        img.onerror = () =>
+          resolve({
+            base64String: result.split(',')[1] || '',
+            mimeType: file.type || 'image/jpeg',
+          });
+        img.src = result;
       };
       reader.onerror = (err) => reject(err);
       reader.readAsDataURL(file);
@@ -115,8 +151,7 @@ const Add = ({ token }) => {
 
     setAiLoading(true);
     try {
-      const base64String = await fileToBase64(mainImage);
-      const mimeType = mainImage.type || 'image/jpeg';
+      const { base64String, mimeType } = await fileToCompressedBase64(mainImage);
 
       // Appel vers la route backend qui gère Gemini
       const response = await axios.post(
@@ -156,7 +191,7 @@ const Add = ({ token }) => {
         toast.error(response.data.message || "L'IA n'a pas pu analyser l'image.");
       }
     } catch (error) {
-      console.error("Erreur IA Auto-fill:", error);
+      console.error("Erreur IA Auto-fill:", error.response?.data || error);
       toast.error(error.response?.data?.message || "Erreur lors de la communication avec l'IA.");
     } finally {
       setAiLoading(false);
