@@ -121,17 +121,86 @@ const buildOAuth1Header = async ({ method, url, consumerKey, consumerSign, token
 };
 
 /**
+ * Résout automatiquement l'ID du compte Instagram Business à partir du jeton Meta Graph
+ * si INSTAGRAM_BUSINESS_ACCOUNT_ID est omis ou correspond à l'ID d'une Page Facebook liée.
+ */
+let cachedIgAccountId = null;
+
+const resolveInstagramAccountId = async (accessToken, configuredId, graphHost) => {
+  if (cachedIgAccountId) return cachedIgAccountId;
+
+  if (accessToken.startsWith('IG')) {
+    if (configuredId) {
+      cachedIgAccountId = configuredId;
+      return cachedIgAccountId;
+    }
+    try {
+      const meRes = await axios.get(`${graphHost}/${GRAPH_API_VERSION}/me`, {
+        params: { fields: 'user_id,id', access_token: accessToken },
+      });
+      cachedIgAccountId = meRes.data?.user_id || meRes.data?.id || null;
+      return cachedIgAccountId;
+    } catch {
+      return configuredId || null;
+    }
+  }
+
+  // Jeton Meta Graph (EA...) : vérifier /me/accounts pour trouver le compte Instagram Business lié
+  try {
+    const accountsRes = await axios.get(`${graphHost}/${GRAPH_API_VERSION}/me/accounts`, {
+      params: {
+        fields: 'id,name,instagram_business_account,connected_instagram_account',
+        access_token: accessToken,
+      },
+    });
+    const pages = accountsRes.data?.data || [];
+    for (const page of pages) {
+      const igId = page.instagram_business_account?.id || page.connected_instagram_account?.id;
+      if (igId) {
+        cachedIgAccountId = igId;
+        return cachedIgAccountId;
+      }
+    }
+  } catch {
+    // Ignorer et tenter via configuredId
+  }
+
+  if (configuredId) {
+    try {
+      const nodeRes = await axios.get(`${graphHost}/${GRAPH_API_VERSION}/${configuredId}`, {
+        params: {
+          fields: 'instagram_business_account,connected_instagram_account',
+          access_token: accessToken,
+        },
+      });
+      const linkedIgId =
+        nodeRes.data?.instagram_business_account?.id ||
+        nodeRes.data?.connected_instagram_account?.id;
+      if (linkedIgId) {
+        cachedIgAccountId = linkedIgId;
+        return cachedIgAccountId;
+      }
+    } catch {
+      // configuredId est déjà directement l'ID du compte Instagram Business
+    }
+  }
+
+  cachedIgAccountId = configuredId || null;
+  return cachedIgAccountId;
+};
+
+/**
  * 1. Publie un produit sur Instagram via Meta Graph API (Photo unique ou Carrousel jusqu'à 4 photos)
  */
 export const publishToInstagram = async (produit) => {
-  const igUserId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim();
+  const configuredId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID?.trim();
   const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN?.trim();
 
-  if (!igUserId || !accessToken) {
+  if (!accessToken) {
     return {
       success: false,
       skipped: true,
-      message: "Clés INSTAGRAM_BUSINESS_ACCOUNT_ID ou INSTAGRAM_ACCESS_TOKEN manquantes dans .env",
+      message: "Clé INSTAGRAM_ACCESS_TOKEN manquante dans .env",
     };
   }
 
@@ -144,12 +213,21 @@ export const publishToInstagram = async (produit) => {
     return { success: false, message: "Aucune image disponible pour Instagram." };
   }
 
-  const caption = buildInstagramCaption(produit);
   // Les jetons issus de "API avec connexion Instagram" commencent par "IG" (graph.instagram.com),
   // tandis que ceux issus de "Connexion Facebook / Graph Explorer" commencent par "EA" (graph.facebook.com).
   const graphHost = accessToken.startsWith('IG')
     ? 'https://graph.instagram.com'
     : 'https://graph.facebook.com';
+
+  const igUserId = await resolveInstagramAccountId(accessToken, configuredId, graphHost);
+  if (!igUserId) {
+    return {
+      success: false,
+      message: "Impossible de déterminer l'ID du compte Instagram Business. Vérifiez INSTAGRAM_BUSINESS_ACCOUNT_ID dans .env.",
+    };
+  }
+
+  const caption = buildInstagramCaption(produit);
   const baseUrl = `${graphHost}/${GRAPH_API_VERSION}/${igUserId}`;
 
   try {
