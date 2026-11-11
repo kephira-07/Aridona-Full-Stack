@@ -4,11 +4,11 @@ import axios from 'axios';
 import { backendUrl } from '../config';
 import logo from '../assets/logo.png';
 import { ShopContext } from '../context/ShopContext';
+import { IconInstagram, IconFacebook, IconTikTok, IconX } from './SocialIcons';
 import {
   X,
   ChevronRight,
   User,
-
   Gem,
   Info,
   Newspaper,
@@ -82,13 +82,11 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-         
           </div>
 
           {/* 2. Section Collections & Catégories */}
           <div className="py-2">
             <div className="px-6 py-2.5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-stone-800">
-             
               <span>Nos Collections</span>
             </div>
 
@@ -170,11 +168,11 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
         </div>
 
         {/* 4. Pied du Menu : Actions & Contact */}
-        <div className="p-5 bg-stone-50 border-t border-stone-200/80 space-y-2.5">
+        <div className="p-5 bg-stone-50 border-t border-stone-200/80 space-y-3">
           <NavLink 
             to="/login"
             onClick={() => setVisible(false)}
-            className="flex items-center justify-center gap-2 w-full bg-white text-amber-800 py-3.5 px-4  text-xs font-semibold tracking-widest uppercase shadow-sm transition-all active:scale-[0.98]"
+            className="flex items-center justify-center gap-2 w-full bg-white text-amber-800 py-3.5 px-4 text-xs font-semibold tracking-widest uppercase shadow-sm transition-all active:scale-[0.98]"
           >
             <User className="w-4 h-4 text-amber-800" />
             <span>Mon Espace Privé</span>
@@ -184,11 +182,51 @@ const MenuMobile = ({ visible, setVisible, logo2 }) => {
             href={`https://wa.me/${context?.whatsappNum || '22872656485'}`}
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 py-2.5 px-4  text-[11px] font-medium tracking-wider uppercase transition-all"
+            className="flex items-center justify-center gap-2 w-full bg-white border border-stone-200 text-stone-700 hover:bg-stone-100 py-2.5 px-4 text-[11px] font-medium tracking-wider uppercase transition-all"
           >
             <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
             <span>Service Client WhatsApp</span>
           </a>
+
+          {/* Réseaux sociaux dans le menu mobile */}
+          <div className="flex items-center justify-center gap-5 pt-2 border-t border-stone-200/60">
+            <a
+              href="https://www.instagram.com/aridonabijoux/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Aridona Bijoux sur Instagram"
+              className="text-stone-400 hover:text-amber-800 transition-colors"
+            >
+              <IconInstagram size={17} />
+            </a>
+            <a
+              href="https://www.facebook.com/profile.php?id=61593227000931"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Aridona Bijoux sur Facebook"
+              className="text-stone-400 hover:text-amber-800 transition-colors"
+            >
+              <IconFacebook size={17} />
+            </a>
+            <a
+              href="https://www.tiktok.com/@aridonabijoux"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Aridona Bijoux sur TikTok"
+              className="text-stone-400 hover:text-amber-800 transition-colors"
+            >
+              <IconTikTok size={17} />
+            </a>
+            <a
+              href="https://x.com/AridonaBijoux"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Aridona Bijoux sur X (Twitter)"
+              className="text-stone-400 hover:text-amber-800 transition-colors"
+            >
+              <IconX size={16} />
+            </a>
+          </div>
         </div>
 
       </div>

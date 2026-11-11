@@ -4,7 +4,7 @@ import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
-import { MessageSquare, MapPin, Loader2, CreditCard } from 'lucide-react';
+import { MessageSquare, MapPin, Loader2, Banknote, Smartphone } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import axios from 'axios';
 
@@ -24,7 +24,7 @@ const PasserCommande = () => {
   } = useContext(ShopContext);
 
   const navigate = useNavigate();
-  const [methode, setMethode] = useState('cod');
+  const [methode, setMethode] = useState('cod'); // 'cod' = à la livraison, 'momo' = mobile money
   const [loading, setLoading] = useState(false);
 
   const WHATSAPP_NUMBER = whatsappNum || "22872656485";
@@ -133,25 +133,25 @@ const PasserCommande = () => {
       const totalFinal = sousTotal + fraisLivraison;
 
       const nameParts = formData.fullName.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || 'Client';
+      const firstName = nameParts[0] || 'Client';
+      const lastName = nameParts.slice(1).join(' ') || '';
 
       const clientUserId = extraireUserIdDuToken(token);
 
       const commandeBackendData = {
         userId: clientUserId,
         address: {
-          firstName: firstName,
-          lastName: lastName,
-          email: formData.email.trim() || "client-whatsapp@Aridona.com",
+          firstName,
+          lastName,
+          email: formData.email.trim(),
           street: formData.neighborhood.trim() || "Non spécifié",
-          city: formData.city.trim(),
+          city: formData.city.trim() || 'Lomé',
           zipcode: "00228",
           phone: formData.phone.trim()
         },
         items: orderItems,
         amount: totalFinal,
-        paymentMethod: methode === 'cod' ? 'COD' : methode === 'cinetpay' ? 'CinetPay' : 'Mobile Money'
+        paymentMethod: methode === 'cod' ? 'À la livraison' : 'Mobile Money'
       };
 
       const headers = {};
@@ -164,30 +164,11 @@ const PasserCommande = () => {
       const response = await axios.post(urlDestination, commandeBackendData, { headers });
 
       if (response.data && response.data.success) {
-        // Paiement en ligne : on quitte immédiatement vers la page de paiement CinetPay,
-        // pas de message WhatsApp ici (le paiement fait foi, la confirmation viendra après coup).
-        if (methode === 'cinetpay') {
-          const paiementResponse = await axios.post(`${backendUrl || ''}/api/order/payer`, {
-            orderId: response.data.orderId
-          });
-
-          if (paiementResponse.data?.success && paiementResponse.data?.link) {
-            if (typeof viderPanier === 'function') {
-              viderPanier();
-            }
-            window.location.href = paiementResponse.data.link;
-            return;
-          }
-
-          toast.error("Impossible d'initier le paiement en ligne. Réessayez ou choisissez un autre mode de règlement.", { theme: "dark" });
-          return;
-        }
-
         let message = `✨ *NOUVELLE COMMANDE — Aridona BIJOUX* ✨\n\n`;
         message += `👤 *Client :* ${formData.fullName.trim()}\n`;
         message += `📞 *Téléphone :* ${formData.phone.trim()}\n`;
         message += `📍 *Adresse :* ${formData.neighborhood.trim()}, ${formData.city.trim()} (${formData.country.trim()})\n`;
-        message += `💳 *Paiement :* ${methode === 'cod' ? 'À la livraison' : 'Mobile Money'}\n\n`;
+        message += `💳 *Règlement :* ${methode === 'cod' ? 'À la livraison (Espèces)' : 'Mobile Money (T-Money / Flooz)'}\n\n`;
         message += `🛍️ *DÉTAILS DU PANIER :*\n`;
 
         orderItems.forEach((item, index) => {
@@ -213,8 +194,6 @@ const PasserCommande = () => {
           viderPanier();
         }
 
-        // La confirmation et l'éventuelle invite à créer un compte se font maintenant
-        // sur une vraie page dédiée (sert aussi de page de conversion pour Google Business).
         navigate('/commande-confirmee', { state: { whatsappUrl, montant: totalFinal } });
 
       } else {
@@ -252,7 +231,7 @@ const PasserCommande = () => {
           <div className='text-2xl font-light tracking-wide mb-8'>
             <Titre text1={'INFORMATIONS'} text2={'DE LIVRAISON'} />
             <p className='text-xs text-stone-400 italic mt-1'>
-              Saisissez vos informations de livraison avant de confirmer la commande sur WhatsApp.
+              Saisissez vos coordonnées de livraison avant de confirmer votre commande sur WhatsApp.
             </p>
           </div>
 
@@ -266,7 +245,7 @@ const PasserCommande = () => {
                 name='fullName'
                 onChange={onChangeHandler}
                 value={formData.fullName}
-                className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
+                className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm rounded-lg'
                 type="text"
                 placeholder='Ex: Amina Mensah'
               />
@@ -281,7 +260,7 @@ const PasserCommande = () => {
                 name='phone'
                 onChange={onChangeHandler}
                 value={formData.phone}
-                className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
+                className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm rounded-lg'
                 type="tel"
                 placeholder='Ex: 90 12 34 56'
               />
@@ -297,7 +276,7 @@ const PasserCommande = () => {
                   name='country'
                   onChange={onChangeHandler}
                   value={formData.country}
-                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
+                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm rounded-lg'
                   type="text"
                   placeholder='Togo'
                 />
@@ -311,7 +290,7 @@ const PasserCommande = () => {
                   name='city'
                   onChange={onChangeHandler}
                   value={formData.city}
-                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
+                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm rounded-lg'
                   type="text"
                   placeholder='Lomé'
                 />
@@ -325,16 +304,30 @@ const PasserCommande = () => {
                   name='neighborhood'
                   onChange={onChangeHandler}
                   value={formData.neighborhood}
-                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
+                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm rounded-lg'
                   type="text"
-                  placeholder='Ex: Adidogomé'
+                  placeholder='Ex: Adidogomé, face pharmacie'
                 />
               </div>
+            </div>
+
+            <div>
+              <label className='text-xs font-medium uppercase tracking-wider text-stone-500 block mb-1.5'>
+                Adresse Email (optionnel)
+              </label>
+              <input
+                name='email'
+                onChange={onChangeHandler}
+                value={formData.email}
+                className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm rounded-lg'
+                type="email"
+                placeholder='Pour recevoir nos offres et nouveautés'
+              />
             </div>
           </div>
         </div>
 
-        <div className='lg:col-span-5 bg-stone-50/50 p-6 sm:p-8 border border-stone-100 lg:sticky lg:top-28 space-y-8 shadow-sm'>
+        <div className='lg:col-span-5 bg-stone-50/50 p-6 sm:p-8 border border-stone-100 lg:sticky lg:top-28 space-y-8 shadow-sm rounded-2xl'>
           <div>
             <PanierTotal />
           </div>
@@ -344,83 +337,49 @@ const PasserCommande = () => {
               <MapPin size={16} className='text-amber-800' /> Mode de règlement
             </div>
 
-            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+            <p className='text-xs text-stone-500 italic'>
+              Aucun paiement en ligne n'est débité sur le site. Vous payez en toute sécurité à la réception de votre bijou ou via Mobile Money.
+            </p>
+
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
               <div
                 onClick={() => setMethode('cod')}
-                className={`flex items-center gap-3 border p-4 cursor-pointer transition-all ${
-                  methode === 'cod' ? 'border-amber-900 bg-white shadow-sm' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
+                className={`flex items-center gap-3 border p-4 rounded-xl cursor-pointer transition-all ${
+                  methode === 'cod' ? 'border-amber-900 bg-white shadow-sm ring-1 ring-amber-900/20' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
                 }`}
               >
-                <div className={`w-3.5 h-3.5 border rounded-full flex items-center justify-center ${
-                  methode === 'cod' ? 'border-amber-900' : 'border-stone-300'
-                }`}>
-                  {methode === 'cod' && <span className='w-1.5 h-1.5 bg-amber-900 rounded-full'></span>}
+                <Banknote size={18} className={methode === 'cod' ? 'text-amber-900' : 'text-stone-400'} />
+                <div className='flex flex-col'>
+                  <span className='text-xs font-semibold uppercase tracking-wider text-stone-800'>À la livraison</span>
+                  <span className='text-[10px] text-stone-500'>En espèces à Lomé</span>
                 </div>
-                <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>À la livraison</span>
               </div>
 
               <div
                 onClick={() => setMethode('momo')}
-                className={`flex items-center gap-3 border p-4 cursor-pointer transition-all ${
-                  methode === 'momo' ? 'border-amber-900 bg-white shadow-sm' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
+                className={`flex items-center gap-3 border p-4 rounded-xl cursor-pointer transition-all ${
+                  methode === 'momo' ? 'border-amber-900 bg-white shadow-sm ring-1 ring-amber-900/20' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
                 }`}
               >
-                <div className={`w-3.5 h-3.5 border rounded-full flex items-center justify-center ${
-                  methode === 'momo' ? 'border-amber-900' : 'border-stone-300'
-                }`}>
-                  {methode === 'momo' && <span className='w-1.5 h-1.5 bg-amber-900 rounded-full'></span>}
+                <Smartphone size={18} className={methode === 'momo' ? 'text-amber-900' : 'text-stone-400'} />
+                <div className='flex flex-col'>
+                  <span className='text-xs font-semibold uppercase tracking-wider text-stone-800'>Mobile Money</span>
+                  <span className='text-[10px] text-stone-500'>T-Money / Flooz</span>
                 </div>
-                <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>Mobile Money</span>
-              </div>
-
-              <div
-                onClick={() => setMethode('cinetpay')}
-                className={`flex items-center gap-3 border p-4 cursor-pointer transition-all ${
-                  methode === 'cinetpay' ? 'border-amber-900 bg-white shadow-sm' : 'border-stone-200 bg-stone-50 hover:bg-stone-100/50'
-                }`}
-              >
-                <div className={`w-3.5 h-3.5 border rounded-full flex items-center justify-center ${
-                  methode === 'cinetpay' ? 'border-amber-900' : 'border-stone-300'
-                }`}>
-                  {methode === 'cinetpay' && <span className='w-1.5 h-1.5 bg-amber-900 rounded-full'></span>}
-                </div>
-                <span className='text-xs font-medium uppercase tracking-wider text-stone-700'>Payer en ligne</span>
               </div>
             </div>
-
-            {methode === 'cinetpay' && (
-              <div>
-                <label className='text-xs font-medium uppercase tracking-wider text-stone-600 block mb-1.5'>
-                  Email (pour le reçu de paiement) *
-                </label>
-                <input
-                  required
-                  name='email'
-                  onChange={onChangeHandler}
-                  value={formData.email}
-                  className='w-full border border-stone-200 bg-stone-50/50 py-3 px-4 outline-none focus:bg-white focus:border-stone-900 transition-all text-sm'
-                  type="email"
-                  placeholder='vous@email.com'
-                />
-              </div>
-            )}
           </div>
 
           <div className='pt-2'>
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-white font-medium py-4 text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 shadow-md active:scale-[0.99] cursor-pointer"
+              className="w-full text-white font-medium py-4 text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 shadow-md active:scale-[0.99] cursor-pointer rounded-xl"
             >
               {loading ? (
                 <>
                   <Loader2 size={16} className='animate-spin' />
-                  <span>{methode === 'cinetpay' ? 'Redirection vers le paiement...' : 'Enregistrement...'}</span>
-                </>
-              ) : methode === 'cinetpay' ? (
-                <>
-                  <CreditCard size={16} />
-                  <span>Payer maintenant</span>
+                  <span>Enregistrement...</span>
                 </>
               ) : (
                 <>

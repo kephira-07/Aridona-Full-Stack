@@ -8,6 +8,7 @@ import {
   Truck, RefreshCw, ChevronDown, HelpCircle, Compass
 } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
+import { IconInstagram, IconFacebook, IconTikTok, IconX } from '../composant/SocialIcons';
 import { ShopContext } from '../context/ShopContext';
 
 export default function APropos() {
@@ -284,6 +285,47 @@ export default function APropos() {
                 <div className="flex items-center gap-3 text-stone-600 text-xs">
                   <Clock size={18} className="text-amber-800 shrink-0" />
                   <span>Du Lundi au Samedi : 08h30 – 19h30</span>
+                </div>
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-400">Nos réseaux</span>
+                  <div className="flex items-center gap-3">
+                    <a
+                      href="https://www.instagram.com/aridonabijoux/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Aridona Bijoux sur Instagram"
+                      className="p-2 rounded-lg bg-[#FAF8F5] text-stone-600 hover:bg-amber-900 hover:text-white transition-colors"
+                    >
+                      <IconInstagram size={16} />
+                    </a>
+                    <a
+                      href="https://www.facebook.com/profile.php?id=61593227000931"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Aridona Bijoux sur Facebook"
+                      className="p-2 rounded-lg bg-[#FAF8F5] text-stone-600 hover:bg-amber-900 hover:text-white transition-colors"
+                    >
+                      <IconFacebook size={16} />
+                    </a>
+                    <a
+                      href="https://www.tiktok.com/@aridonabijoux"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Aridona Bijoux sur TikTok"
+                      className="p-2 rounded-lg bg-[#FAF8F5] text-stone-600 hover:bg-amber-900 hover:text-white transition-colors"
+                    >
+                      <IconTikTok size={16} />
+                    </a>
+                    <a
+                      href="https://x.com/AridonaBijoux"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Aridona Bijoux sur X (Twitter)"
+                      className="p-2 rounded-lg bg-[#FAF8F5] text-stone-600 hover:bg-amber-900 hover:text-white transition-colors"
+                    >
+                      <IconX size={15} />
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

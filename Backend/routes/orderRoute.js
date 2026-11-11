@@ -3,10 +3,7 @@ import {
 	placeOrder,
 	userOrders,
 	allOrders,
-	updateStatus,
-	initierPaiementCinetPay,
-	verifierPaiementCinetPay,
-	webhookCinetPay
+	updateStatus
 } from '../controller/orderController.js';
 import auth from '../middleware/auth.js';
 import rateLimit from 'express-rate-limit';
@@ -15,22 +12,15 @@ const orderRouter = express.Router();
 
 const orderLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000,
-	limit: 10,
+	limit: 15,
 	standardHeaders: 'draft-8',
 	legacyHeaders: false,
 	message: { success: false, message: 'Trop de commandes envoyées. Réessayez plus tard.' },
 });
 
-
-
 // Client
 orderRouter.post('/place', orderLimiter, placeOrder);
 orderRouter.get('/userorders', auth(), userOrders);
-
-// Paiement en ligne CinetPay
-orderRouter.post('/payer', orderLimiter, initierPaiementCinetPay);
-orderRouter.get('/verifier-paiement', verifierPaiementCinetPay);
-orderRouter.post('/webhook/cinetpay', webhookCinetPay);
 
 // Admin
 orderRouter.get('/list', auth(['admin']), allOrders);

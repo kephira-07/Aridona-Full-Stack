@@ -2,13 +2,29 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { backendUrl } from '../config';
+
+const IconInstagram = ({ size = 14 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const IconX = ({ size = 13 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 const ListeProduits = ({ token }) => {
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [sharingState, setSharingState] = useState(null); // { id, platform }
   
   // State pour la barre de recherche
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +78,7 @@ const ListeProduits = ({ token }) => {
       const response = await axios.put(
         `${backendUrl}/api/produit/changer-stock/${id}`,
         { enStock: newStatus },
-        { headers: { token } }
+        { headers: { token, Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
@@ -82,6 +98,35 @@ const ListeProduits = ({ token }) => {
     }
   };
 
+  // 📤 Partager un bijou existant sur X ou Instagram en 1 clic
+  const shareOnSocial = async (item, platform) => {
+    const label = platform === 'x' ? 'X (Twitter)' : 'Instagram';
+    if (!window.confirm(`Publier « ${item.nom} » maintenant sur ${label} ?`)) return;
+
+    try {
+      setSharingState({ id: item._id, platform });
+      const response = await axios.post(
+        `${backendUrl}/api/produit/share-social/${item._id}`,
+        {
+          instagram: platform === 'instagram',
+          x: platform === 'x',
+        },
+        { headers: { token, Authorization: `Bearer ${token}` } }
+      );
+
+      const result = response.data?.social?.[platform];
+      if (result?.success) {
+        toast.success(result.message || `Publié sur ${label} !`);
+      } else {
+        toast.error(result?.message || `Impossible de publier sur ${label}.`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || `Erreur lors de la publication sur ${label}.`);
+    } finally {
+      setSharingState(null);
+    }
+  };
+
   // 🗑️ Supprimer un produit
   const removeProduct = async (id) => {
     if (!window.confirm("Es-tu sûr de vouloir supprimer ce bijou ?")) return;
@@ -89,7 +134,7 @@ const ListeProduits = ({ token }) => {
     try {
       const response = await axios.delete(
         `${backendUrl}/api/produit/remove/${id}`,
-        { headers: { token } }
+        { headers: { token, Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
@@ -151,13 +196,13 @@ const ListeProduits = ({ token }) => {
       </div>
 
       {/* En-tête du tableau (Bureau) */}
-      <div className='hidden md:grid grid-cols-[1fr_2.5fr_1fr_1fr_1.2fr_1.5fr] items-center py-2.5 px-4 border bg-stone-100 text-sm font-semibold text-stone-600 rounded-lg'>
+      <div className='hidden md:grid grid-cols-[1fr_2.2fr_1fr_1fr_1.1fr_1.9fr] items-center py-2.5 px-4 border bg-stone-100 text-sm font-semibold text-stone-600 rounded-lg'>
         <span>Image</span>
         <span>Nom</span>
         <span>Catégorie</span>
         <span>Prix</span>
         <span className='text-center'>Statut Stock</span>
-        <span className='text-center'>Actions</span>
+        <span className='text-center'>Actions & Partage</span>
       </div>
 
       {/* Liste des produits filtrés */}
@@ -166,71 +211,96 @@ const ListeProduits = ({ token }) => {
           {searchTerm ? "Aucun bijou ne correspond à votre recherche." : "Aucun produit trouvé."}
         </p>
       ) : (
-        filteredList.map((item) => (
-          <div 
-            key={item._id} 
-            className='grid grid-cols-[1fr_2fr_1.2fr] md:grid-cols-[1fr_2.5fr_1fr_1fr_1.2fr_1.5fr] items-center gap-2 py-3 px-4 border border-stone-200 bg-white text-sm rounded-xl hover:bg-stone-50/50 transition-colors shadow-sm'
-          >
-            {/* Image */}
-            <img
-              className='w-12 h-12 object-cover rounded-md border border-stone-200'
-              src={getImageUrl(item.image)}
-              alt={getImageAlt(item.image, item.nom)}
-            />
-            
-            {/* Nom */}
-            <p className='font-medium text-stone-800 truncate'>{item.nom}</p>
-            
-            {/* Catégorie sécurisée */}
-            <p className='hidden md:block text-stone-500 truncate'>
-              {getCategorieNom(item.categorie)}
-            </p>
-            
-            {/* Prix */}
-            <p className='hidden md:block font-semibold text-amber-900'>
-              {item.prix?.toLocaleString()} FCFA
-            </p>
+        filteredList.map((item) => {
+          const isSharingX = sharingState?.id === item._id && sharingState?.platform === 'x';
+          const isSharingIg = sharingState?.id === item._id && sharingState?.platform === 'instagram';
 
-            {/* TOGGLE STOCK */}
-            <div className='flex items-center justify-center'>
-              <button
-                type="button"
-                disabled={updatingId === item._id}
-                onClick={() => toggleStock(item._id, item.enStock !== false)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all duration-200 flex items-center gap-1.5 border cursor-pointer
-                  ${updatingId === item._id ? 'opacity-50 cursor-not-allowed' : ''}
-                  ${item.enStock !== false
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                    : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                  }`}
-              >
-                <span className={`w-2 h-2 rounded-full ${item.enStock !== false ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                <span className="hidden sm:inline">{item.enStock !== false ? 'En Stock' : 'Rupture'}</span>
-              </button>
+          return (
+            <div 
+              key={item._id} 
+              className='grid grid-cols-[1fr_2fr_1.2fr] md:grid-cols-[1fr_2.2fr_1fr_1fr_1.1fr_1.9fr] items-center gap-2 py-3 px-4 border border-stone-200 bg-white text-sm rounded-xl hover:bg-stone-50/50 transition-colors shadow-sm'
+            >
+              {/* Image */}
+              <img
+                className='w-12 h-12 object-cover rounded-md border border-stone-200'
+                src={getImageUrl(item.image)}
+                alt={getImageAlt(item.image, item.nom)}
+              />
+              
+              {/* Nom */}
+              <p className='font-medium text-stone-800 truncate'>{item.nom}</p>
+              
+              {/* Catégorie sécurisée */}
+              <p className='hidden md:block text-stone-500 truncate'>
+                {getCategorieNom(item.categorie)}
+              </p>
+              
+              {/* Prix */}
+              <p className='hidden md:block font-semibold text-amber-900'>
+                {item.prix?.toLocaleString()} FCFA
+              </p>
+
+              {/* TOGGLE STOCK */}
+              <div className='flex items-center justify-center'>
+                <button
+                  type="button"
+                  disabled={updatingId === item._id}
+                  onClick={() => toggleStock(item._id, item.enStock !== false)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all duration-200 flex items-center gap-1.5 border cursor-pointer
+                    ${updatingId === item._id ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${item.enStock !== false
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                      : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                    }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${item.enStock !== false ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                  <span className="hidden sm:inline">{item.enStock !== false ? 'En Stock' : 'Rupture'}</span>
+                </button>
+              </div>
+
+              {/* Actions (Partage X / IG, Modification & Suppression) */}
+              <div className='flex items-center justify-center gap-1.5 flex-wrap'>
+                <button
+                  type="button"
+                  disabled={Boolean(sharingState)}
+                  onClick={() => shareOnSocial(item, 'x')}
+                  title="Publier ce bijou sur X (@AridonaBijoux)"
+                  className='p-1.5 text-stone-700 bg-stone-100 hover:bg-stone-900 hover:text-white rounded-lg border border-stone-200 transition-colors cursor-pointer disabled:opacity-50'
+                >
+                  {isSharingX ? <Loader2 size={13} className="animate-spin" /> : <IconX size={13} />}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={Boolean(sharingState)}
+                  onClick={() => shareOnSocial(item, 'instagram')}
+                  title="Publier ce bijou sur Instagram (@aridonabijoux)"
+                  className='p-1.5 text-amber-900 bg-amber-50 hover:bg-amber-900 hover:text-white rounded-lg border border-amber-200 transition-colors cursor-pointer disabled:opacity-50'
+                >
+                  {isSharingIg ? <Loader2 size={14} className="animate-spin" /> : <IconInstagram size={14} />}
+                </button>
+
+                {/* Bouton Éditer */}
+                <button 
+                  type="button"
+                  onClick={() => navigate(`/edit/${item._id}`)}
+                  className='px-2.5 py-1 text-xs font-medium text-slate-700 bg-stone-100 hover:bg-slate-900 hover:text-white rounded-lg border border-stone-200 transition-colors cursor-pointer'
+                >
+                  Modifier
+                </button>
+
+                {/* Bouton Supprimer */}
+                <button 
+                  type="button"
+                  onClick={() => removeProduct(item._id)}
+                  className='px-2.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-800 rounded-lg transition-colors cursor-pointer'
+                >
+                  Supprimer
+                </button>
+              </div>
             </div>
-
-            {/* Actions (Modification & Suppression) */}
-            <div className='flex items-center justify-center gap-2'>
-              {/* Bouton Éditer */}
-              <button 
-                type="button"
-                onClick={() => navigate(`/edit/${item._id}`)}
-                className='px-2.5 py-1 text-xs font-medium text-slate-700 bg-stone-100 hover:bg-slate-900 hover:text-white rounded-lg border border-stone-200 transition-colors cursor-pointer'
-              >
-                Modifier
-              </button>
-
-              {/* Bouton Supprimer */}
-              <button 
-                type="button"
-                onClick={() => removeProduct(item._id)}
-                className='px-2.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-800 rounded-lg transition-colors cursor-pointer'
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

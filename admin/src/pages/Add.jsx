@@ -10,10 +10,25 @@ import {
   Check, 
   PackagePlus, 
   Palette,
-  Wand2
+  Wand2,
+  Share2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { availableSizes, availableColors, availableMatieres } from '../constants/produit';
+
+const IconInstagram = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+const IconX = ({ size = 15 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 const Add = ({ token }) => {
   // --- ÉTATS FORMULAIRE ---
@@ -31,6 +46,8 @@ const Add = ({ token }) => {
   const [couleurs, setCouleurs] = useState(['Doré']);
   const [sizes, setSizes] = useState([]);
   const [meilleurVente, setMeilleurVente] = useState(false);
+  const [publishInstagram, setPublishInstagram] = useState(false);
+  const [publishX, setPublishX] = useState(false);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false); // État de chargement pour l'IA
   const [tagsInput, setTagsInput] = useState('');
@@ -78,6 +95,17 @@ const Add = ({ token }) => {
   };
 
   // --- FONCTION D'ANALYSE IA (GEMINI) ---
+  const fileToBase64 = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === 'string' ? reader.result : '';
+        resolve(result.split(',')[1] || '');
+      };
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
   const handleAiAutoFill = async () => {
     const mainImage = images[0];
     if (!mainImage) {
@@ -87,47 +115,50 @@ const Add = ({ token }) => {
 
     setAiLoading(true);
     try {
-      // Convertir l'image en Base64
-      const reader = new FileReader();
-      reader.readAsDataURL(mainImage);
-      
-      reader.onloadend = async () => {
-        const base64String = reader.result.split(',')[1];
-        const mimeType = mainImage.type;
+      const base64String = await fileToBase64(mainImage);
+      const mimeType = mainImage.type || 'image/jpeg';
 
-        // Appel vers la route backend qui gère Gemini
-        const response = await axios.post(
-          `${backendUrl}/api/produit/ai-analyze`,
-          { imageBase64: base64String, mimeType },
-          { headers: { token, Authorization: `Bearer ${token}` } }
-        );
+      // Appel vers la route backend qui gère Gemini
+      const response = await axios.post(
+        `${backendUrl}/api/produit/ai-analyze`,
+        { imageBase64: base64String, mimeType },
+        { headers: { token, Authorization: `Bearer ${token}` } }
+      );
 
-        if (response.data.success) {
-          const data = response.data.product;
-          
-          // Remplissage automatique des champs du formulaire
-          if (data.nom) setNom(data.nom);
-          if (data.description) setDescription(data.description);
-          if (data.prix) setPrix(data.prix.toString());
-          if (data.tags) setTagsInput(data.tags);
-          if (data.metaTitle) setMetaTitle(data.metaTitle);
-          if (data.metaDescription) setMetaDescription(data.metaDescription);
-
-          // Correspondance des couleurs si reconnues
-          if (data.couleurs && Array.isArray(data.couleurs)) {
-            const validColors = data.couleurs.filter(c => availableColors.includes(c));
-            if (validColors.length > 0) setCouleurs(validColors);
-          }
-
-          toast.success("✨ Fiche produit générée avec succès par l'IA !");
-        } else {
-          toast.error("L'IA n'a pas pu analyser l'image.");
+      if (response.data.success) {
+        const data = response.data.product || {};
+        
+        // Remplissage automatique des champs du formulaire
+        if (data.nom) setNom(data.nom);
+        if (data.description) setDescription(data.description);
+        if (data.prix) setPrix(data.prix.toString());
+        if (data.tags) {
+          setTagsInput(Array.isArray(data.tags) ? data.tags.join(', ') : String(data.tags));
         }
-        setAiLoading(false);
-      };
+        if (data.metaTitle) setMetaTitle(data.metaTitle);
+        if (data.metaDescription) setMetaDescription(data.metaDescription);
+        if (data.alt) {
+          setAlts((prev) => {
+            const next = [...prev];
+            if (!next[0]) next[0] = data.alt;
+            return next;
+          });
+        }
+
+        // Correspondance des couleurs si reconnues
+        if (data.couleurs && Array.isArray(data.couleurs)) {
+          const validColors = data.couleurs.filter(c => availableColors.includes(c));
+          if (validColors.length > 0) setCouleurs(validColors);
+        }
+
+        toast.success("✨ Fiche produit générée avec succès par l'IA !");
+      } else {
+        toast.error(response.data.message || "L'IA n'a pas pu analyser l'image.");
+      }
     } catch (error) {
       console.error("Erreur IA Auto-fill:", error);
       toast.error(error.response?.data?.message || "Erreur lors de la communication avec l'IA.");
+    } finally {
       setAiLoading(false);
     }
   };
@@ -174,6 +205,8 @@ const Add = ({ token }) => {
       formData.append("categorie", categorie); 
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
+      formData.append("publishInstagram", publishInstagram ? "true" : "false");
+      formData.append("publishX", publishX ? "true" : "false");
       formData.append("tags", tagsInput);
       formData.append("metaTitle", metaTitle);
       formData.append("metaDescription", metaDescription);
@@ -194,6 +227,23 @@ const Add = ({ token }) => {
 
       if (response.data.success) {
         toast.success("✨ Bijou ajouté avec succès au catalogue !");
+
+        const social = response.data.social;
+        if (social?.instagram) {
+          if (social.instagram.success) {
+            toast.success("📸 Publié automatiquement sur Instagram !");
+          } else {
+            toast.warning(`Instagram : ${social.instagram.message}`);
+          }
+        }
+        if (social?.x) {
+          if (social.x.success) {
+            toast.success("🐦 Publié automatiquement sur X (Twitter) !");
+          } else {
+            toast.warning(`X (Twitter) : ${social.x.message}`);
+          }
+        }
+
         setNom(''); setDescription(''); setPrix(''); setStock('');
         setSizes([]); setCouleurs(['Doré']); setTagsInput('');
         setMeilleurVente(false); setImages([null, null, null, null]);
@@ -558,6 +608,71 @@ const Add = ({ token }) => {
               id="meilleurVente" 
               className="w-4 h-4 accent-amber-900 rounded cursor-pointer" 
             />
+          </div>
+
+          {/* --- DIFFUSION AUTOMATIQUE RÉSEAUX SOCIAUX --- */}
+          <div className="p-4 bg-amber-50/40 border border-amber-200/70 rounded-xl space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-900">
+              <Share2 size={14} />
+              <span>Diffusion Automatique sur vos Réseaux</span>
+            </div>
+            <p className="text-[11px] text-stone-500">
+              Cochez les comptes sur lesquels publier automatiquement ce bijou (photos, prix, description & hashtags) dès sa mise en ligne.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <label
+                htmlFor="publishInstagram"
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                  publishInstagram
+                    ? 'bg-amber-900/10 border-amber-800 text-stone-900'
+                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2 rounded-lg ${publishInstagram ? 'bg-amber-900 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                    <IconInstagram size={16} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold block">Instagram</span>
+                    <span className="text-[10px] text-stone-400">@aridonabijoux (Post / Carrousel)</span>
+                  </div>
+                </div>
+                <input
+                  id="publishInstagram"
+                  type="checkbox"
+                  checked={publishInstagram}
+                  onChange={() => setPublishInstagram((prev) => !prev)}
+                  className="w-4 h-4 accent-amber-900 rounded cursor-pointer"
+                />
+              </label>
+
+              <label
+                htmlFor="publishX"
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
+                  publishX
+                    ? 'bg-stone-900/10 border-stone-900 text-stone-900'
+                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2 rounded-lg ${publishX ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600'}`}>
+                    <IconX size={15} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold block">X (Twitter)</span>
+                    <span className="text-[10px] text-stone-400">@AridonaBijoux (Photos + Lien)</span>
+                  </div>
+                </div>
+                <input
+                  id="publishX"
+                  type="checkbox"
+                  checked={publishX}
+                  onChange={() => setPublishX((prev) => !prev)}
+                  className="w-4 h-4 accent-stone-900 rounded cursor-pointer"
+                />
+              </label>
+            </div>
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Composants de structure (gardés en synchrone pour éviter un flash d'interface)
+// Composants de structure
 import Navbar from './composant/Navbar';
 import SidebarPanier from './composant/SidebarPanier';
 import Footer from './composant/Footer';
@@ -16,10 +16,8 @@ const PageProduit = lazy(() => import('./pages/PageProduit'));
 const Panier = lazy(() => import('./pages/Panier'));
 const PasserCommande = lazy(() => import('./pages/PasserCommande'));
 const CommandeConfirmee = lazy(() => import('./pages/CommandeConfirmee'));
-const PaiementRetour = lazy(() => import('./pages/PaiementRetour'));
 const Login = lazy(() => import('./pages/Login'));
 const PageFavoris = lazy(() => import('./pages/PageFavoris'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Apropos = lazy(() => import('./pages/Apropos'));
 const Erreur404 = lazy(() => import('./pages/Erreur404'));
 const ConditionUtilisation = lazy(() => import('./pages/ConitionUtilisation'));
@@ -49,7 +47,7 @@ function App() {
       {/* Tiroir Panier Global */}
       <SidebarPanier />
 
-      {/* Zone de contenu dynamique avec compensation de la Navbar fixe */}
+      {/* Zone de contenu dynamique */}
       <main className="flex-1 pt-24 md:pt-28">
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -63,11 +61,9 @@ function App() {
             <Route path="/panier" element={<Panier />} />
             <Route path="/commander" element={<PasserCommande />} />
             <Route path="/commande-confirmee" element={<CommandeConfirmee />} />
-            <Route path="/commande/paiement-retour" element={<PaiementRetour />} />
             
             <Route path="/login" element={<Login />} />
             <Route path="/favoris" element={<PageFavoris />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
             
             <Route path="/a-propos" element={<Apropos />} />
             <Route path="/conditions-utilisation" element={<ConditionUtilisation />} />

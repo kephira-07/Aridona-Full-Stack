@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema({
-    // Référence un produit OU un pack selon `type` — jamais populé (juste un instantané au
-    // moment de la commande), donc pas de `ref` unique possible ici.
     _id: { type: mongoose.Schema.Types.ObjectId, required: true },
     type: { type: String, enum: ['produit', 'pack'], default: 'produit' },
     nom: { type: String, required: true },
@@ -14,30 +12,27 @@ const itemSchema = new mongoose.Schema({
 
 const addressSchema = new mongoose.Schema({
     firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true, lowercase: true },
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    zipcode: { type: String, required: true },
-    phone: { type: String, required: true }
+    lastName: { type: String, default: '', trim: true },
+    email: { type: String, default: '', trim: true, lowercase: true },
+    street: { type: String, required: true, trim: true }, // Quartier / repère
+    city: { type: String, required: true, trim: true, default: 'Lomé' },
+    zipcode: { type: String, default: '00228', trim: true },
+    phone: { type: String, required: true, trim: true }
 }, { _id: false });
 
 const orderSchema = new mongoose.Schema({
-    
     // null = commande passée en tant qu'invité (pas de compte au moment de l'achat)
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'utilisateur', default: null, index: true },
     items: { type: [itemSchema], required: true },
-    // addressSchema était défini mais jamais attaché ici — en mode strict (par défaut),
-    // Mongoose supprimait silencieusement le champ à l'enregistrement : aucune commande
-    // n'a jamais stocké le nom/téléphone/adresse du client malgré la validation en amont.
     address: { type: addressSchema, required: true },
     amount: { type: Number, required: true, min: 0 },
-    paymentMethod: { type: String, required: true, enum: ["COD", "Mobile Money", "Manuel", "CinetPay"], default: "Manuel" },
+    paymentMethod: { 
+        type: String, 
+        required: true, 
+        enum: ["À la livraison", "Mobile Money", "COD", "Manuel", "CinetPay"], 
+        default: "À la livraison" 
+    },
     payment: { type: Boolean, required: true, default: false },
-    // Identifiant unique envoyé à CinetPay pour la tentative de paiement en cours
-    // (régénéré à chaque nouvelle tentative, car CinetPay exige un transaction_id jamais réutilisé).
-    txRef: { type: String, default: null, index: true, sparse: true },
-    cinetpayPaymentMethod: { type: String, default: null },
     status: { 
         type: String, 
         required: true, 

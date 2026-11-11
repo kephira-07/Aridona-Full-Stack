@@ -3,11 +3,22 @@ import { v2 as cloudinary } from 'cloudinary';
 import generateUniqueSlug from '../utils/slug.js';
 import { GoogleGenAI } from '@google/genai';
 import { cleanLocalFiles } from '../utils/cleanLocalFile.js';
+import { publishProductToSocials } from '../utils/socialPublisher.js';
 
-// Initialisation correcte du SDK Google GenAI
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Initialisation du SDK Google GenAI (supporte les clés Google AI Studio "AIza..." et Vertex AI Express "AQ....")
+const getGenAIClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error("La variable GEMINI_API_KEY est manquante dans la configuration du serveur (.env).");
+  }
+  const isVertexExpressKey = apiKey.startsWith('AQ.');
+  return new GoogleGenAI({
+    apiKey,
+    ...(isVertexExpressKey ? { vertexai: true } : {}),
+  });
+};
 
-// Contrôleur pour l'analyse IA (Corrigé)
+// Contrôleur pour l'analyse IA (Gemini)
 const analyzeProductImage = async (req, res) => {
   try {
     const { imageBase64, mimeType } = req.body;
@@ -16,21 +27,23 @@ const analyzeProductImage = async (req, res) => {
       return res.status(400).json({ success: false, message: "Aucune image fournie." });
     }
 
-    const prompt = `
-      Tu es un expert en e-commerce de bijoux en acier inoxydable pour Aridona Bijoux.
-      Analyse l'image de ce bijou et génère une fiche produit au format JSON strict (sans aucun texte autour, sans balises markdown \`\`\`json).
-      Le JSON doit contenir exactement ces clés :
-      - "nom": Un titre élégant et vendeur en français.
-      - "description": Une description poétique et raffinée mettant en valeur la résistance et l'acier inoxydable.
-      - "tags": Une liste de 4 à 6 mots-clés séparés par des virgules (ex: collier, acier inoxydable, doré, minimaliste).
-      - "metaTitle": Un titre SEO accrocheur de moins de 70 caractères.
-      - "metaDescription": Une description SEO engageante de moins de 160 caractères.
-      - "couleurs": Un tableau parmi ces choix exacts selon la couleur dominante: ["Doré", "Argenté", "Rosé"].
-    `;
+    const ai = getGenAIClient();
 
-    // Correction de l'appel au modèle Gemini avec le SDK @google/genai
+    const prompt = [
+      "Tu es un expert en e-commerce de bijoux en acier inoxydable pour Aridona Bijoux.",
+      "Analyse l'image de ce bijou et génère une fiche produit au format JSON strict (sans aucun texte autour, sans balises markdown).",
+      "Le JSON doit contenir exactement ces clés :",
+      '- "nom": Un titre élégant et vendeur en français.',
+      '- "description": Une description poétique et raffinée mettant en valeur la résistance et l\'acier inoxydable.',
+      '- "tags": Une chaîne de 4 à 6 mots-clés séparés par des virgules (ex: "collier, acier inoxydable, doré, minimaliste").',
+      '- "metaTitle": Un titre SEO accrocheur de moins de 70 caractères.',
+      '- "metaDescription": Une description SEO engageante de moins de 160 caractères.',
+      '- "couleurs": Un tableau parmi ces choix exacts selon la couleur dominante: ["Doré", "Argenté", "Rosé"].',
+      '- "alt": Un texte alternatif SEO court décrivant visuellement le bijou sur la photo.'
+    ].join('\n');
+
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
@@ -45,23 +58,32 @@ const analyzeProductImage = async (req, res) => {
           ],
         },
       ],
+      config: {
+        responseMimeType: 'application/json',
+      },
     });
 
     // Récupération sécurisée du texte généré
-    let rawText = response.text ? response.text.trim() : "";
-    rawText = rawText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    let rawText = typeof response.text === 'function' ? response.text() : (response.text || '');
+    rawText = rawText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
 
     const productData = JSON.parse(rawText);
+
+    // Normalisation au cas où Gemini renvoie tags sous forme de tableau
+    if (Array.isArray(productData.tags)) {
+      productData.tags = productData.tags.join(', ');
+    }
 
     return res.json({ success: true, product: productData });
 
   } catch (error) {
     console.error("Erreur détaillée analyse Gemini :", error);
-    return res.status(500).json({ success: false, message: error.message || "Erreur lors de l'analyse de l'image par l'IA." });
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Erreur lors de l'analyse de l'image par l'IA."
+    });
   }
 };
-
-
 
 // Helper pour parser les tableaux (sizes, couleurs) en toute sécurité
 const parseArrayHelper = (input) => {
@@ -116,7 +138,7 @@ const parseCouleursHelper = (input) => parseArrayHelper(input).map((c) => LEGACY
 // 1. Ajouter un produit
 const addproduit = async (req, res) => {
   try {
-    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, stock, alts, metaTitle, metaDescription } = req.body;
+    const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, stock, alts, metaTitle, metaDescription, publishInstagram, publishX } = req.body;
 
     if (!nom || !description || !prix || !categorie) {
       cleanLocalFiles(req.files);
@@ -181,7 +203,23 @@ const addproduit = async (req, res) => {
     const produit = new produitModel(produitData);
     await produit.save();
 
-    return res.status(201).json({ success: true, message: "Produit ajouté avec succès !" });
+    // Publication automatique sur Instagram et/ou X (Twitter) si cochée dans l'Admin
+    const wantInstagram = publishInstagram === 'true' || publishInstagram === true;
+    const wantX = publishX === 'true' || publishX === true;
+    let social = null;
+    if (wantInstagram || wantX) {
+      social = await publishProductToSocials(produit, {
+        instagram: wantInstagram,
+        x: wantX,
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Produit ajouté avec succès !",
+      produit,
+      social,
+    });
   } catch (error) {
     cleanLocalFiles(req.files);
     console.error("Erreur ajout produit:", error);
@@ -413,7 +451,7 @@ const changerStatutStock = async (req, res) => {
 };
 
 // 8. Flux produits pour Google Merchant Center
-const SITE_URL = '[https://aridona.store](https://aridona.store)';
+const SITE_URL = 'https://aridona.store';
 
 const escapeXml = (str) => String(str ?? '')
   .replace(/&/g, '&amp;')
@@ -454,7 +492,7 @@ ${additionalImages}
     });
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss xmlns:g="[http://base.google.com/ns/1.0](http://base.google.com/ns/1.0)" version="2.0">
+<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
   <channel>
     <title>Aridona Bijoux — Catalogue</title>
     <link>${SITE_URL}</link>
@@ -471,4 +509,31 @@ ${items.join('\n')}
   }
 };
 
-export { addproduit, listproduits, analyzeProductImage, removeproduit, singleproduit, singleproduitBySlug, updateproduit, searchProduits, changerStatutStock, getProductFeed };
+// 9. Partager un produit existant sur Instagram et/ou X
+const shareProduitSocial = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { instagram = false, x = false } = req.body;
+
+    const produit = await produitModel.findById(id);
+    if (!produit) {
+      return res.status(404).json({ success: false, message: "Produit introuvable" });
+    }
+
+    const social = await publishProductToSocials(produit, {
+      instagram: Boolean(instagram),
+      x: Boolean(x),
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Diffusion sur les réseaux sociaux terminée.",
+      social,
+    });
+  } catch (error) {
+    console.error("Erreur partage réseaux sociaux:", error);
+    return res.status(500).json({ success: false, message: "Erreur lors du partage sur les réseaux sociaux." });
+  }
+};
+
+export { addproduit, listproduits, analyzeProductImage, removeproduit, singleproduit, singleproduitBySlug, updateproduit, searchProduits, changerStatutStock, getProductFeed, shareProduitSocial };

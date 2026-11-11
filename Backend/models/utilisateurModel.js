@@ -16,32 +16,21 @@ const utilisateurSchema = new mongoose.Schema({
   },
   password: { 
     type: String, 
-    // ⚠️ OBLIGATOIRE : Rendre facultatif pour les connexions Google
-    required: function() {
-      return !this.googleId; // Le mot de passe est requis SEULEMENT si ce n'est pas un compte Google
-    }
+    default: "" 
   },
-  
-  // ➕ AJOUT : Identifiant unique Google OAuth
   googleId: { 
     type: String, 
     default: "",
     index: true 
   },
-  // ➕ AJOUT : Photo de profil Google (optionnel mais recommandé pour l'interface)
   avatar: { 
     type: String, 
     default: "" 
   },
-
-  cartData: {
-    type: Object,
-    default: {}
-  },
-  // Panier des packs : { [packId]: quantite } — séparé de cartData car un pack n'a pas de taille.
-  cartPacks: {
-    type: Object,
-    default: {}
+  role: {
+    type: String,
+    enum: ['client', 'admin'],
+    default: 'client'
   },
   telephone: { 
     type: String, 
@@ -55,16 +44,13 @@ const utilisateurSchema = new mongoose.Schema({
     type: String, 
     default: "Lomé" 
   },
-  
-  // Champs de sécurité pour la réinitialisation du mot de passe
-  resetPasswordToken: { 
-    type: String, 
-    default: "",
-    index: true 
+  cartData: {
+    type: Object,
+    default: {}
   },
-  resetPasswordExpires: { 
-    type: Date, 
-    default: null 
+  cartPacks: {
+    type: Object,
+    default: {}
   }
 }, { 
   minimize: false,

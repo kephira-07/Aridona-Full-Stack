@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Mail, MapPin, Send, MessageCircle, Clock, Loader2 } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
-import { IconInstagram, IconFacebook, IconTikTok } from '../composant/SocialIcons';
+import { IconInstagram, IconFacebook, IconTikTok, IconX } from '../composant/SocialIcons';
 import Titre from '../composant/Titre';
 
 const Contact = () => {
@@ -156,6 +156,15 @@ const Contact = () => {
                   className="p-3 bg-white border border-stone-200 text-amber-800 hover:bg-amber-900 hover:text-white hover:border-amber-900 transition-all duration-300"
                 >
                   <IconTikTok size={18} />
+                </a>
+                <a
+                  href="https://x.com/AridonaBijoux"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Aridona Bijoux sur X (Twitter)"
+                  className="p-3 bg-white border border-stone-200 text-amber-800 hover:bg-amber-900 hover:text-white hover:border-amber-900 transition-all duration-300"
+                >
+                  <IconX size={17} />
                 </a>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Mail, User, Phone, Calendar, ShieldCheck } from 'lucide-react';
+import { Mail, User, Phone, Calendar, ShieldCheck, Download, Copy } from 'lucide-react';
 import { backendUrl } from '../config';
 
 const Utilisateurs = ({ token: propToken }) => {
@@ -11,7 +11,6 @@ const Utilisateurs = ({ token: propToken }) => {
   const fetchUtilisateurs = async () => {
     try {
       setLoading(true);
-      // Récupération du token d'administration (priorité prop > localStorage, seule clé utilisée)
       const adminToken = propToken || localStorage.getItem('token');
 
       const response = await axios.get(`${backendUrl}/api/utilisateur/liste`, {
@@ -38,21 +37,89 @@ const Utilisateurs = ({ token: propToken }) => {
     fetchUtilisateurs();
   }, [propToken]);
 
+  // Exporter la liste des e-mails en CSV
+  const exporterCSV = () => {
+    if (utilisateurs.length === 0) {
+      toast.info("Aucun membre à exporter.");
+      return;
+    }
+
+    const lignes = [
+      ["Nom", "Email", "Telephone", "Date Inscription"].join(";")
+    ];
+
+    utilisateurs.forEach((u) => {
+      const nom = `"${(u.name || u.nom || '').replace(/"/g, '""')}"`;
+      const email = `"${(u.email || '').replace(/"/g, '""')}"`;
+      const tel = `"${(u.telephone || u.phone || '').replace(/"/g, '""')}"`;
+      const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '';
+      lignes.push([nom, email, tel, date].join(";"));
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + encodeURIComponent(lignes.join("\n"));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", csvContent);
+    downloadAnchor.setAttribute("download", `aridona-clients-${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    toast.success("Fichier CSV téléchargé !");
+  };
+
+  // Copier tous les emails dans le presse-papier
+  const copierTousLesEmails = () => {
+    const emails = utilisateurs
+      .map(u => u.email?.trim())
+      .filter(Boolean)
+      .join(', ');
+
+    if (!emails) {
+      toast.info("Aucun e-mail trouvé.");
+      return;
+    }
+
+    navigator.clipboard.writeText(emails);
+    toast.success(`${utilisateurs.length} e-mails copiés dans le presse-papier !`);
+  };
+
   return (
     <div className="p-6 md:p-8 font-sans max-w-6xl mx-auto">
       {/* En-tête de la page */}
-      <div className="mb-8 flex justify-between items-end border-b border-slate-200 pb-5">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Membres & Clients
+            Base Emails & Membres
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Repertoire complet des comptes inscrits sur Aridona Bijoux.
+            Capture d'adresses emails et répertoire des clients d'Aridona Bijoux.
           </p>
         </div>
-        <span className="text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200/60 px-3 py-1.5 rounded-full">
-          {utilisateurs.length} {utilisateurs.length > 1 ? 'inscrits' : 'inscrit'}
-        </span>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={copierTousLesEmails}
+            disabled={utilisateurs.length === 0}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <Copy size={14} />
+            <span>Copier emails</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={exporterCSV}
+            disabled={utilisateurs.length === 0}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-900 hover:bg-amber-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+          >
+            <Download size={14} />
+            <span>Exporter CSV</span>
+          </button>
+
+          <span className="text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200/60 px-3 py-1.5 rounded-full ml-1">
+            {utilisateurs.length} {utilisateurs.length > 1 ? 'adresses' : 'adresse'}
+          </span>
+        </div>
       </div>
 
       {loading ? (
@@ -62,7 +129,7 @@ const Utilisateurs = ({ token: propToken }) => {
         </div>
       ) : utilisateurs.length === 0 ? (
         <div className="text-center py-12 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-          <p className="text-slate-500 text-sm">Aucun utilisateur enregistré pour le moment.</p>
+          <p className="text-slate-500 text-sm">Aucun utilisateur ou e-mail enregistré pour le moment.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -95,10 +162,10 @@ const Utilisateurs = ({ token: propToken }) => {
                       </td>
 
                       {/* Email */}
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Mail size={13} className="text-slate-400" />
-                          <span>{user.email}</span>
+                      <td className="py-4 px-6 font-mono text-slate-700">
+                        <div className="flex items-center gap-2">
+                          <Mail size={13} className="text-amber-800" />
+                          <span className="font-semibold">{user.email}</span>
                         </div>
                       </td>
 

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { IconInstagram, IconFacebook, IconTikTok } from './SocialIcons';
+import { IconInstagram, IconFacebook, IconTikTok, IconX } from './SocialIcons';
 import { ShopContext } from '../context/ShopContext';
 import logo from '../assets/logo.png';
 
@@ -81,6 +81,15 @@ const Footer = () => {
                 className="text-stone-400 hover:text-amber-500 transition-colors duration-300"
               >
                 <IconTikTok size={18} />
+              </a>
+              <a
+                href="https://x.com/AridonaBijoux"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Aridona Bijoux sur X (Twitter)"
+                className="text-stone-400 hover:text-amber-500 transition-colors duration-300"
+              >
+                <IconX size={17} />
               </a>
             </div>
           </div>

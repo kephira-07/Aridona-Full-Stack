@@ -4,10 +4,7 @@ import produitModel from '../models/produitModel.js';
 import packModel from '../models/packModel.js';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import axios from 'axios';
 import { FRAIS_LIVRAISON } from '../config/siteConfig.js';
-
-const CINETPAY_BASE_URL = 'https://api-checkout.cinetpay.com/v2';
 
 // 1. Placer une commande (Authentifié OU Invité)
 const placeOrder = async (req, res) => {
@@ -49,8 +46,7 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Identifiant invalide dans le panier.' });
         }
 
-        // Les packs ne réservent pas un stock propre : ils consomment le stock réel de leurs
-        // produits composants (multiplié par la quantité de pack commandée).
+        // Les packs ne réservent pas un stock propre : ils consomment le stock réel de leurs produits composants
         const packs = packIds.length > 0
             ? await packModel.find({ _id: { $in: packIds }, actif: true }).populate('produits.produit')
             : [];
@@ -65,7 +61,7 @@ const placeOrder = async (req, res) => {
             }
         }
 
-        // 🛡️ SÉCURISATION DU PRIX : Recalcul obligatoire du montant total depuis la base de données
+        // Recalcul obligatoire du montant total depuis la base de données
         let calculatedAmount = 0;
         const verifiedItems = [];
 
@@ -100,8 +96,6 @@ const placeOrder = async (req, res) => {
             const itemPrice = Number(productDB.prix || productDB.price || 0);
             calculatedAmount += itemPrice * quantity;
 
-            // orderModel attend image: [String] — produitModel stocke désormais des objets
-            // {url, publicId, alt}, donc on n'en extrait que l'URL pour l'instantané de commande.
             const imageUrls = (productDB.image || []).map((img) =>
                 typeof img === 'object' && img?.url ? img.url : img
             );
@@ -111,7 +105,6 @@ const placeOrder = async (req, res) => {
                 type: 'produit',
                 nom: productDB.nom || productDB.name,
                 prix: itemPrice,
-                // Supporte 'size' ou 'sizes' selon l'objet envoyé par le Frontend
                 size: item.size || item.sizes || "Standard",
                 quantity,
                 image: imageUrls
@@ -190,17 +183,23 @@ const placeOrder = async (req, res) => {
             throw error;
         }
 
-        // Le sous-total seul ne reflète pas ce que le client voit/paie réellement (WhatsApp
-        // affiche sous-total + frais de livraison) — il faut inclure les frais ici aussi.
         const fraisLivraison = calculatedAmount > 0 ? FRAIS_LIVRAISON : 0;
         const montantTotal = calculatedAmount + fraisLivraison;
 
         const orderData = {
             userId,
             items: verifiedItems,
-            address,
-            amount: montantTotal, // Prix recalculé côté serveur, frais de livraison inclus
-            paymentMethod: paymentMethod || "Manuel",
+            address: {
+                firstName: address.firstName.trim(),
+                lastName: (address.lastName || '').trim(),
+                email: (address.email || '').trim().toLowerCase(),
+                street: address.street.trim(),
+                city: address.city?.trim() || 'Lomé',
+                zipcode: address.zipcode?.trim() || '00228',
+                phone: address.phone.trim()
+            },
+            amount: montantTotal,
+            paymentMethod: paymentMethod || "À la livraison",
             payment: false,
             status: "Commande passée"
         };
@@ -222,7 +221,7 @@ const placeOrder = async (req, res) => {
             )
         ));
 
-        // Réinitialiser le panier BDD (produits + packs) si l'utilisateur est authentifié
+        // Réinitialiser le panier BDD si l'utilisateur est authentifié
         if (userId) {
             await userModel.findByIdAndUpdate(userId, { $set: { cartData: {}, cartPacks: {} } });
         }
@@ -239,10 +238,9 @@ const placeOrder = async (req, res) => {
     }
 };
 
-// 2. Récupérer les commandes d'un utilisateur connecté (Espace Client)
+// 2. Récupérer les commandes d'un utilisateur connecté
 const userOrders = async (req, res) => {
     try {
-        // Double sécurité d'injection middleware (req.userId ou req.body.userId)
         const userId = req.userId || req.body.userId; 
         
         if (!userId) {
@@ -299,152 +297,9 @@ const updateStatus = async (req, res) => {
     }
 };
 
-// Vérifie une transaction directement auprès de CinetPay (jamais confiance dans les
-// données transmises par le client ou par un webhook non re-vérifié).
-const verifierTransactionCinetPay = async (transactionId) => {
-    const { data } = await axios.post(`${CINETPAY_BASE_URL}/payment/check`, {
-        apikey: process.env.CINETPAY_APIKEY,
-        site_id: process.env.CINETPAY_SITE_ID,
-        transaction_id: transactionId
-    });
-    return data;
-};
-
-// 5. Initier un paiement en ligne CinetPay pour une commande déjà enregistrée
-const initierPaiementCinetPay = async (req, res) => {
-    try {
-        const { orderId } = req.body;
-        if (!orderId || !mongoose.isValidObjectId(orderId)) {
-            return res.status(400).json({ success: false, message: "Commande invalide." });
-        }
-
-        const order = await orderModel.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ success: false, message: "Commande introuvable." });
-        }
-        if (order.payment) {
-            return res.status(409).json({ success: false, message: "Cette commande est déjà payée." });
-        }
-
-        // CinetPay interdit de réutiliser un transaction_id, y compris après un paiement échoué.
-        const transactionId = `${order._id}-${Date.now()}`;
-        order.txRef = transactionId;
-        await order.save();
-
-        const { data } = await axios.post(`${CINETPAY_BASE_URL}/payment`, {
-            apikey: process.env.CINETPAY_APIKEY,
-            site_id: process.env.CINETPAY_SITE_ID,
-            transaction_id: transactionId,
-            amount: order.amount,
-            currency: 'XOF',
-            description: `Commande Aridona Bijoux #${order._id}`,
-            notify_url: `${process.env.BACKEND_URL || process.env.FRONTEND_URL}/api/order/webhook/cinetpay`,
-            return_url: `${process.env.FRONTEND_URL}/commande/paiement-retour`,
-            channels: 'ALL',
-            customer_name: order.address.firstName,
-            customer_surname: order.address.lastName,
-            customer_email: order.address.email || 'client@aridona.store',
-            customer_phone_number: order.address.phone,
-            customer_address: order.address.street,
-            customer_city: order.address.city,
-            customer_country: 'TG'
-        });
-
-        if (data.code !== '201') {
-            console.error("Erreur InitierPaiementCinetPay:", data);
-            return res.status(502).json({ success: false, message: "Impossible d'initier le paiement en ligne pour le moment." });
-        }
-
-        return res.status(200).json({ success: true, link: data.data.payment_url });
-    } catch (error) {
-        console.error("Erreur InitierPaiementCinetPay:", error.response?.data || error.message);
-        return res.status(500).json({ success: false, message: "Impossible d'initier le paiement en ligne pour le moment." });
-    }
-};
-
-// 6. Vérifier le paiement au retour du client depuis la page de paiement CinetPay
-const verifierPaiementCinetPay = async (req, res) => {
-    try {
-        const { transaction_id } = req.query;
-        if (!transaction_id) {
-            return res.status(400).json({ success: false, message: "Paramètre de vérification manquant." });
-        }
-
-        const order = await orderModel.findOne({ txRef: transaction_id });
-        if (!order) {
-            return res.status(404).json({ success: false, message: "Commande introuvable pour cette transaction." });
-        }
-
-        if (order.payment) {
-            return res.status(200).json({ success: true, message: "Paiement déjà confirmé.", orderId: order._id, montant: order.amount });
-        }
-
-        const data = await verifierTransactionCinetPay(transaction_id);
-        const transaction = data?.data;
-        const estValide = data?.code === '00'
-            && transaction?.status === 'ACCEPTED'
-            && transaction?.currency === 'XOF'
-            && Number(transaction?.amount) >= Number(order.amount);
-
-        if (!estValide) {
-            return res.status(402).json({ success: false, message: "Le paiement n'a pas pu être confirmé." });
-        }
-
-        order.payment = true;
-        order.paymentMethod = 'CinetPay';
-        order.cinetpayPaymentMethod = transaction.payment_method || null;
-        await order.save();
-
-        return res.status(200).json({ success: true, message: "Paiement confirmé ! ✅", orderId: order._id, montant: order.amount });
-    } catch (error) {
-        console.error("Erreur VerifierPaiementCinetPay:", error.response?.data || error.message);
-        return res.status(500).json({ success: false, message: "Erreur lors de la vérification du paiement." });
-    }
-};
-
-// 7. Webhook CinetPay — source de vérité fiable même si le client ferme l'onglet avant
-// la redirection. CinetPay n'envoie que l'ID de transaction : on revérifie toujours
-// nous-mêmes auprès de leur API avant de valider quoi que ce soit (jamais confiance
-// dans le montant/statut transmis dans la notification elle-même).
-const webhookCinetPay = async (req, res) => {
-    try {
-        const transactionId = req.body?.cpm_trans_id;
-        if (!transactionId) {
-            return res.status(200).end();
-        }
-
-        const order = await orderModel.findOne({ txRef: transactionId });
-        if (!order || order.payment) {
-            return res.status(200).end();
-        }
-
-        const data = await verifierTransactionCinetPay(transactionId);
-        const transaction = data?.data;
-        const estValide = data?.code === '00'
-            && transaction?.status === 'ACCEPTED'
-            && transaction?.currency === 'XOF'
-            && Number(transaction?.amount) >= Number(order.amount);
-
-        if (estValide) {
-            order.payment = true;
-            order.paymentMethod = 'CinetPay';
-            order.cinetpayPaymentMethod = transaction.payment_method || null;
-            await order.save();
-        }
-
-        return res.status(200).end();
-    } catch (error) {
-        console.error("Erreur WebhookCinetPay:", error.response?.data || error.message);
-        return res.status(200).end(); // Toujours 200 pour éviter les re-tentatives infinies de CinetPay
-    }
-};
-
 export {
     placeOrder,
     userOrders,
     allOrders,
-    updateStatus,
-    initierPaiementCinetPay,
-    verifierPaiementCinetPay,
-    webhookCinetPay
+    updateStatus
 };

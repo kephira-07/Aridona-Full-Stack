@@ -106,9 +106,9 @@ const articles = [
       <>
         <p className="mb-3">Vos données peuvent être partagées, dans la stricte mesure nécessaire, avec :</p>
         <ul className="space-y-2">
-          <li>Nos partenaires de livraison, pour acheminer votre commande jusqu'à vous.</li>
-          <li>Nos prestataires de paiement, pour sécuriser la transaction.</li>
-          <li>Nos prestataires techniques (hébergement du site, outils de messagerie), sous obligation de confidentialité.</li>
+          <li>Nos partenaires de livraison à Lomé et au Togo, pour acheminer votre commande jusqu'à vous.</li>
+          <li>Nos prestataires techniques (hébergement sécurisé du site), sous obligation stricte de confidentialité.</li>
+          <li>Aucun intermédiaire bancaire : Aridona ne collecte, ne traite et ne stocke aucune coordonnée bancaire. Le règlement se fait directement à la livraison ou par Mobile Money.</li>
           <li>Les autorités compétentes, si la loi nous y oblige.</li>
         </ul>
         <p className="mt-3">Aucun de ces partenaires n'est autorisé à réutiliser vos données à ses propres fins.</p>
