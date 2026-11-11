@@ -9,7 +9,7 @@ const ajouterAvis = async (req, res) => {
   try {
     const { produitId, nom, note, commentaire } = req.body;
 
-    if (!produitId || !nom || !note || !commentaire) {
+    if (!produitId || !nom || !note || !commentaire || typeof produitId !== 'string' || typeof nom !== 'string' || typeof commentaire !== 'string') {
       return res.status(400).json({ success: false, message: "Les champs nom, note et commentaire sont obligatoires." });
     }
 
@@ -22,7 +22,7 @@ const ajouterAvis = async (req, res) => {
       return res.status(400).json({ success: false, message: "La note doit être un entier compris entre 1 et 5." });
     }
 
-    const produit = await produitModel.exists({ _id: produitId });
+    const produit = await produitModel.exists({ _id: { $eq: produitId } });
     if (!produit) {
       return res.status(404).json({ success: false, message: "Produit introuvable." });
     }
@@ -51,11 +51,11 @@ const listAvisProduit = async (req, res) => {
   try {
     const { produitId } = req.params;
 
-    if (!mongoose.isValidObjectId(produitId)) {
+    if (typeof produitId !== 'string' || !mongoose.isValidObjectId(produitId)) {
       return res.status(400).json({ success: false, message: "Identifiant produit invalide." });
     }
 
-    const avis = await avisModel.find({ produit: produitId, approuve: true }).sort({ createdAt: -1 });
+    const avis = await avisModel.find({ produit: { $eq: produitId }, approuve: true }).sort({ createdAt: -1 });
 
     const total = avis.length;
     const moyenne = total > 0
@@ -87,7 +87,10 @@ const listAvisAdmin = async (req, res) => {
 const approuverAvis = async (req, res) => {
   try {
     const { id } = req.params;
-    const avis = await avisModel.findByIdAndUpdate(id, { approuve: true }, { new: true });
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Identifiant avis invalide." });
+    }
+    const avis = await avisModel.findByIdAndUpdate(id, { $set: { approuve: true } }, { new: true });
 
     if (!avis) {
       return res.status(404).json({ success: false, message: "Avis introuvable." });
@@ -104,6 +107,9 @@ const approuverAvis = async (req, res) => {
 const supprimerAvis = async (req, res) => {
   try {
     const { id } = req.params;
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Identifiant avis invalide." });
+    }
     const avis = await avisModel.findByIdAndDelete(id);
 
     if (!avis) {

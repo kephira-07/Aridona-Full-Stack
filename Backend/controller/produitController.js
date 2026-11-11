@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import produitModel from '../models/produitModel.js';
 import { v2 as cloudinary } from 'cloudinary';
 import generateUniqueSlug from '../utils/slug.js';
@@ -89,7 +90,7 @@ const analyzeProductImage = async (req, res) => {
 const parseArrayHelper = (input) => {
   if (!input) return [];
   try {
-    if (Array.isArray(input)) return input;
+    if (Array.isArray(input)) return input.map((v) => (typeof v === 'object' ? v : String(v)));
     const cleanInput = typeof input === 'string' ? input.trim() : input;
     return JSON.parse(cleanInput);
   } catch (e) {
@@ -103,7 +104,14 @@ const parseArrayHelper = (input) => {
 const listproduits = async (req, res) => {
   try {
     const { categorieId } = req.query;
-    const filtre = categorieId ? { categorie: categorieId } : {};
+    const filtre = {};
+
+    if (categorieId !== undefined) {
+      if (typeof categorieId !== 'string' || !mongoose.isValidObjectId(categorieId)) {
+        return res.status(400).json({ success: false, message: "Identifiant de catégorie invalide." });
+      }
+      filtre.categorie = { $eq: categorieId };
+    }
 
     const produits = await produitModel.find(filtre).populate("categorie", "nom name");
 
@@ -129,18 +137,18 @@ const getPublicIdFromUrl = (url) => {
 
 const parseTagsHelper = (input) => {
   const rawArray = parseArrayHelper(input);
-  return rawArray.map(tag => tag.trim().toLowerCase()).filter(Boolean);
+  return rawArray.map(tag => String(tag).trim().toLowerCase()).filter(Boolean);
 };
 
 const LEGACY_COULEURS = { 'Or Rose': 'Rosé' };
-const parseCouleursHelper = (input) => parseArrayHelper(input).map((c) => LEGACY_COULEURS[c] || c);
+const parseCouleursHelper = (input) => parseArrayHelper(input).map((c) => LEGACY_COULEURS[String(c)] || String(c));
 
 // 1. Ajouter un produit
 const addproduit = async (req, res) => {
   try {
     const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, stock, alts, metaTitle, metaDescription, publishInstagram, publishX } = req.body;
 
-    if (!nom || !description || !prix || !categorie) {
+    if (!nom || !description || !prix || !categorie || typeof nom !== 'string' || typeof description !== 'string' || typeof categorie !== 'string' || !mongoose.isValidObjectId(categorie)) {
       cleanLocalFiles(req.files);
       return res.status(400).json({ success: false, message: "Les champs nom, description, prix et catégorie sont obligatoires." });
     }
@@ -173,7 +181,7 @@ const addproduit = async (req, res) => {
     cleanLocalFiles(req.files);
 
     const slug = await generateUniqueSlug(produitModel, nom);
-    const parsedSizes = parseArrayHelper(sizes);
+    const parsedSizes = parseArrayHelper(sizes).map(String);
     const parsedCouleurs = parseCouleursHelper(couleurs);
     const parsedTags = parseTagsHelper(tags);
 
@@ -183,11 +191,11 @@ const addproduit = async (req, res) => {
     }
 
     const produitData = {
-      nom,
-      description,
+      nom: nom.trim(),
+      description: description.trim(),
       prix: prixValue,
       categorie,
-      matiere: matiere || "Acier Inoxydable",
+      matiere: typeof matiere === 'string' && matiere.trim() ? matiere.trim() : "Acier Inoxydable",
       couleurs: parsedCouleurs.length > 0 ? parsedCouleurs : ["Doré"],
       sizes: parsedSizes,
       tags: parsedTags,
@@ -196,8 +204,8 @@ const addproduit = async (req, res) => {
       enStock: stockValue === null ? true : stockValue > 0,
       image: imageDocs,
       slug,
-      metaTitle,
-      metaDescription,
+      metaTitle: typeof metaTitle === 'string' ? metaTitle.trim() : undefined,
+      metaDescription: typeof metaDescription === 'string' ? metaDescription.trim() : undefined,
     };
 
     const produit = new produitModel(produitData);
@@ -231,6 +239,9 @@ const addproduit = async (req, res) => {
 const removeproduit = async (req, res) => {
   try {
     const { id } = req.params;
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Identifiant de produit invalide." });
+    }
     const produit = await produitModel.findById(id);
 
     if (!produit) {
@@ -257,6 +268,9 @@ const removeproduit = async (req, res) => {
 const singleproduit = async (req, res) => {
   try {
     const { id } = req.params;
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Identifiant de produit invalide." });
+    }
     const produit = await produitModel.findById(id).populate("categorie");
 
     if (!produit) {
@@ -271,7 +285,11 @@ const singleproduit = async (req, res) => {
 
 const singleproduitBySlug = async (req, res) => {
   try {
-    const produit = await produitModel.findOne({ slug: req.params.slug }).populate("categorie");
+    const { slug } = req.params;
+    if (typeof slug !== 'string') {
+      return res.status(400).json({ success: false, message: "Slug invalide." });
+    }
+    const produit = await produitModel.findOne({ slug: { $eq: slug } }).populate("categorie");
 
     if (!produit) {
       return res.status(404).json({ success: false, message: "Produit introuvable" });
@@ -290,12 +308,19 @@ const updateproduit = async (req, res) => {
     const { id } = req.params;
     const { nom, description, prix, categorie, matiere, couleurs, sizes, tags, meilleurVente, stock, imagesManifest, metaTitle, metaDescription } = req.body;
 
-    const updateData = {};
-    if (nom) {
-      updateData.nom = nom;
-      updateData.slug = await generateUniqueSlug(produitModel, nom, id);
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      cleanLocalFiles(req.files);
+      return res.status(400).json({ success: false, message: "Identifiant de produit invalide." });
     }
-    if (description) updateData.description = description;
+
+    const updateData = {};
+    if (typeof nom === 'string' && nom.trim()) {
+      updateData.nom = nom.trim();
+      updateData.slug = await generateUniqueSlug(produitModel, nom.trim(), id);
+    }
+    if (typeof description === 'string' && description.trim()) {
+      updateData.description = description.trim();
+    }
     if (prix !== undefined) {
       const prixValue = Number(prix);
       if (!Number.isSafeInteger(prixValue) || prixValue < 0) {
@@ -304,10 +329,14 @@ const updateproduit = async (req, res) => {
       }
       updateData.prix = prixValue;
     }
-    if (categorie) updateData.categorie = categorie;
-    if (matiere) updateData.matiere = matiere;
+    if (typeof categorie === 'string' && mongoose.isValidObjectId(categorie)) {
+      updateData.categorie = categorie;
+    }
+    if (typeof matiere === 'string' && matiere.trim()) {
+      updateData.matiere = matiere.trim();
+    }
     if (couleurs) updateData.couleurs = parseCouleursHelper(couleurs);
-    if (sizes) updateData.sizes = parseArrayHelper(sizes);
+    if (sizes) updateData.sizes = parseArrayHelper(sizes).map(String);
     if (tags !== undefined) updateData.tags = parseTagsHelper(tags);
     if (meilleurVente !== undefined) updateData.meilleurVente = (meilleurVente === "true" || meilleurVente === true);
     if (stock !== undefined) {
@@ -323,8 +352,8 @@ const updateproduit = async (req, res) => {
         }
       }
     }
-    if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
-    if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
+    if (typeof metaTitle === 'string') updateData.metaTitle = metaTitle.trim();
+    if (typeof metaDescription === 'string') updateData.metaDescription = metaDescription.trim();
 
     let ancienProduit = null;
     let removedPublicIds = [];
@@ -335,7 +364,7 @@ const updateproduit = async (req, res) => {
         cleanLocalFiles(req.files);
         return res.status(404).json({ success: false, message: "Produit introuvable" });
       }
-      const nomPourAlt = nom || ancienProduit.nom || '';
+      const nomPourAlt = (typeof nom === 'string' && nom.trim()) || ancienProduit.nom || '';
 
       const finalImages = [];
       const keptPublicIds = new Set();
@@ -344,7 +373,7 @@ const updateproduit = async (req, res) => {
         const slot = manifest[i];
         if (!slot || slot.type === 'empty') continue;
 
-        if (slot.type === 'existing' && slot.publicId) {
+        if (slot.type === 'existing' && typeof slot.publicId === 'string' && typeof slot.url === 'string') {
           finalImages.push({
             url: slot.url,
             publicId: slot.publicId,
@@ -380,7 +409,7 @@ const updateproduit = async (req, res) => {
 
     const produitModifie = await produitModel.findByIdAndUpdate(
       id,
-      updateData,
+      { $set: updateData },
       { new: true, runValidators: true }
     ).populate("categorie");
 
@@ -403,7 +432,7 @@ const updateproduit = async (req, res) => {
 const searchProduits = async (req, res) => {
   try {
     const { query } = req.query;
-    if (!query) {
+    if (!query || typeof query !== 'string') {
       return res.status(400).json({ success: false, message: "Veuillez entrer un mot clé" });
     }
 
@@ -426,13 +455,17 @@ const changerStatutStock = async (req, res) => {
     const { id } = req.params;
     const { enStock } = req.body;
 
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Identifiant de produit invalide." });
+    }
+
     if (enStock === undefined) {
       return res.status(400).json({ success: false, message: "Le statut enStock est obligatoire." });
     }
 
     const produit = await produitModel.findByIdAndUpdate(
       id,
-      { enStock: enStock === true || enStock === 'true' },
+      { $set: { enStock: enStock === true || enStock === 'true' } },
       { new: true, runValidators: true }
     );
 
@@ -514,6 +547,10 @@ const shareProduitSocial = async (req, res) => {
   try {
     const { id } = req.params;
     const { instagram = false, x = false } = req.body;
+
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Identifiant de produit invalide." });
+    }
 
     const produit = await produitModel.findById(id);
     if (!produit) {

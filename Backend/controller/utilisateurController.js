@@ -12,12 +12,22 @@ const createToken = (id, role = 'user', email = null) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
+const isSafeKey = (key) =>
+  typeof key === 'string' &&
+  key.length > 0 &&
+  key.length <= 64 &&
+  key !== '__proto__' &&
+  key !== 'constructor' &&
+  key !== 'prototype' &&
+  !key.startsWith('$') &&
+  !key.includes('.');
+
 // 1. Connexion / Inscription 1-clic avec Google
 const googleLogin = async (req, res) => {
   try {
     const { access_token } = req.body;
 
-    if (!access_token) {
+    if (!access_token || typeof access_token !== 'string') {
       return res.status(400).json({ success: false, message: "Jeton d'accès Google manquant." });
     }
 
@@ -42,13 +52,14 @@ const googleLogin = async (req, res) => {
     });
 
     const { email, name, picture, sub: googleId } = googleRes.data;
+    const cleanEmail = String(email || '').trim().toLowerCase();
 
-    let user = await utilisateurModel.findOne({ email: email.toLowerCase() });
+    let user = await utilisateurModel.findOne({ email: { $eq: cleanEmail } });
 
     if (!user) {
       user = await utilisateurModel.create({
         name: name || 'Membre Google',
-        email: email.toLowerCase(),
+        email: cleanEmail,
         googleId,
         avatar: picture || '',
         password: ''
@@ -72,7 +83,7 @@ const registerutilisateur = async (req, res) => {
   try {
     const { name, email } = req.body;
 
-    if (!name || !email) {
+    if (!name || !email || typeof name !== 'string' || typeof email !== 'string') {
       return res.status(400).json({ success: false, message: "Le nom et l'adresse email sont obligatoires." });
     }
 
@@ -81,7 +92,7 @@ const registerutilisateur = async (req, res) => {
       return res.status(400).json({ success: false, message: "Format d'adresse email invalide." });
     }
 
-    let user = await utilisateurModel.findOne({ email: cleanEmail });
+    let user = await utilisateurModel.findOne({ email: { $eq: cleanEmail } });
     if (user) {
       if (name.trim() && user.name !== name.trim()) {
         user.name = name.trim();
@@ -121,7 +132,7 @@ const loginutilisateur = async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email) {
+    if (!email || typeof email !== 'string') {
       return res.status(400).json({ success: false, message: "Veuillez fournir votre adresse email." });
     }
 
@@ -130,7 +141,7 @@ const loginutilisateur = async (req, res) => {
       return res.status(400).json({ success: false, message: "Format d'adresse email invalide." });
     }
 
-    let user = await utilisateurModel.findOne({ email: cleanEmail });
+    let user = await utilisateurModel.findOne({ email: { $eq: cleanEmail } });
 
     if (!user) {
       user = await utilisateurModel.create({
@@ -161,7 +172,7 @@ const adminLogin = async (req, res) => {
     const { email, password } = req.body;
     const adminEmail = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.toLowerCase() : '';
 
-    if (!email || !password || !adminEmail || !process.env.ADMIN_PASSWORD_HASH) {
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string' || !adminEmail || !process.env.ADMIN_PASSWORD_HASH) {
       return res.status(401).json({ success: false, message: "Email ou mot de passe incorrect." });
     }
     
@@ -209,9 +220,15 @@ const updateProfilUtilisateur = async (req, res) => {
     const userId = req.userId;
     const { name, telephone, adresse, ville } = req.body;
 
+    const updateFields = {};
+    if (typeof name === 'string') updateFields.name = name.trim();
+    if (typeof telephone === 'string') updateFields.telephone = telephone.trim();
+    if (typeof adresse === 'string') updateFields.adresse = adresse.trim();
+    if (typeof ville === 'string') updateFields.ville = ville.trim();
+
     const utilisateurMisAJour = await utilisateurModel.findByIdAndUpdate(
       userId,
-      { name, telephone, adresse, ville },
+      { $set: updateFields },
       { new: true }
     ).select("-password");
 
@@ -260,20 +277,27 @@ const ajouterAuPanier = async (req, res) => {
     const userId = req.userId;
     const { itemId, size } = req.body;
 
+    if (!mongoose.isValidObjectId(itemId) || !isSafeKey(itemId) || !isSafeKey(size)) {
+      return res.status(400).json({ success: false, message: "Paramètres de panier invalides." });
+    }
+
     const userData = await utilisateurModel.findById(userId);
-    let cartData = userData.cartData || {};
-
-    if (!cartData[itemId]) {
-      cartData[itemId] = {};
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
     }
 
-    if (cartData[itemId][size]) {
-      cartData[itemId][size] += 1;
-    } else {
-      cartData[itemId][size] = 1;
-    }
+    const cartMap = new Map(Object.entries(userData.cartData || {}));
+    const sizesObj = cartMap.get(itemId);
+    const sizesMap = new Map(
+      sizesObj && typeof sizesObj === 'object' ? Object.entries(sizesObj) : []
+    );
 
-    await utilisateurModel.findByIdAndUpdate(userId, { cartData });
+    const currentQty = Number(sizesMap.get(size) || 0);
+    sizesMap.set(size, currentQty + 1);
+    cartMap.set(itemId, Object.fromEntries(sizesMap));
+
+    const cartData = Object.fromEntries(cartMap);
+    await utilisateurModel.findByIdAndUpdate(userId, { $set: { cartData } });
     return res.json({ success: true, message: "Ajouté au panier BDD" });
   } catch (error) {
     console.error("Erreur ajout panier BDD :", error);
@@ -286,28 +310,47 @@ const updatePanier = async (req, res) => {
     const userId = req.userId;
     const { itemId, size, quantity, oldSize } = req.body;
 
-    const userData = await utilisateurModel.findById(userId);
-    let cartData = userData.cartData || {};
-
-    if (oldSize && oldSize !== size && cartData[itemId]) {
-      delete cartData[itemId][oldSize];
+    if (!mongoose.isValidObjectId(itemId) || !isSafeKey(itemId) || !isSafeKey(size)) {
+      return res.status(400).json({ success: false, message: "Paramètres de panier invalides." });
+    }
+    if (oldSize !== undefined && oldSize !== null && !isSafeKey(oldSize)) {
+      return res.status(400).json({ success: false, message: "Taille précédente invalide." });
     }
 
-    if (quantity <= 0) {
-      if (cartData[itemId]) {
-        delete cartData[itemId][size];
-        if (Object.keys(cartData[itemId]).length === 0) {
-          delete cartData[itemId];
-        }
+    const numQty = Number(quantity);
+    if (!Number.isFinite(numQty)) {
+      return res.status(400).json({ success: false, message: "Quantité invalide." });
+    }
+
+    const userData = await utilisateurModel.findById(userId);
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
+    }
+
+    const cartMap = new Map(Object.entries(userData.cartData || {}));
+    const sizesObj = cartMap.get(itemId);
+    const sizesMap = new Map(
+      sizesObj && typeof sizesObj === 'object' ? Object.entries(sizesObj) : []
+    );
+
+    if (oldSize && oldSize !== size) {
+      sizesMap.delete(oldSize);
+    }
+
+    if (numQty <= 0) {
+      sizesMap.delete(size);
+      if (sizesMap.size === 0) {
+        cartMap.delete(itemId);
+      } else {
+        cartMap.set(itemId, Object.fromEntries(sizesMap));
       }
     } else {
-      if (!cartData[itemId]) {
-        cartData[itemId] = {};
-      }
-      cartData[itemId][size] = quantity;
+      sizesMap.set(size, numQty);
+      cartMap.set(itemId, Object.fromEntries(sizesMap));
     }
 
-    await utilisateurModel.findByIdAndUpdate(userId, { cartData });
+    const cartData = Object.fromEntries(cartMap);
+    await utilisateurModel.findByIdAndUpdate(userId, { $set: { cartData } });
     return res.json({ success: true, message: "Panier mis à jour" });
   } catch (error) {
     console.error("Erreur mise à jour panier BDD :", error);
@@ -320,15 +363,30 @@ const deletePanier = async (req, res) => {
     const userId = req.userId;
     const { itemId, size } = req.body;
 
-    const userData = await utilisateurModel.findById(userId);
-    let cartData = userData.cartData || {};
+    if (!mongoose.isValidObjectId(itemId) || !isSafeKey(itemId) || !isSafeKey(size)) {
+      return res.status(400).json({ success: false, message: "Paramètres de panier invalides." });
+    }
 
-    if (cartData[itemId] && cartData[itemId][size]) {
-      delete cartData[itemId][size];
-      if (Object.keys(cartData[itemId]).length === 0) {
-        delete cartData[itemId];
+    const userData = await utilisateurModel.findById(userId);
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
+    }
+
+    const cartMap = new Map(Object.entries(userData.cartData || {}));
+    const sizesObj = cartMap.get(itemId);
+    const sizesMap = new Map(
+      sizesObj && typeof sizesObj === 'object' ? Object.entries(sizesObj) : []
+    );
+
+    if (sizesMap.has(size)) {
+      sizesMap.delete(size);
+      if (sizesMap.size === 0) {
+        cartMap.delete(itemId);
+      } else {
+        cartMap.set(itemId, Object.fromEntries(sizesMap));
       }
-      await utilisateurModel.findByIdAndUpdate(userId, { cartData });
+      const cartData = Object.fromEntries(cartMap);
+      await utilisateurModel.findByIdAndUpdate(userId, { $set: { cartData } });
       return res.json({ success: true, message: "Article supprimé du panier" });
     }
 
@@ -344,15 +402,20 @@ const ajouterPackAuPanier = async (req, res) => {
     const userId = req.userId;
     const { packId } = req.body;
 
-    if (!mongoose.isValidObjectId(packId)) {
+    if (!isSafeKey(packId) || !mongoose.isValidObjectId(packId)) {
       return res.status(400).json({ success: false, message: "Identifiant de pack invalide." });
     }
 
     const userData = await utilisateurModel.findById(userId);
-    const cartPacks = userData.cartPacks || {};
-    cartPacks[packId] = (cartPacks[packId] || 0) + 1;
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
+    }
 
-    await utilisateurModel.findByIdAndUpdate(userId, { cartPacks });
+    const packsMap = new Map(Object.entries(userData.cartPacks || {}));
+    packsMap.set(packId, Number(packsMap.get(packId) || 0) + 1);
+
+    const cartPacks = Object.fromEntries(packsMap);
+    await utilisateurModel.findByIdAndUpdate(userId, { $set: { cartPacks } });
     return res.json({ success: true, message: "Pack ajouté au panier BDD" });
   } catch (error) {
     console.error("Erreur ajout pack panier BDD :", error);
@@ -365,20 +428,29 @@ const updatePanierPack = async (req, res) => {
     const userId = req.userId;
     const { packId, quantity } = req.body;
 
-    if (!mongoose.isValidObjectId(packId)) {
+    if (!isSafeKey(packId) || !mongoose.isValidObjectId(packId)) {
       return res.status(400).json({ success: false, message: "Identifiant de pack invalide." });
     }
 
-    const userData = await utilisateurModel.findById(userId);
-    const cartPacks = userData.cartPacks || {};
-
-    if (quantity <= 0) {
-      delete cartPacks[packId];
-    } else {
-      cartPacks[packId] = quantity;
+    const numQty = Number(quantity);
+    if (!Number.isFinite(numQty)) {
+      return res.status(400).json({ success: false, message: "Quantité invalide." });
     }
 
-    await utilisateurModel.findByIdAndUpdate(userId, { cartPacks });
+    const userData = await utilisateurModel.findById(userId);
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
+    }
+
+    const packsMap = new Map(Object.entries(userData.cartPacks || {}));
+    if (numQty <= 0) {
+      packsMap.delete(packId);
+    } else {
+      packsMap.set(packId, numQty);
+    }
+
+    const cartPacks = Object.fromEntries(packsMap);
+    await utilisateurModel.findByIdAndUpdate(userId, { $set: { cartPacks } });
     return res.json({ success: true, message: "Panier de packs mis à jour" });
   } catch (error) {
     console.error("Erreur mise à jour pack panier BDD :", error);
@@ -391,19 +463,23 @@ const deletePanierPack = async (req, res) => {
     const userId = req.userId;
     const { packId } = req.body;
 
-    if (!mongoose.isValidObjectId(packId)) {
+    if (!isSafeKey(packId) || !mongoose.isValidObjectId(packId)) {
       return res.status(400).json({ success: false, message: "Identifiant de pack invalide." });
     }
 
     const userData = await utilisateurModel.findById(userId);
-    const cartPacks = userData.cartPacks || {};
+    if (!userData) {
+      return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
+    }
 
-    if (!cartPacks[packId]) {
+    const packsMap = new Map(Object.entries(userData.cartPacks || {}));
+    if (!packsMap.has(packId)) {
       return res.status(404).json({ success: false, message: "Pack introuvable dans le panier" });
     }
 
-    delete cartPacks[packId];
-    await utilisateurModel.findByIdAndUpdate(userId, { cartPacks });
+    packsMap.delete(packId);
+    const cartPacks = Object.fromEntries(packsMap);
+    await utilisateurModel.findByIdAndUpdate(userId, { $set: { cartPacks } });
     return res.json({ success: true, message: "Pack supprimé du panier" });
   } catch (error) {
     console.error("Erreur suppression pack panier BDD :", error);

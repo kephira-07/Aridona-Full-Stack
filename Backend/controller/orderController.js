@@ -42,7 +42,7 @@ const placeOrder = async (req, res) => {
 
         const produitIds = produitLignes.map((item) => item?._id);
         const packIds = packLignes.map((item) => item?._id);
-        if (produitIds.some((id) => !mongoose.isValidObjectId(id)) || packIds.some((id) => !mongoose.isValidObjectId(id))) {
+        if (produitIds.some((id) => typeof id !== 'string' || !mongoose.isValidObjectId(id)) || packIds.some((id) => typeof id !== 'string' || !mongoose.isValidObjectId(id))) {
             return res.status(400).json({ success: false, message: 'Identifiant invalide dans le panier.' });
         }
 
@@ -190,16 +190,16 @@ const placeOrder = async (req, res) => {
             userId,
             items: verifiedItems,
             address: {
-                firstName: address.firstName.trim(),
-                lastName: (address.lastName || '').trim(),
-                email: (address.email || '').trim().toLowerCase(),
-                street: address.street.trim(),
-                city: address.city?.trim() || 'Lomé',
-                zipcode: address.zipcode?.trim() || '00228',
-                phone: address.phone.trim()
+                firstName: String(address.firstName).trim(),
+                lastName: String(address.lastName || '').trim(),
+                email: String(address.email || '').trim().toLowerCase(),
+                street: String(address.street).trim(),
+                city: String(address.city || 'Lomé').trim(),
+                zipcode: String(address.zipcode || '00228').trim(),
+                phone: String(address.phone).trim()
             },
             amount: montantTotal,
-            paymentMethod: paymentMethod || "À la livraison",
+            paymentMethod: typeof paymentMethod === 'string' && paymentMethod.trim() ? paymentMethod.trim() : "À la livraison",
             payment: false,
             status: "Commande passée"
         };
@@ -228,7 +228,7 @@ const placeOrder = async (req, res) => {
 
         return res.status(201).json({ 
             success: true, 
-            message: "Commande enregistrée avec succès ! ✨", 
+            message: "Commande enregistrée avec succès !", 
             orderId: newOrder._id 
         });
 
@@ -241,13 +241,13 @@ const placeOrder = async (req, res) => {
 // 2. Récupérer les commandes d'un utilisateur connecté
 const userOrders = async (req, res) => {
     try {
-        const userId = req.userId || req.body.userId; 
+        const userId = req.userId;
         
-        if (!userId) {
+        if (!userId || typeof userId !== 'string' || !mongoose.isValidObjectId(userId)) {
             return res.status(401).json({ success: false, message: "Utilisateur non identifié." });
         }
 
-        const orders = await orderModel.find({ userId }).sort({ createdAt: -1 });
+        const orders = await orderModel.find({ userId: { $eq: userId } }).sort({ createdAt: -1 });
         return res.status(200).json({ success: true, orders });
     } catch (error) {
         console.error("Erreur UserOrders:", error);
@@ -272,7 +272,7 @@ const updateStatus = async (req, res) => {
         const { orderId, status } = req.body;
         const validStatuses = ["Commande passée", "En cours de préparation", "Expédié", "Livré", "Annulé"];
 
-        if (!orderId || !status) {
+        if (typeof orderId !== 'string' || !mongoose.isValidObjectId(orderId) || typeof status !== 'string') {
             return res.status(400).json({ success: false, message: "ID de commande et statut requis." });
         }
 
@@ -282,7 +282,7 @@ const updateStatus = async (req, res) => {
 
         const updatedOrder = await orderModel.findByIdAndUpdate(
             orderId, 
-            { status }, 
+            { $set: { status } }, 
             { new: true }
         );
         
@@ -290,7 +290,7 @@ const updateStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: "Commande introuvable." });
         }
 
-        return res.status(200).json({ success: true, message: "Statut logistique mis à jour ! ✅", order: updatedOrder });
+        return res.status(200).json({ success: true, message: "Statut logistique mis à jour !", order: updatedOrder });
     } catch (error) {
         console.error("Erreur UpdateStatus:", error);
         return res.status(500).json({ success: false, message: "Erreur lors de la mise à jour du statut." });

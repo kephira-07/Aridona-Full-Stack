@@ -34,15 +34,15 @@ const ajouterArticle = async (req, res) => {
     const { titre, extrait, contenu, tags, publie, metaTitle, metaDescription, produitId } = req.body;
     const imageFile = req.file;
 
-    if (!titre || !extrait || !contenu) {
+    if (!titre || !extrait || !contenu || typeof titre !== 'string' || typeof extrait !== 'string' || typeof contenu !== 'string') {
       cleanLocalFile(imageFile);
       return res.status(400).json({ success: false, message: "Titre, extrait et contenu sont obligatoires." });
     }
-    if (!produitId || !mongoose.isValidObjectId(produitId)) {
+    if (!produitId || typeof produitId !== 'string' || !mongoose.isValidObjectId(produitId)) {
       return res.status(400).json({ success: false, message: "Veuillez sélectionner un produit existant." });
     }
 
-    const produit = await produitModel.findById(produitId).select('image');
+    const produit = await produitModel.findOne({ _id: { $eq: produitId } }).select('image');
     if (!produit) {
       return res.status(404).json({ success: false, message: "Produit introuvable." });
     }
@@ -60,11 +60,11 @@ const ajouterArticle = async (req, res) => {
       slug,
       extrait: extrait.trim(),
       contenu: contenu.trim(),
-      produit: produitId,
+      produit: produit._id,
       tags: parseTags(tags),
       publie: publie === 'true' || publie === true,
-      metaTitle,
-      metaDescription,
+      metaTitle: typeof metaTitle === 'string' ? metaTitle.trim() : undefined,
+      metaDescription: typeof metaDescription === 'string' ? metaDescription.trim() : undefined,
     });
 
     await article.save();
@@ -100,7 +100,10 @@ const listerArticlesAdmin = async (req, res) => {
 const getArticleParSlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const article = await articleModel.findOne({ slug, publie: true }).populate('produit', 'nom slug image');
+    if (typeof slug !== 'string') {
+      return res.status(400).json({ success: false, message: "Slug invalide." });
+    }
+    const article = await articleModel.findOne({ slug: { $eq: slug }, publie: true }).populate('produit', 'nom slug image');
     if (!article) {
       return res.status(404).json({ success: false, message: "Article introuvable." });
     }
@@ -117,6 +120,11 @@ const modifierArticle = async (req, res) => {
     const { titre, extrait, contenu, tags, publie, metaTitle, metaDescription, produitId } = req.body;
     const imageFile = req.file;
 
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      cleanLocalFile(imageFile);
+      return res.status(400).json({ success: false, message: "Identifiant d'article invalide." });
+    }
+
     const article = await articleModel.findById(id);
     if (!article) {
       cleanLocalFile(imageFile);
@@ -125,32 +133,36 @@ const modifierArticle = async (req, res) => {
 
     const updateData = {};
     if (produitId !== undefined) {
-      if (!mongoose.isValidObjectId(produitId)) {
+      if (typeof produitId !== 'string' || !mongoose.isValidObjectId(produitId)) {
         return res.status(400).json({ success: false, message: "Produit sélectionné invalide." });
       }
-      const produit = await produitModel.findById(produitId).select('image');
+      const produit = await produitModel.findOne({ _id: { $eq: produitId } }).select('image');
       if (!produit) {
         return res.status(404).json({ success: false, message: "Produit introuvable." });
       }
       if (!produit.image?.[0]?.url) {
         return res.status(400).json({ success: false, message: "Le produit sélectionné ne possède pas d'image." });
       }
-      updateData.produit = produitId;
+      updateData.produit = produit._id;
     }
-    if (titre && titre.trim() !== article.titre) {
+    if (typeof titre === 'string' && titre.trim() && titre.trim() !== article.titre) {
       updateData.titre = titre.trim();
       updateData.slug = await generateUniqueSlug(articleModel, titre, id);
     }
-    if (extrait) updateData.extrait = extrait.trim();
-    if (contenu) updateData.contenu = contenu.trim();
+    if (typeof extrait === 'string' && extrait.trim()) updateData.extrait = extrait.trim();
+    if (typeof contenu === 'string' && contenu.trim()) updateData.contenu = contenu.trim();
     if (tags !== undefined) updateData.tags = parseTags(tags);
     if (publie !== undefined) updateData.publie = (publie === 'true' || publie === true);
-    if (metaTitle !== undefined) updateData.metaTitle = metaTitle;
-    if (metaDescription !== undefined) updateData.metaDescription = metaDescription;
+    if (typeof metaTitle === 'string') updateData.metaTitle = metaTitle.trim();
+    if (typeof metaDescription === 'string') updateData.metaDescription = metaDescription.trim();
 
     cleanLocalFile(imageFile);
 
-    const articleModifie = await articleModel.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate('produit', 'nom slug image');
+    const articleModifie = await articleModel.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).populate('produit', 'nom slug image');
 
     return res.status(200).json({ success: true, message: "Article mis à jour avec succès !", article: articleModifie });
   } catch (error) {
@@ -164,6 +176,9 @@ const modifierArticle = async (req, res) => {
 const supprimerArticle = async (req, res) => {
   try {
     const { id } = req.params;
+    if (typeof id !== 'string' || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Identifiant d'article invalide." });
+    }
     const article = await articleModel.findById(id);
     if (!article) {
       return res.status(404).json({ success: false, message: "Article introuvable." });
