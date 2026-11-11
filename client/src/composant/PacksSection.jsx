@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from './Titre';
 import PackCard from '../composant/PackCard';
@@ -32,7 +32,6 @@ export default function PacksSection() {
         <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-900/5 px-3.5 py-1 text-xs font-medium tracking-wider text-amber-900 border border-amber-900/10">
-              <Sparkles size={13} className="text-amber-700" />
               <span>Offres Exclusives</span>
             </div>
             

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
-import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import logo from '../assets/logo.png';
 
@@ -348,7 +348,7 @@ const Login = () => {
                 </div>
 
                 <p className="text-[11px] text-stone-400 italic leading-relaxed">
-                  ✨ Aucun mot de passe requis. Votre adresse sert exclusivement à vous identifier et à vous faire profiter de nos sélections privées.
+                  Aucun mot de passe requis. Votre adresse sert exclusivement à vous identifier et à vous faire profiter de nos sélections privées.
                 </p>
 
                 <button 

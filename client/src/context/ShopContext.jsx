@@ -12,7 +12,8 @@ const ShopContextProvider = (props) => {
 
   // Valeurs de repli si /api/config est injoignable — la vraie source de vérité est le backend
   // (config/siteConfig.js), pour ne plus dupliquer ces constantes dans chaque composant.
-  const [delivery_free, setDeliveryFree] = useState(500);
+  const [delivery_free, setDeliveryFree] = useState(1000);
+  const [seuilLivraisonGratuite, setSeuilLivraisonGratuite] = useState(25000);
   const [whatsappNum, setWhatsappNum] = useState('22872656485');
 
   const [produits, setProduits] = useState(produitsMock);
@@ -188,7 +189,8 @@ const ShopContextProvider = (props) => {
     try {
       const response = await axios.get(`${backendUrl}/api/config`);
       if (response.data.success && response.data.config) {
-        const { fraisLivraison, whatsappNum: numeroServeur } = response.data.config;
+        const { fraisLivraison, seuilLivraisonGratuite: seuilServeur, whatsappNum: numeroServeur } = response.data.config;
+        if (typeof seuilServeur === 'number') setSeuilLivraisonGratuite(seuilServeur);
         if (typeof fraisLivraison === 'number') setDeliveryFree(fraisLivraison);
         if (numeroServeur) setWhatsappNum(numeroServeur);
       }
@@ -550,6 +552,13 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
   };
 
   // Vider le panier (produits + packs)
+  const calculerFraisLivraison = (sousTotal) => {
+    const montant = Number(sousTotal) || 0;
+    if (montant <= 0) return 0;
+    if (montant >= seuilLivraisonGratuite) return 0;
+    return Number(delivery_free) || 1000;
+  };
+
   const viderPanier = () => {
     setPanierProduits({});
     localStorage.removeItem('panierProduits');
@@ -594,7 +603,9 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     categories,
     packs,
     monnaie,
-    delivery_free, 
+    delivery_free,
+    seuilLivraisonGratuite,
+    calculerFraisLivraison,
     recherche, 
     setRecherche, 
     montreRecherche, 

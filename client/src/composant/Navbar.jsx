@@ -50,10 +50,10 @@ export default function Navbar() {
                 100% { transform: translateX(-50%); }
               }
             `}</style>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 150 000 FCFA D'ACHAT • </span>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 150 000 FCFA D'ACHAT • </span>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 150 000 FCFA D'ACHAT • </span>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 150 000 FCFA D'ACHAT • </span>
+            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
+            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
+            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
+            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
           </div>
         </div>
 

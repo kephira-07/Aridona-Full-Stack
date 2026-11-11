@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { 
   MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, 
-  CheckCircle2, Award, HeartHandshake, Loader2, Sparkles, Gem, 
+  CheckCircle2, Award, HeartHandshake, Loader2, Gem, 
   Truck, RefreshCw, ChevronDown, HelpCircle, Compass
 } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
@@ -139,7 +139,7 @@ export default function APropos() {
                 <p className="text-[11px] text-stone-500 leading-relaxed">Des pièces pensées pour être empilées et associées au gré de vos envies.</p>
               </div>
               <div className="p-6 rounded-2xl bg-amber-950 text-stone-100 space-y-2">
-                <Sparkles className="text-amber-400" size={24} />
+                <Award className="text-amber-400" size={24} />
                 <h4 className="font-serif text-base font-semibold text-amber-50">Finition Or Fin</h4>
                 <p className="text-[11px] text-amber-200/80 leading-relaxed">Plaquage PVD haute résistance pour un éclat miroir chaleureux.</p>
               </div>

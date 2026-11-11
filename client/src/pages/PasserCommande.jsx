@@ -17,6 +17,8 @@ const PasserCommande = () => {
     produits = [],
     getPanierMontant,
     delivery_free = 0,
+    seuilLivraisonGratuite = 25000,
+    calculerFraisLivraison,
     backendUrl,
     token,
     viderPanier,
@@ -129,7 +131,9 @@ const PasserCommande = () => {
       }
 
       const sousTotal = typeof getPanierMontant === 'function' ? Number(getPanierMontant()) : 0;
-      const fraisLivraison = sousTotal === 0 ? 0 : (Number(delivery_free) || 0);
+      const fraisLivraison = typeof calculerFraisLivraison === 'function'
+        ? calculerFraisLivraison(sousTotal)
+        : (sousTotal >= (seuilLivraisonGratuite || 25000) ? 0 : (sousTotal === 0 ? 0 : (Number(delivery_free) || 1000)));
       const totalFinal = sousTotal + fraisLivraison;
 
       const nameParts = formData.fullName.trim().split(' ');
@@ -183,8 +187,12 @@ const PasserCommande = () => {
           message += `${index + 1}. *${item.nom}* (Taille: ${tailleFormatee}) x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString()} ${monnaie}\n`;
         });
 
+        const livraisonTexte = fraisLivraison === 0
+          ? `Offerte dès ${(seuilLivraisonGratuite || 25000).toLocaleString()} ${monnaie} 🎉`
+          : `${fraisLivraison.toLocaleString()} ${monnaie}`;
+
         message += `\n💰 *Sous-total :* ${sousTotal.toLocaleString()} ${monnaie}`;
-        message += `\n📦 *Frais de livraison :* ${fraisLivraison.toLocaleString()} ${monnaie}`;
+        message += `\n📦 *Frais de livraison :* ${livraisonTexte}`;
         message += `\n⭐ *TOTAL À PAYER : ${totalFinal.toLocaleString()} ${monnaie}*`;
 
         const encodedMessage = encodeURIComponent(message);

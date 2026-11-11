@@ -4,7 +4,7 @@ import produitModel from '../models/produitModel.js';
 import packModel from '../models/packModel.js';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { FRAIS_LIVRAISON } from '../config/siteConfig.js';
+import { FRAIS_LIVRAISON, SEUIL_LIVRAISON_GRATUITE, calculerFraisLivraison } from '../config/siteConfig.js';
 
 // 1. Placer une commande (Authentifié OU Invité)
 const placeOrder = async (req, res) => {
@@ -183,7 +183,7 @@ const placeOrder = async (req, res) => {
             throw error;
         }
 
-        const fraisLivraison = calculatedAmount > 0 ? FRAIS_LIVRAISON : 0;
+        const fraisLivraison = calculerFraisLivraison(calculatedAmount);
         const montantTotal = calculatedAmount + fraisLivraison;
 
         const orderData = {
