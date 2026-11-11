@@ -67,10 +67,10 @@ const googleLogin = async (req, res) => {
   }
 };
 
-// 2. Inscription par formulaire (Nom + Email, mot de passe facultatif)
+// 2. Inscription / Capture Email par formulaire (sans aucun mot de passe)
 const registerutilisateur = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ success: false, message: "Le nom et l'adresse email sont obligatoires." });
@@ -83,7 +83,10 @@ const registerutilisateur = async (req, res) => {
 
     let user = await utilisateurModel.findOne({ email: cleanEmail });
     if (user) {
-      // Si l'utilisateur existe déjà, on génère simplement sa session
+      if (name.trim() && user.name !== name.trim()) {
+        user.name = name.trim();
+        await user.save();
+      }
       const token = createToken(user._id, user.role || 'client', user.email);
       return res.status(200).json({ 
         success: true, 
@@ -93,23 +96,17 @@ const registerutilisateur = async (req, res) => {
       });
     }
 
-    let hashedPassword = '';
-    if (password && password.trim().length >= 4) {
-      const salt = await bcrypt.genSalt(10);
-      hashedPassword = await bcrypt.hash(password, salt);
-    }
-
     user = await utilisateurModel.create({
       name: name.trim(),
       email: cleanEmail,
-      password: hashedPassword,
+      password: '',
       role: 'client'
     });
 
     const token = createToken(user._id, 'client', user.email);
     return res.status(201).json({ 
       success: true, 
-      message: "Bienvenue chez Aridona !", 
+      message: "Bienvenue chez Aridona ! Votre adresse est enregistrée.", 
       token, 
       user: { name: user.name, email: user.email } 
     });
@@ -119,31 +116,29 @@ const registerutilisateur = async (req, res) => {
   }
 };
 
-// 3. Connexion classique (Email + mot de passe ou email seul si sans mot de passe)
+// 3. Connexion instantanée par Email (sans aucun mot de passe)
 const loginutilisateur = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ success: false, message: "Veuillez fournir votre adresse email." });
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const user = await utilisateurModel.findOne({ email: cleanEmail });
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: "Aucun compte trouvé avec cette adresse email. Veuillez vous inscrire." });
+    if (!validator.isEmail(cleanEmail)) {
+      return res.status(400).json({ success: false, message: "Format d'adresse email invalide." });
     }
 
-    // Si le compte a un mot de passe enregistré
-    if (user.password && user.password.startsWith('$2')) {
-      if (!password) {
-        return res.status(400).json({ success: false, message: "Ce compte requiert votre mot de passe." });
-      }
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({ success: false, message: "Mot de passe incorrect." });
-      }
+    let user = await utilisateurModel.findOne({ email: cleanEmail });
+
+    if (!user) {
+      user = await utilisateurModel.create({
+        name: cleanEmail.split('@')[0],
+        email: cleanEmail,
+        password: '',
+        role: 'client'
+      });
     }
 
     const token = createToken(user._id, user.role || 'client', user.email);

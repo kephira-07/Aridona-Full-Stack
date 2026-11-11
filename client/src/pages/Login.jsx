@@ -4,19 +4,17 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
-import { LogOut, MapPin, Phone, Mail, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import logo from '../assets/logo.png';
 
 const Login = () => {
-  const [etatactuel, setEtatactuel] = useState('Inscription'); // 'Inscription' ou 'Connexion'
   const [loading, setLoading] = useState(false);
 
   const { token, setToken, backendUrl } = useContext(ShopContext);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
 
   const [profil, setProfil] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -83,7 +81,6 @@ const Login = () => {
     setProfil(null);
     setFormProfil({ name: '', telephone: '', adresse: '', ville: 'Lomé' });
     localStorage.removeItem('token');
-    setEtatactuel('Inscription'); 
     toast.info("Vous êtes déconnecté(e)", { theme: "dark" });
   };
 
@@ -112,39 +109,24 @@ const Login = () => {
     onError: () => toast.error("La connexion Google a échoué.", { theme: "dark" }),
   });
 
-  // ================= SOUMISSION PAR EMAIL =================
+  // ================= SOUMISSION PAR EMAIL (SANS MOT DE PASSE) =================
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
 
-      if (etatactuel === 'Inscription') {
-        const response = await axios.post(`${backendUrl}/api/utilisateur/register`, { 
-          name, 
-          email, 
-          password 
-        });
-        if (response.data.success) {
-          setToken(response.data.token);
-          localStorage.setItem('token', response.data.token);
-          toast.success("Bienvenue chez Aridona ! Votre adresse est enregistrée.", { theme: "dark" });
-        } else {
-          toast.error(response.data.message, { theme: "dark" });
-        }
-      } 
-      else if (etatactuel === 'Connexion') {
-        const response = await axios.post(`${backendUrl}/api/utilisateur/login`, { 
-          email, 
-          password 
-        });
-        if (response.data.success) {
-          setToken(response.data.token);
-          localStorage.setItem('token', response.data.token);
-          toast.success("Heureux de vous revoir !", { theme: "dark" });
-        } else {
-          toast.error(response.data.message, { theme: "dark" });
-        }
-      } 
+      const response = await axios.post(`${backendUrl}/api/utilisateur/register`, { 
+        name: name.trim() || email.split('@')[0], 
+        email: email.trim() 
+      });
+
+      if (response.data.success) {
+        setToken(response.data.token);
+        localStorage.setItem('token', response.data.token);
+        toast.success(response.data.message || "Bienvenue chez Aridona !", { theme: "dark" });
+      } else {
+        toast.error(response.data.message, { theme: "dark" });
+      }
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Une erreur réseau est survenue.", { theme: "dark" });
@@ -188,17 +170,17 @@ const Login = () => {
               </p>
               <p className="flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-amber-400 shrink-0" />
-                Retrouvez vos pièces favorites et vos commandes.
+                Retrouvez vos pièces favorites et vos réservations.
               </p>
               <p className="flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-amber-400 shrink-0" />
-                Aucun mot de passe compliqué nécessaire.
+                Aucun mot de passe requis : simple et direct.
               </p>
             </div>
           </div>
         </div>
 
-        {/* PANNEAU DE DROITE : ESPACE CLIENT / INSCRIPTION */}
+        {/* PANNEAU DE DROITE : ESPACE CLIENT / IDENTIFICATION */}
         <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-12 flex flex-col justify-center bg-[#FAF9F6] lg:bg-white relative">
           
           {token && profil ? (
@@ -298,18 +280,16 @@ const Login = () => {
               </div>
             </div>
           ) : (
-            /* FORMULAIRE REJOINDRE LE CLUB OU CONNEXION GOOGLE */
+            /* FORMULAIRE REJOINDRE LE CLUB (SANS MOT DE PASSE) */
             <div className="animate-in fade-in duration-500 space-y-7">
               
               <div className="space-y-2">
                 <span className="font-caveat text-2xl text-amber-800 block">Rejoindre la Maison</span>
                 <h1 className="font-serif text-3xl sm:text-4xl text-stone-900 tracking-wide font-alice">
-                  {etatactuel === 'Inscription' ? 'Rejoindre le Club' : 'Se Connecter'}
+                  Rejoindre le Club
                 </h1>
                 <p className="text-xs text-stone-500 font-dmsans leading-relaxed">
-                  {etatactuel === 'Inscription'
-                    ? 'Inscrivez-vous en 1 clic pour recevoir nos nouveautés exclusives et réserver directement sur WhatsApp.'
-                    : 'Connectez-vous avec votre compte Google ou votre adresse email.'}
+                  Enregistrez votre adresse en 1 clic pour être informée de nos nouvelles collections et offres exclusives.
                 </p>
               </div>
 
@@ -332,32 +312,30 @@ const Login = () => {
 
                 <div className="flex items-center gap-3 pt-2">
                   <div className="flex-1 border-t border-stone-200"></div>
-                  <span className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold">ou avec votre email</span>
+                  <span className="text-[10px] text-stone-400 uppercase tracking-widest font-semibold">ou en écrivant</span>
                   <div className="flex-1 border-t border-stone-200"></div>
                 </div>
               </div>
 
-              {/* FORMULAIRE MANUEL */}
-              <form onSubmit={onSubmitHandler} className="space-y-3.5">
-                {etatactuel === 'Inscription' && (
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-600 ml-1">
-                      Nom complet *
-                    </label>
-                    <input 
-                      type="text" 
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-white lg:bg-stone-50/50 border border-stone-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-stone-900 focus:bg-white transition-all text-stone-800"
-                      placeholder="Ex: Amina Mensah"
-                      required
-                    />
-                  </div>
-                )}
+              {/* FORMULAIRE NOM + EMAIL (AUCUN MOT DE PASSE) */}
+              <form onSubmit={onSubmitHandler} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-600 ml-1">
+                    Votre Nom complet *
+                  </label>
+                  <input 
+                    type="text" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-white lg:bg-stone-50/50 border border-stone-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-stone-900 focus:bg-white transition-all text-stone-800"
+                    placeholder="Ex: Amina Mensah"
+                    required
+                  />
+                </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-600 ml-1">
-                    Adresse Email *
+                    Votre Adresse Email *
                   </label>
                   <input 
                     type="email" 
@@ -369,22 +347,8 @@ const Login = () => {
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-600 ml-1">
-                    Mot de passe {etatactuel === 'Inscription' ? '(optionnel)' : '*'}
-                  </label>
-                  <input 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-white lg:bg-stone-50/50 border border-stone-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-stone-900 focus:bg-white transition-all text-stone-800"
-                    placeholder="••••••••"
-                    required={etatactuel === 'Connexion'}
-                  />
-                </div>
-
-                <p className="text-[11px] text-stone-400 italic leading-relaxed pt-1">
-                  🔒 En vous inscrivant, vous acceptez de recevoir les nouveautés et offres exclusives Aridona Bijoux. Aucune coordonnée bancaire n'est requise.
+                <p className="text-[11px] text-stone-400 italic leading-relaxed">
+                  ✨ Aucun mot de passe requis. Votre adresse sert exclusivement à vous identifier et à vous faire profiter de nos sélections privées.
                 </p>
 
                 <button 
@@ -392,37 +356,10 @@ const Login = () => {
                   type="submit"
                   className="w-full bg-[#1C1A17] hover:bg-stone-800 text-stone-100 py-3.5 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-md active:scale-[0.99] disabled:bg-stone-300 cursor-pointer"
                 >
-                  <span>{loading ? 'Traitement...' : etatactuel === 'Inscription' ? 'Rejoindre le Club' : 'Se Connecter'}</span>
+                  <span>{loading ? 'Enregistrement...' : 'Rejoindre le Club'}</span>
                   {!loading && <ArrowRight size={14} className="text-amber-400" />}
                 </button>
               </form>
-
-              {/* Basculer entre Inscription et Connexion */}
-              <div className="text-center pt-2">
-                {etatactuel === 'Connexion' ? (
-                  <p className="text-xs text-stone-500">
-                    Pas encore de compte ?{' '}
-                    <button 
-                      type="button"
-                      onClick={() => setEtatactuel('Inscription')}
-                      className="text-amber-900 font-semibold underline ml-1 cursor-pointer"
-                    >
-                      Créer un compte
-                    </button>
-                  </p>
-                ) : (
-                  <p className="text-xs text-stone-500">
-                    Déjà membre ?{' '}
-                    <button 
-                      type="button"
-                      onClick={() => setEtatactuel('Connexion')}
-                      className="text-amber-900 font-semibold underline ml-1 cursor-pointer"
-                    >
-                      Se connecter
-                    </button>
-                  </p>
-                )}
-              </div>
 
             </div>
           )}
