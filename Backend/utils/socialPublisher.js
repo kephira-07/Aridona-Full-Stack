@@ -130,6 +130,12 @@ let cachedIgAccountId = null;
 const resolveInstagramAccountId = async (accessToken, configuredId, graphHost) => {
   if (cachedIgAccountId) return cachedIgAccountId;
 
+  // Les IDs de comptes Instagram Business commencent par "1784" : s'il est fourni, on l'utilise directement
+  if (configuredId && configuredId.startsWith('1784')) {
+    cachedIgAccountId = configuredId;
+    return cachedIgAccountId;
+  }
+
   if (accessToken.startsWith('IG')) {
     if (configuredId) {
       cachedIgAccountId = configuredId;
@@ -146,7 +152,30 @@ const resolveInstagramAccountId = async (accessToken, configuredId, graphHost) =
     }
   }
 
-  // Jeton Meta Graph (EA...) : vérifier /me/accounts pour trouver le compte Instagram Business lié
+  // 1. Jeton Meta Graph SUAT / Connexion unifiée (EA...) : extraire l'ID Instagram directement depuis debug_token (granular_scopes.target_ids)
+  try {
+    const debugRes = await axios.get(`${graphHost}/${GRAPH_API_VERSION}/debug_token`, {
+      params: {
+        input_token: accessToken,
+        access_token: accessToken,
+      },
+    });
+    const scopes = debugRes.data?.data?.granular_scopes || [];
+    for (const s of scopes) {
+      if (
+        (s.scope === 'instagram_content_publish' || s.scope === 'instagram_basic') &&
+        Array.isArray(s.target_ids) &&
+        s.target_ids.length > 0
+      ) {
+        cachedIgAccountId = String(s.target_ids[0]);
+        return cachedIgAccountId;
+      }
+    }
+  } catch {
+    // Continuer vers les autres méthodes de résolution
+  }
+
+  // 2. Vérifier /me/accounts pour trouver le compte Instagram Business lié à une Page Facebook
   try {
     const accountsRes = await axios.get(`${graphHost}/${GRAPH_API_VERSION}/me/accounts`, {
       params: {
