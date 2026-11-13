@@ -6,7 +6,7 @@ import { GoogleGenAI } from '@google/genai';
 import { cleanLocalFiles } from '../utils/cleanLocalFile.js';
 import { publishProductToSocials } from '../utils/socialPublisher.js';
 
-// Initialisation du SDK Google GenAI (supporte les clés Google AI Studio "AIza..." et Vertex AI Express "AQ....")
+// Initialisation du SDK Google GenAI
 const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/g, '').trim() : '');
 
 const getGenAIClient = () => {
@@ -14,11 +14,7 @@ const getGenAIClient = () => {
   if (!apiKey) {
     throw new Error("La variable GEMINI_API_KEY est manquante dans la configuration du serveur (.env / Render).");
   }
-  const isVertexExpressKey = apiKey.startsWith('AQ.');
-  return new GoogleGenAI({
-    apiKey,
-    ...(isVertexExpressKey ? { vertexai: true } : {}),
-  });
+  return new GoogleGenAI({ apiKey });
 };
 
 // Contrôleur pour l'analyse IA (Gemini)
@@ -46,7 +42,12 @@ const analyzeProductImage = async (req, res) => {
       '- "alt": Un texte alternatif SEO court décrivant visuellement le bijou sur la photo.'
     ].join('\n');
 
-    const candidateModels = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    const candidateModels = [
+      'gemini-3.5-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-3-flash-preview',
+      'gemini-flash-latest',
+    ];
     let response = null;
     let lastError = null;
 
@@ -75,7 +76,7 @@ const analyzeProductImage = async (req, res) => {
         if (response) break;
       } catch (modelErr) {
         lastError = modelErr;
-        console.warn(`Échec modèle ${modelName}:`, modelErr.message);
+        console.warn(`Tentative avec ${modelName} échouée :`, modelErr.message);
       }
     }
 
