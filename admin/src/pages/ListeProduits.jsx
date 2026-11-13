@@ -103,6 +103,8 @@ const ListeProduits = ({ token }) => {
     const label = platform === 'x' ? 'X (Twitter)' : 'Instagram';
     if (!window.confirm(`Publier « ${item.nom} » maintenant sur ${label} ?`)) return;
 
+    const authToken = token || localStorage.getItem('token');
+
     try {
       setSharingState({ id: item._id, platform });
       const response = await axios.post(
@@ -111,7 +113,7 @@ const ListeProduits = ({ token }) => {
           instagram: platform === 'instagram',
           x: platform === 'x',
         },
-        { headers: { token, Authorization: `Bearer ${token}` } }
+        { headers: { token: authToken, Authorization: `Bearer ${authToken}` } }
       );
 
       const result = response.data?.social?.[platform];
@@ -121,7 +123,11 @@ const ListeProduits = ({ token }) => {
         toast.error(result?.message || `Impossible de publier sur ${label}.`);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || `Erreur lors de la publication sur ${label}.`);
+      if (error.response?.status === 401) {
+        toast.error("Votre session a expiré. Veuillez cliquer sur 'Quitter' et vous reconnecter.");
+      } else {
+        toast.error(error.response?.data?.message || `Erreur lors de la publication sur ${label}.`);
+      }
     } finally {
       setSharingState(null);
     }
