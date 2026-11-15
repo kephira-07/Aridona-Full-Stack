@@ -29,7 +29,12 @@ const readEnvVar = (key, fallback) => {
 };
 
 const SITE_URL = 'https://aridona.store';
-const BACKEND_URL = process.env.VITE_BACKEND_URL || readEnvVar('VITE_BACKEND_URL', SITE_URL);
+const envBackend = process.env.VITE_BACKEND_URL || readEnvVar('VITE_BACKEND_URL', '');
+// Si l'URL dans .env est localhost ou vide, on interroge l'API de production officielle sur Render
+// afin que sitemap.xml contienne toujours les vrais produits de la base de données.
+const BACKEND_URL = (envBackend && !envBackend.includes('localhost') && !envBackend.includes('127.0.0.1'))
+  ? envBackend
+  : 'https://aridona-full-stack.onrender.com';
 
 const STATIC_PAGES = [
   { loc: '/', changefreq: 'daily', priority: '1.0' },

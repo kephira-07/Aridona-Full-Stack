@@ -37,6 +37,15 @@ const CarteAvis = ({ item }) => (
   </div>
 );
 
+// Anciens identifiants et slugs de faux produits de test (mocks) à désindexer définitivement
+const ANCIENS_SLUGS_FAUX_PRODUITS = new Set([
+  'p001', 'p002', 'p003', 'p004', 'p005', 'p006', 'p007', 'p008', 'p009', 'p010',
+  'collier-etoile-argent', 'boucles-doreilles-perle', 'chaine-a-lunettes-doree',
+  'bracelet-tresse-cuir', 'bague-saphir-royal', 'ensemble-collier-boucles-cristal',
+  'collier-quartz-rose', 'boucles-doreilles-creoles-dorees', 'bracelet-pierre-volcanique',
+  'ensemble-bague-collier-rubis'
+]);
+
 const PageProduit = () => {
 const { slug } = useParams();
   const { produits, categories, monnaie, ajouterPanier, whatsappNum, backendUrl } = useContext(ShopContext);
@@ -96,6 +105,12 @@ const { slug } = useParams();
     let active = true;
 
     const fetchProduitData = async () => {
+      // Si l'URL demandée correspond à un ancien mock de test, on force immédiatement l'état 404 + noindex
+      if (ANCIENS_SLUGS_FAUX_PRODUITS.has(String(slug).toLowerCase()) || String(slug).startsWith('p00')) {
+        setNotFound(true);
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       setLoadError('');
       setNotFound(false);
@@ -311,7 +326,8 @@ const { slug } = useParams();
       <div className="min-h-[50vh] flex flex-col items-center justify-center text-center px-4">
         <Helmet>
           <title>{notFound ? 'Produit introuvable' : 'Produit indisponible'} | Aridona Bijoux</title>
-          <meta name="robots" content="noindex, follow" />
+          <meta name="robots" content="noindex, nofollow" />
+          <meta name="googlebot" content="noindex, nofollow" />
         </Helmet>
         <h1 className="text-3xl font-ebgaramond text-stone-900">{notFound ? 'Produit introuvable' : 'Produit indisponible'}</h1>
         <p className="mt-3 text-stone-500">{loadError || 'Cette création n’existe plus ou a été déplacée.'}</p>
