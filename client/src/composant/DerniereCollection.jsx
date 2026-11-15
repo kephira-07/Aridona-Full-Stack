@@ -2,15 +2,16 @@ import { useContext, useState, useEffect } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from './Titre';
 import ProduitItem from './ProduitItem';
+import ProduitSkeleton from './ProduitSkeleton';
 
 const DerniereCollection = () => {
-  const { produits } = useContext(ShopContext);
+  const { produits, isProductsLoading } = useContext(ShopContext);
   const [dernierProduit, setDernierProduit] = useState([]);
 
   useEffect(() => {
     if (produits && produits.length > 0) {
       // Inversion pour afficher les nouveautés en premier et sélection des 8 derniers articles
-      const nouveautes = [...produits].reverse();
+      const nouveautes = [...produits].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
       setDernierProduit(nouveautes.slice(0, 8)); 
     }
   }, [produits]); 
@@ -27,19 +28,22 @@ const DerniereCollection = () => {
 
       {/* Grille de produits responsive (2 colonnes sur mobile, 3 sur tablette, 4 sur desktop) */}
       <div className='max-w-7xl mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 gap-y-6'>
-        {
-          dernierProduit.map((item, index) => (
-            <ProduitItem 
-              key={item._id || index} 
-              id={item._id} 
-              slug={item.slug}    
-              image={item.image}
-              nom={item.nom}
-              prix={item.prix}
-              stock={item.stock}
-              enStock={item.enStock}
-            />
-          ))
+        {isProductsLoading && dernierProduit.length === 0
+          ? Array.from({ length: 8 }).map((_, idx) => (
+              <ProduitSkeleton key={'dernier-skel-' + idx} />
+            ))
+          : dernierProduit.map((item, index) => (
+              <ProduitItem 
+                key={item._id || index} 
+                id={item._id} 
+                slug={item.slug}    
+                image={item.image}
+                nom={item.nom}
+                prix={item.prix}
+                stock={item.stock}
+                enStock={item.enStock}
+              />
+            ))
         }
       </div>
     </section>

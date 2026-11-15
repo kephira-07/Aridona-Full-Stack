@@ -4,7 +4,7 @@ import Titre from './Titre';
 import { default as ProduitItem } from './ProduitItem';
 
 const MeilleurVente = () => {
-  const { produits } = useContext(ShopContext);
+  const { produits, isProductsLoading } = useContext(ShopContext);
   const [meilleurVente, setMeilleurVente] = useState([]);
 
   // Filtre les pièces coups de cœur à partir des produits déjà chargés dans le contexte

@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { SlidersHorizontal, X, ArrowUpDown } from "lucide-react";
 import Titre from '../composant/Titre';
 import ProduitItem from "../composant/ProduitItem";
+import ProduitSkeleton from "../composant/ProduitSkeleton";
 import Categorybar from "../composant/Categorybar"; 
 import axios from "axios";
 import { backendUrl } from "../config";
@@ -57,7 +58,7 @@ const SEO_TEXTS = {
 const LIVRAISON_INFO = "Livraison rapide, à Lomé et partout au Togo.";
 
 const Collection = () => {
-    const { produits, recherche } = useContext(ShopContext);
+    const { produits, recherche, isProductsLoading } = useContext(ShopContext);
     const location = useLocation();
     const navigate = useNavigate();
     const { categorySlug } = useParams();
@@ -318,7 +319,7 @@ const Collection = () => {
                             </h4>
                             <div className="grid grid-cols-1 gap-2">
                                 {[
-                                    { id: 'reveler', label: 'Pertinence' },
+                                    { id: 'reveler', label: 'Dernières nouveautés (Par défaut)' },
                                     { id: 'prix-asc', label: 'Prix : du - cher au + cher' },
                                     { id: 'prix-desc', label: 'Prix : du + cher au - cher' },
                                 ].map((option) => (

@@ -140,7 +140,10 @@ const listproduits = async (req, res) => {
       filtre.categorie = { $eq: categorieId };
     }
 
-    const produits = await produitModel.find(filtre).populate("categorie", "nom name");
+    const produits = await produitModel
+      .find(filtre)
+      .populate("categorie", "nom name")
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({ success: true, produits });
   } catch (error) {

@@ -1,7 +1,6 @@
 import { createContext, useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios'; 
-import { produits as produitsMock } from '../assets/image';
 import backendUrl from '../config';
 
 export const ShopContext = createContext();
@@ -16,7 +15,25 @@ const ShopContextProvider = (props) => {
   const [seuilLivraisonGratuite, setSeuilLivraisonGratuite] = useState(25000);
   const [whatsappNum, setWhatsappNum] = useState('22872656485');
 
-  const [produits, setProduits] = useState(produitsMock);
+  // Chargement des vrais produits : initialisation depuis le cache de session s'il existe (affichage instantané),
+  // sinon tableau vide [] (aucun faux produit mock affiché).
+  const [produits, setProduits] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('aridona_produits_cache');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [isProductsLoading, setIsProductsLoading] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('aridona_produits_cache');
+      return !cached || JSON.parse(cached).length === 0;
+    } catch (e) {
+      return true;
+    }
+  });
   const [categories, setCategories] = useState([]);
   const [packs, setPacks] = useState([]);
   
@@ -115,12 +132,19 @@ const ShopContextProvider = (props) => {
       const response = await axios.get(`${backendUrl}/api/produit/list`);
       if (response.data.success) {
         const donneesServeur = response.data.produits || response.data.produit;
-        if (donneesServeur && donneesServeur.length > 0) {
+        if (donneesServeur && Array.isArray(donneesServeur)) {
           setProduits(donneesServeur);
+          try {
+            sessionStorage.setItem('aridona_produits_cache', JSON.stringify(donneesServeur));
+          } catch (storageErr) {
+            // Ignorer si stockage privé
+          }
         }
       }
     } catch (error) {
-      console.warn("Mode Secours Actif 🛡️ : Impossible de joindre l'API des produits.");
+      console.warn("Impossible de joindre l'API des produits :", error.message);
+    } finally {
+      setIsProductsLoading(false);
     }
   };
 
@@ -600,6 +624,7 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
 
   const value = {
     produits,
+    isProductsLoading,
     categories,
     packs,
     monnaie,
