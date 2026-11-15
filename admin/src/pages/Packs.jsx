@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, Package, Plus, X } from 'lucide-react';
+import { Pencil, Trash2, Package, Plus, X, Sparkles } from 'lucide-react';
 import { backendUrl } from '../config';
 import { toast } from 'react-toastify';
 
@@ -12,6 +12,7 @@ export default function Packs({ token }) {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const headers = { token, Authorization: `Bearer ${token}` };
   const load = async () => {
@@ -59,6 +60,39 @@ export default function Packs({ token }) {
     setForm({ nom: pack.nom, description: pack.description, prix: pack.prix, produits: pack.produits.map((item) => ({ produit: item.produit?._id || item.produit, quantite: item.quantite })) });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  
+  const generateWithAI = async () => {
+    if (form.produits.length < 2) {
+      toast.warning("Ajoutez au moins 2 bijoux ci-dessous pour que l'IA puisse composer l'offre.");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/packs/ai-generate`,
+        { produitIds: form.produits.map((item) => item.produit) },
+        { headers }
+      );
+      if (response.data.success && response.data.pack) {
+        const { nom, description, prixSuggere } = response.data.pack;
+        setForm((prev) => ({
+          ...prev,
+          nom: nom || prev.nom,
+          description: description || prev.description,
+          prix: prixSuggere !== undefined ? String(prixSuggere) : prev.prix,
+        }));
+        toast.success("✨ Pack composé avec succès par Groq !");
+      } else {
+        toast.error(response.data.message || "L'IA n'a pas pu composer le pack.");
+      }
+    } catch (err) {
+      console.error("Erreur IA pack:", err);
+      toast.error(err.response?.data?.message || "Erreur de communication avec Groq.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const remove = async (id) => {
     if (!window.confirm('Supprimer ce pack ?')) return;
     try { await axios.delete(`${backendUrl}/api/packs/${id}`, { headers }); toast.success('Pack supprimé.'); load(); } catch { toast.error('Suppression impossible.'); }
@@ -71,6 +105,17 @@ export default function Packs({ token }) {
         <form onSubmit={submit} className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs lg:col-span-1">
           <div className="mb-5 flex items-center justify-between border-b border-stone-100 pb-3"><h2 className="text-sm font-semibold uppercase tracking-wide">{editingId ? 'Modifier le pack' : 'Créer un pack'}</h2>{editingId && <button type="button" onClick={reset} aria-label="Annuler" className="text-stone-400"><X size={16} /></button>}</div>
           <div className="space-y-4">
+            {/* BOUTON GROQ IA */}
+            <button
+              type="button"
+              onClick={generateWithAI}
+              disabled={aiLoading || form.produits.length < 2}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 py-2.5 px-3 text-xs font-semibold uppercase tracking-wider text-white shadow-xs hover:from-amber-800 hover:to-amber-900 disabled:opacity-50 transition-all cursor-pointer"
+            >
+              <Sparkles size={14} className={aiLoading ? "animate-spin" : ""} />
+              <span>{aiLoading ? "Groq compose l'offre..." : "✨ Composer l'offre avec Groq"}</span>
+            </button>
+
             <input required value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} placeholder="Nom du pack" className="w-full rounded-xl border border-stone-200 bg-stone-50/40 p-3 text-xs" />
             <textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description de l'offre" rows="4" className="w-full resize-none rounded-xl border border-stone-200 bg-stone-50/40 p-3 text-xs" />
             <input required type="number" min="0" step="1" value={form.prix} onChange={(e) => setForm({ ...form, prix: e.target.value })} placeholder="Prix du pack en FCFA" className="w-full rounded-xl border border-stone-200 bg-stone-50/40 p-3 text-xs" />

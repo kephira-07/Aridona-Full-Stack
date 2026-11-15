@@ -17,6 +17,7 @@ export default function Articles({ token }) {
   const [articles, setArticles] = useState([]);
   const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const [titre, setTitre] = useState('');
   const [extrait, setExtrait] = useState('');
@@ -70,6 +71,39 @@ export default function Articles({ token }) {
     setIdEdition(null);
     setTitre(''); setExtrait(''); setContenu(''); setTagsInput('');
     setPublie(false); setMetaTitle(''); setMetaDescription(''); setProduitId('');
+  };
+
+  
+  const generateWithAI = async () => {
+    if (!produitId && !titre.trim()) {
+      toast.warning("Veuillez sélectionner un bijou lié ou saisir une idée dans le champ Titre.");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/article/ai-generate`,
+        { sujet: titre.trim(), produitId: produitId || undefined },
+        { headers: { token, Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.success && response.data.article) {
+        const art = response.data.article;
+        if (art.titre) setTitre(art.titre);
+        if (art.extrait) setExtrait(art.extrait);
+        if (art.contenu) setContenu(art.contenu);
+        if (Array.isArray(art.tags)) setTagsInput(art.tags.join(', '));
+        if (art.metaTitle) setMetaTitle(art.metaTitle);
+        if (art.metaDescription) setMetaDescription(art.metaDescription);
+        toast.success("✨ Article rédigé avec succès par Groq !");
+      } else {
+        toast.error(response.data.message || "L'IA n'a pas pu rédiger l'article.");
+      }
+    } catch (err) {
+      console.error("Erreur IA article:", err);
+      toast.error(err.response?.data?.message || "Erreur de communication avec Groq.");
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -182,6 +216,28 @@ export default function Articles({ token }) {
             <h2 className="text-sm font-semibold tracking-wide text-stone-900 uppercase">
               {idEdition ? "Modifier l'article" : "Nouvel article"}
             </h2>
+          </div>
+
+                    {/* BLOC GROQ IA */}
+          <div className="mb-5 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 rounded-xl p-3.5 shadow-2xs">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-semibold text-amber-900 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-700" /> Rédaction Assistée par Groq
+              </span>
+              <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">IA Rapide</span>
+            </div>
+            <p className="text-[11px] text-stone-600 mb-3 leading-relaxed">
+              Sélectionnez un bijou ci-dessous ou tapez une idée dans Titre, puis cliquez pour générer tout l'article SEO.
+            </p>
+            <button
+              type="button"
+              onClick={generateWithAI}
+              disabled={aiLoading}
+              className="w-full flex items-center justify-center gap-2 bg-amber-800 hover:bg-amber-900 text-white rounded-lg py-2.5 px-3 text-xs font-semibold uppercase tracking-wider shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Sparkles className={`w-3.5 h-3.5 ${aiLoading ? "animate-spin" : ""}`} />
+              <span>{aiLoading ? "Groq rédige l'article..." : "✨ Rédiger l'article avec Groq"}</span>
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

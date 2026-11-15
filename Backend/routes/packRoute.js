@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { listPacks, getPackBySlug, listPacksAdmin, createPack, updatePack, deletePack } from '../controller/packController.js';
+import { listPacks, getPackBySlug, listPacksAdmin, createPack, updatePack, deletePack, generatePackWithAI } from '../controller/packController.js';
 import auth from '../middleware/auth.js';
 
 const packRouter = express.Router();
@@ -16,6 +16,7 @@ const apiLimiter = rateLimit({
 packRouter.get('/', apiLimiter, listPacks);
 packRouter.get('/admin', apiLimiter, auth(['admin']), listPacksAdmin);
 packRouter.get('/:slug', apiLimiter, getPackBySlug);
+packRouter.post('/ai-generate', apiLimiter, auth(['admin']), generatePackWithAI);
 packRouter.post('/', apiLimiter, auth(['admin']), createPack);
 packRouter.put('/:id', apiLimiter, auth(['admin']), updatePack);
 packRouter.delete('/:id', apiLimiter, auth(['admin']), deletePack);

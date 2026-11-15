@@ -27,6 +27,7 @@ articleRouter.get('/single/:slug', apiLimiter, getArticleParSlug);
 
 // --- Routes Protégées Administrateur ---
 articleRouter.get('/admin', apiLimiter, auth(['admin']), listerArticlesAdmin);
+articleRouter.post('/ai-generate', apiLimiter, auth(['admin']), generateArticleWithAI);
 articleRouter.post('/add', apiLimiter, auth(['admin']), upload.single('image'), ajouterArticle);
 articleRouter.put('/update/:id', apiLimiter, auth(['admin']), upload.single('image'), modifierArticle);
 articleRouter.delete('/remove/:id', apiLimiter, auth(['admin']), supprimerArticle);

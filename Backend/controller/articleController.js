@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
 import generateUniqueSlug from '../utils/slug.js';
 import { cleanLocalFile } from '../utils/cleanLocalFile.js';
+import { genererArticleAvecGroq } from '../utils/groqClient.js';
 
 const getPublicIdFromUrl = (url) => {
   try {
@@ -197,3 +198,19 @@ const supprimerArticle = async (req, res) => {
 };
 
 export { ajouterArticle, listerArticles, listerArticlesAdmin, getArticleParSlug, modifierArticle, supprimerArticle };
+
+// Générer un article de blog complet avec Groq
+export const generateArticleWithAI = async (req, res) => {
+  try {
+    const { sujet, produitId } = req.body;
+    let produit = null;
+    if (produitId) {
+      produit = await produitModel.findById(produitId).select('nom description');
+    }
+    const articleGenere = await genererArticleAvecGroq({ sujet, produit });
+    return res.json({ success: true, article: articleGenere });
+  } catch (error) {
+    console.error("Erreur génération article Groq:", error);
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la génération de l'article par Groq." });
+  }
+};

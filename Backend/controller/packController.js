@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import packModel from '../models/packModel.js';
 import produitModel from '../models/produitModel.js';
 import generateUniqueSlug from '../utils/slug.js';
+import { genererPackAvecGroq } from '../utils/groqClient.js';
 
 const populatePack = (query) => query.populate({
   path: 'produits.produit',
@@ -101,5 +102,23 @@ export const deletePack = async (req, res) => {
   } catch (error) {
     console.error('Erreur suppression pack:', error);
     res.status(500).json({ success: false, message: 'Impossible de supprimer le pack.' });
+  }
+};
+
+export const generatePackWithAI = async (req, res) => {
+  try {
+    const { produitIds } = req.body;
+    if (!Array.isArray(produitIds) || produitIds.length < 2) {
+      return res.status(400).json({ success: false, message: "Sélectionnez au moins 2 bijoux pour composer le pack avec l'IA." });
+    }
+    const produits = await produitModel.find({ _id: { $in: produitIds } }).select('nom prix description');
+    if (!produits || produits.length < 2) {
+      return res.status(400).json({ success: false, message: "Impossible de récupérer les bijoux sélectionnés." });
+    }
+    const packGenere = await genererPackAvecGroq({ produits });
+    return res.json({ success: true, pack: packGenere });
+  } catch (error) {
+    console.error("Erreur génération pack Groq:", error);
+    return res.status(500).json({ success: false, message: error.message || "Erreur lors de la génération du pack par Groq." });
   }
 };
