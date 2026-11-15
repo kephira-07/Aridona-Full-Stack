@@ -6,7 +6,8 @@ import {
   listerArticlesAdmin,
   getArticleParSlug,
   modifierArticle,
-  supprimerArticle
+  supprimerArticle,
+  generateArticleWithAI
 } from '../controller/articleController.js';
 import upload from '../middleware/multer.js';
 import auth from '../middleware/auth.js';
