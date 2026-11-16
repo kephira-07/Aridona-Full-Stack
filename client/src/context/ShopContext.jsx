@@ -305,7 +305,6 @@ const ShopContextProvider = (props) => {
       panierData[produitId][tailleFinale] = (panierData[produitId][tailleFinale] || 0) + 1;
       return panierData;
     });
-    toast.success("Bijou ajouté au panier !");
     setPanierOuvert(true);
 
     // Synchronisation BDD si connecté
@@ -340,7 +339,6 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     });
     return panierData;
   });
-  toast.success("Tous vos favoris ont été ajoutés au panier !");
   setPanierOuvert(true);
 
   // 4. Synchroniser avec MongoDB si l'utilisateur est connecté
@@ -421,7 +419,6 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     }
 
     setPanierPacks((prev) => ({ ...prev, [pack._id]: (prev[pack._id] || 0) + 1 }));
-    toast.success("Pack ajouté au panier !");
     setPanierOuvert(true);
 
     if (token) {
@@ -468,7 +465,6 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
       delete reste[packId];
       return reste;
     });
-    toast.success("Pack supprimé du panier !");
 
     if (token) {
       try {
@@ -494,7 +490,6 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
       }
       return panierData;
     });
-    toast.success("Article supprimé du panier !");
 
     // Synchronisation BDD uniquement pour les utilisateurs connectés (un invité n'a pas de panier serveur)
     if (token) {

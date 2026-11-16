@@ -41,6 +41,18 @@
     <priority>0.2</priority>
   </url>
   <url>
+    <loc>https://aridona.store/produit/boucles-doreilles-coeur-entrelace-dore</loc>
+    <lastmod>2026-11-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://aridona.store/produit/bracelet-de-main-floral-dore-fleurette</loc>
+    <lastmod>2026-11-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://aridona.store/produit/boucles-doreilles-triples-anneaux-dores-aurelia</loc>
     <lastmod>2026-11-13</lastmod>
     <changefreq>weekly</changefreq>
@@ -72,7 +84,7 @@
   </url>
   <url>
     <loc>https://aridona.store/produit/bijou-doreille-manchette-envolee-de-papillons-strass</loc>
-    <lastmod>2026-07-31</lastmod>
+    <lastmod>2026-11-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -99,5 +111,35 @@
     <lastmod>2026-11-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://aridona.store/blog/bijoux-en-acier-316l-style-et-conseils-dentretien</loc>
+    <lastmod>2026-11-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://aridona.store/blog/bijoux-acier-inoxydable-guide-de-style-et-dentretien-2</loc>
+    <lastmod>2026-11-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://aridona.store/blog/bijoux-acier-inoxydable-guide-de-style-et-dentretien</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://aridona.store/pack/coffret-eclat-boheme-and-aura-doree</loc>
+    <lastmod>2026-11-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://aridona.store/pack/coffret-deesse-contemporaine</loc>
+    <lastmod>2026-11-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

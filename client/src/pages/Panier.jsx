@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
-import { Trash, ShoppingBag, ArrowRight, AlertCircle, Gift } from 'lucide-react';
+import { Trash, ShoppingBag, ArrowRight, AlertCircle, Gift, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
@@ -47,7 +47,6 @@ const Panier = () => {
 
     if (typeof modifierTaillePanier === 'function') {
       await modifierTaillePanier(itemId, oldSize, newSize);
-      toast.info("Taille mise à jour avec succès.", { theme: "dark", autoClose: 2000 });
     } else {
       console.error("modifierTaillePanier n'est pas définie dans ShopContext");
     }
@@ -101,8 +100,11 @@ const Panier = () => {
     <div className='max-w-7xl mx-auto pb-10 min-h-[70vh] px-4 sm:px-6 lg:px-8'>
       <BoutonRetour />
 
-      <div className='text-3xl mb-10 text-center sm:text-left font-light tracking-wide'>
+      <div className='text-3xl mb-8 text-center sm:text-left font-light tracking-wide'>
         <Titre text1='' text2='Votre Panier' />
+        <p className='text-xs sm:text-sm text-stone-500 mt-1 font-normal'>
+          Bienvenue dans votre sélection Aridona ! Vérifiez vos bijoux et leurs tailles avant de passer à la livraison.
+        </p>
       </div>
 
       {panierData.length === 0 && Object.keys(panierPacks).length === 0 ? (
@@ -181,7 +183,7 @@ const Panier = () => {
                                 : 'border-stone-200 text-stone-700 focus:border-stone-900'
                             }`}
                           >
-                            {estTailleManquante && <option value="Choisir">⚠️ Choisir une taille</option>}
+                            {estTailleManquante && <option value="Choisir">Choisir une taille</option>}
                             {taillesDisponibles.map((t, idx) => (
                               <option key={idx} value={t}>
                                 {t}
@@ -306,13 +308,16 @@ const Panier = () => {
 
           <div className='lg:col-span-1 bg-stone-50/50 p-6 sm:p-8 border border-stone-100 lg:sticky lg:top-28 shadow-sm'>
             <PanierTotal />
-            <div className='mt-8'>
+            <div className='mt-6 space-y-3'>
+              <p className='text-xs text-stone-600 bg-white border border-stone-200/80 rounded-xl p-3 leading-relaxed text-center'>
+                <ShieldCheck size={15} className="inline-block text-amber-800 mr-1.5 -mt-0.5" /><strong>Aucune carte bancaire requise.</strong> Vous réglerez à la réception de votre bijou ou par T-Money / Flooz.
+              </p>
               <button
                 type="button"
                 onClick={verifierTaillesEtProceder}
                 className='w-full bg-amber-900 text-white text-xs font-semibold tracking-widest uppercase py-4 hover:bg-amber-950 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group shadow-md cursor-pointer'
               >
-                Passer à la caisse
+                Continuer vers la livraison
                 <ArrowRight size={14} className='transform group-hover:translate-x-1 transition-transform' />
               </button>
             </div>

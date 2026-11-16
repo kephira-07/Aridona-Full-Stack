@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { X, Trash, ShoppingBag, ArrowRight } from 'lucide-react';
+import { X, Trash, ShoppingBag, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const SidebarPanier = () => {
   const {
@@ -62,7 +62,10 @@ const SidebarPanier = () => {
         <div className="flex items-center justify-between p-5 border-b border-stone-100">
           <div className="flex items-center gap-2">
             <ShoppingBag size={20} className="text-amber-900" />
-            <h2 className="text-lg font-semibold text-stone-800">Votre Panier</h2>
+            <div>
+              <h2 className="text-lg font-semibold text-stone-800 leading-tight">Votre Panier</h2>
+              <p className="text-[11px] text-stone-500">Ravi de vous accompagner ! Voici vos bijoux sélectionnés.</p>
+            </div>
           </div>
           <button
             type="button"
@@ -249,6 +252,9 @@ const SidebarPanier = () => {
               <span>Sous-total</span>
               <span>{sousTotal.toLocaleString()} {monnaie || 'FCFA'}</span>
             </div>
+            <p className="text-[11px] text-stone-500 bg-white border border-stone-200/80 rounded-lg p-2.5 leading-relaxed text-center">
+              <ShieldCheck size={14} className="inline-block text-amber-800 mr-1 -mt-0.5" /><strong>Aucune carte bancaire requise</strong> — Étape suivante : indiquez votre quartier (paiement à la livraison ou T-Money / Flooz).
+            </p>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"

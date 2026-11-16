@@ -36,7 +36,6 @@ const CommandeConfirmee = () => {
         if (res.data.success) {
           setToken(res.data.token);
           localStorage.setItem('token', res.data.token);
-          toast.success("Compte créé ! Vous retrouverez vos prochaines commandes plus facilement.", { theme: "dark" });
         } else {
           toast.error(res.data.message, { theme: "dark" });
         }

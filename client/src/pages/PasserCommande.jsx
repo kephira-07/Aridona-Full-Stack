@@ -4,7 +4,7 @@ import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
-import { MessageSquare, MapPin, Loader2, Banknote, Smartphone } from 'lucide-react';
+import { MessageSquare, MapPin, Loader2, Banknote, Smartphone, ShieldCheck, Truck } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import axios from 'axios';
 
@@ -234,12 +234,40 @@ const PasserCommande = () => {
     <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20'>
       <BoutonRetour />
 
+      {/* BANDEAU EXPLICATIF EN 3 ÉTAPES */}
+      <div className="mt-4 mb-8 bg-amber-50/60 border border-amber-200/70 rounded-2xl p-4 sm:p-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-amber-900 mb-3 flex items-center justify-center sm:justify-start gap-2">
+          <ShieldCheck size={15} className="text-amber-800 shrink-0" />
+          <span>Comment fonctionne votre commande chez Aridona Bijoux ?</span>
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-stone-700">
+          <div className="bg-white/90 rounded-xl p-3 border border-amber-100">
+            <span className="font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+              <MapPin size={13} className="text-amber-700 shrink-0" /> 1. Vos coordonnées
+            </span>
+            Indiquez votre nom, numéro WhatsApp et votre quartier de livraison.
+          </div>
+          <div className="bg-white/90 rounded-xl p-3 border border-amber-100">
+            <span className="font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+              <MessageSquare size={13} className="text-amber-700 shrink-0" /> 2. Confirmation WhatsApp
+            </span>
+            En cliquant sur le bouton vert, votre récapitulatif s'ouvre prêt à nous être envoyé.
+          </div>
+          <div className="bg-white/90 rounded-xl p-3 border border-amber-100">
+            <span className="font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+              <Truck size={13} className="text-amber-700 shrink-0" /> 3. Livraison & Règlement
+            </span>
+            Nous vous livrons rapidement et vous payez à la réception ou par T-Money / Flooz.
+          </div>
+        </div>
+      </div>
+
       <form onSubmit={onSubmitHandler} className='grid grid-cols-1 lg:grid-cols-12 gap-12 items-start mt-4'>
         <div className='lg:col-span-7 space-y-6'>
           <div className='text-2xl font-light tracking-wide mb-8'>
             <Titre text1={'INFORMATIONS'} text2={'DE LIVRAISON'} />
             <p className='text-xs text-stone-400 italic mt-1'>
-              Saisissez vos coordonnées de livraison avant de confirmer votre commande sur WhatsApp.
+              Merci pour votre confiance ! Remplissez simplement ces quelques informations pour que notre livreur puisse vous joindre facilement.
             </p>
           </div>
 

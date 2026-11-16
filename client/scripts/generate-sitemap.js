@@ -136,9 +136,15 @@ console.log(`[sitemap] Connexion au backend sur : ${BACKEND_URL}`);
 const produitEntries = await fetchProduitEntries();
 const articleEntries = await fetchArticleEntries();
 const packEntries = await fetchPackEntries();
-const xml = buildXml([...STATIC_PAGES, ...produitEntries, ...articleEntries, ...packEntries]);
 
-writeFileSync(join(clientRoot, 'public', 'sitemap.xml'), xml, 'utf-8');
+const sitemapPath = join(clientRoot, 'public', 'sitemap.xml');
+// Si le réseau est coupé pendant le build mais qu'un sitemap complet existe déjà, on le préserve
+if (produitEntries.length === 0 && existsSync(sitemapPath)) {
+  console.warn('[sitemap] Mode hors-ligne : conservation du sitemap.xml existant.');
+} else {
+  const xml = buildXml([...STATIC_PAGES, ...produitEntries, ...articleEntries, ...packEntries]);
+  writeFileSync(sitemapPath, xml, 'utf-8');
+}
 
 // L'ancien fichier mal nommé ne doit plus traîner
 const oldSitemapTxt = join(clientRoot, 'public', 'sitemap.txt');

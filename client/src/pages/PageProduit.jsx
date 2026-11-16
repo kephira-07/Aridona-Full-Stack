@@ -60,7 +60,7 @@ const { slug } = useParams();
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [estAjoute, setEstAjoute] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [descriptionOuverte, setDescriptionOuverte] = useState(false);
+  const [descriptionOuverte, setDescriptionOuverte] = useState(true);
 
   // --- ÉTAT DU FORMULAIRE D'AVIS DÉROULANT ---
   const [showFormAvis, setShowFormAvis] = useState(false);
@@ -487,7 +487,7 @@ const { slug } = useParams();
               className='flex w-full items-center justify-between gap-4 py-4 text-left text-sm font-semibold text-stone-800 cursor-pointer'
             >
               <span>Description du bijou</span>
-              {descriptionOuverte ? <ChevronDown size={18} aria-hidden='true' /> : <ChevronUp size={18} aria-hidden='true' />}
+              {descriptionOuverte ? <ChevronUp size={18} aria-hidden='true' /> : <ChevronDown size={18} aria-hidden='true' />}
             </button>
             {descriptionOuverte && (
               <p id='description-produit' className='pb-5 text-stone-600 leading-relaxed font-dmsans text-base md:text-lg'>
@@ -500,7 +500,7 @@ const { slug } = useParams();
           {produitData.sizes && produitData.sizes.length > 0 && (
             <div className='flex flex-col gap-4 my-8'>
                 <p className='font-medium text-stone-800 text-sm'>
-                  {produitData.sizes.length === 1 ? 'Taille disponible :' : 'Choisir une taille (optionnel) :'}
+                  {produitData.sizes.length === 1 ? 'Taille disponible :' : 'Choisissez votre taille avant d’ajouter au panier :'}
                 </p>
                 <div className='flex flex-wrap gap-3'>
                   {produitData.sizes.map((item, index) => {
@@ -553,8 +553,11 @@ const { slug } = useParams();
                 className="w-full flex items-center justify-center gap-3 text-xs font-bold tracking-wider py-4 px-4 border border-emerald-700 text-emerald-800 hover:bg-emerald-50 transition-all uppercase cursor-pointer"
               >
                 <MessageCircle size={18} />
-                <span>Commander sur WhatsApp</span>
+                <span>Achat rapide sur WhatsApp (cet article seul)</span>
               </button>
+              <p className="text-[11px] text-stone-500 text-center leading-relaxed pt-1">
+                <ShieldCheck size={14} className="inline-block text-amber-800 mr-1.5 -mt-0.5" /><strong>Astuce :</strong> Cliquez sur <em>Ajouter au panier</em> si vous souhaitez commander plusieurs bijoux ensemble, ou sur <em>WhatsApp</em> pour réserver cette pièce immédiatement.
+              </p>
               </>
             ) : null}
             {produitData.enStock === false && (

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
-import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import logo from '../assets/logo.png';
 
@@ -64,7 +64,6 @@ const Login = () => {
       if (response.data.success) {
         setProfil(response.data.utilisateur);
         setIsEditing(false);
-        toast.success("Profil mis à jour avec succès !", { theme: "dark" });
       } else {
         toast.error(response.data.message || "Impossible de modifier le profil.", { theme: "dark" });
       }
@@ -81,7 +80,6 @@ const Login = () => {
     setProfil(null);
     setFormProfil({ name: '', telephone: '', adresse: '', ville: 'Lomé' });
     localStorage.removeItem('token');
-    toast.info("Vous êtes déconnecté(e)", { theme: "dark" });
   };
 
   // ================= CONNEXION AVEC GOOGLE =================
@@ -95,7 +93,6 @@ const Login = () => {
         if (res.data.success) {
           setToken(res.data.token);
           localStorage.setItem('token', res.data.token);
-          toast.success("Connexion Google réussie !", { theme: "dark" });
         } else {
           toast.error(res.data.message, { theme: "dark" });
         }
@@ -123,7 +120,6 @@ const Login = () => {
       if (response.data.success) {
         setToken(response.data.token);
         localStorage.setItem('token', response.data.token);
-        toast.success(response.data.message || "Bienvenue chez Aridona !", { theme: "dark" });
       } else {
         toast.error(response.data.message, { theme: "dark" });
       }
@@ -189,7 +185,7 @@ const Login = () => {
               <div className="space-y-2">
                 <span className="font-caveat text-2xl text-amber-800">Mon doux espace</span>
                 <h1 className="font-serif text-4xl text-stone-900 tracking-wide font-alice">
-                  Bonjour, {profil.name || profil.nom}
+                  Ravi de vous revoir, {profil.name || profil.nom} <Sparkles size={22} className="inline-block text-amber-700 ml-1 -mt-1" />
                 </h1>
                 <div className="h-[2px] w-12 bg-amber-800 mt-2"></div>
               </div>
@@ -284,12 +280,12 @@ const Login = () => {
             <div className="animate-in fade-in duration-500 space-y-7">
               
               <div className="space-y-2">
-                <span className="font-caveat text-2xl text-amber-800 block">Rejoindre la Maison</span>
+                <span className="font-caveat text-2xl text-amber-800 block">Bienvenue chez Aridona Bijoux</span>
                 <h1 className="font-serif text-3xl sm:text-4xl text-stone-900 tracking-wide font-alice">
-                  Rejoindre le Club
+                  Votre Espace Personnel
                 </h1>
-                <p className="text-xs text-stone-500 font-dmsans leading-relaxed">
-                  Enregistrez votre adresse en 1 clic pour être informée de nos nouvelles collections et offres exclusives.
+                <p className="text-xs text-stone-600 font-dmsans leading-relaxed">
+                  <strong>Connexion rapide sans mot de passe :</strong> utilisez Google ou entrez simplement votre nom et votre email pour retrouver votre panier, vos favoris et vos commandes.
                 </p>
               </div>
 
