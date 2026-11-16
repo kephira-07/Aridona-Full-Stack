@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
 import PanierTotal from '../composant/PanierTotal';
@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { MessageSquare, MapPin, Loader2, Banknote, Smartphone, ShieldCheck, Truck } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import axios from 'axios';
+import { trackEvent, identifyVisitor } from '../utils/tracker';
 
 const PasserCommande = () => {
   const {
@@ -28,6 +29,7 @@ const PasserCommande = () => {
   const navigate = useNavigate();
   const [methode, setMethode] = useState('cod'); // 'cod' = à la livraison, 'momo' = mobile money
   const [loading, setLoading] = useState(false);
+  const [accepteConditions, setAccepteConditions] = useState(false);
 
   const WHATSAPP_NUMBER = whatsappNum || "22872656485";
 
@@ -78,7 +80,13 @@ const PasserCommande = () => {
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
+    if (!accepteConditions) {
+      toast.error("Veuillez accepter les conditions d'utilisation avant de confirmer votre commande.", { theme: "dark" });
+      return;
+    }
+
     try {
+      try { localStorage.setItem('aridona_consent', 'true'); } catch {}
       setLoading(true);
       let orderItems = [];
 
@@ -196,6 +204,13 @@ const PasserCommande = () => {
         message += `\n⭐ *TOTAL À PAYER : ${totalFinal.toLocaleString()} ${monnaie}*`;
 
         const encodedMessage = encodeURIComponent(message);
+        identifyVisitor({
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          city: [formData.neighborhood, formData.city].filter(Boolean).join(', '),
+        });
+        trackEvent('whatsapp_click', { produitNom: `Commande (${orderItems.length} article${orderItems.length > 1 ? 's' : ''})`, pageLabel: 'Validation Commande' });
         const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`;
 
         if (typeof viderPanier === 'function') {
@@ -406,11 +421,32 @@ const PasserCommande = () => {
             </div>
           </div>
 
-          <div className='pt-2'>
+          <div className='pt-2 space-y-4'>
+            <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-600 leading-relaxed select-none bg-white border border-stone-200/80 p-3.5 rounded-xl">
+              <input
+                type="checkbox"
+                required
+                checked={accepteConditions}
+                onChange={(e) => setAccepteConditions(e.target.checked)}
+                className="mt-0.5 w-4 h-4 accent-amber-900 rounded cursor-pointer shrink-0"
+              />
+              <span>
+                J'ai lu et j'accepte les{' '}
+                <Link to="/conditions-utilisation" target="_blank" className="text-amber-900 underline font-semibold hover:text-amber-700">
+                  Conditions d'utilisation
+                </Link>{' '}
+                et la{' '}
+                <Link to="/politique-confidentialite" target="_blank" className="text-amber-900 underline font-semibold hover:text-amber-700">
+                  Politique de confidentialité
+                </Link>{' '}
+                d'Aridona Bijoux. *
+              </span>
+            </label>
+
             <button
               type="submit"
-              disabled={loading}
-              className="w-full text-white font-medium py-4 text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-400 shadow-md active:scale-[0.99] cursor-pointer rounded-xl"
+              disabled={loading || !accepteConditions}
+              className="w-full text-white font-medium py-4 text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed shadow-md active:scale-[0.99] cursor-pointer rounded-xl"
             >
               {loading ? (
                 <>

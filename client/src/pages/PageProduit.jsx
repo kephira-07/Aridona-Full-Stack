@@ -5,6 +5,7 @@ import { ShopContext } from '../context/ShopContext';
 import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send, ChevronDown, ChevronUp, ShieldCheck, Truck } from 'lucide-react';
 import ApparenteProduit from '../composant/ApparenteProduit';
 import { Helmet } from 'react-helmet-async';
+import { trackEvent } from '../utils/tracker';
 
 const CarteAvis = ({ item }) => (
   <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-shadow h-full">
@@ -119,6 +120,9 @@ const { slug } = useParams();
         if (!active) return;
         const produitTrouve = response.data.produit;
         setProduitData(produitTrouve);
+        if (produitTrouve) {
+          trackEvent('product_view', { produitId: String(produitTrouve._id || ''), produitNom: produitTrouve.nom, pageLabel: 'Fiche Bijou' });
+        }
         
         if (produitTrouve.image && produitTrouve.image.length > 0) {
           setImage(getImageUrl(produitTrouve.image[0]));
@@ -241,6 +245,7 @@ const { slug } = useParams();
 
   const commanderSurWhatsApp = () => {
     if (!produitData) return;
+    trackEvent('whatsapp_click', { produitId: String(produitData._id || ''), produitNom: produitData.nom, pageLabel: 'Achat rapide WhatsApp' });
     const taille = selectedSizes[0] || 'Unique';
     const prixFormate = Number(produitData.prix || 0).toLocaleString('fr-FR');
     const message = `Bonjour Aridona Bijoux !\n\nJe souhaite commander : ${produitData.nom}\nTaille : ${taille}\nPrix : ${prixFormate} XOF\nLien : ${window.location.href}\n\nMerci de me confirmer la disponibilité et la livraison.`;

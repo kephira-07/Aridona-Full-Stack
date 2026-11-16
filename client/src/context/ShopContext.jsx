@@ -2,6 +2,7 @@ import { createContext, useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios'; 
 import backendUrl from '../config';
+import { trackEvent } from '../utils/tracker';
 
 export const ShopContext = createContext();
 
@@ -242,6 +243,8 @@ const ShopContextProvider = (props) => {
       if (prevFavoris.includes(produitId)) {
         return prevFavoris.filter(id => id !== produitId);
       } else {
+        const prod = produits.find((p) => String(p._id || p.id) === String(produitId));
+        trackEvent('add_to_favorites', { produitId: String(produitId), produitNom: prod?.nom || 'Bijou' });
         return [...prevFavoris, produitId];
       }
     });
@@ -306,6 +309,7 @@ const ShopContextProvider = (props) => {
       return panierData;
     });
     setPanierOuvert(true);
+    trackEvent('add_to_cart', { produitId: String(produitId), produitNom: produitTarget?.nom || 'Bijou' });
 
     // Synchronisation BDD si connecté
     if (token) {
@@ -420,6 +424,7 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
 
     setPanierPacks((prev) => ({ ...prev, [pack._id]: (prev[pack._id] || 0) + 1 }));
     setPanierOuvert(true);
+    trackEvent('add_to_cart', { produitId: String(pack._id), produitNom: 'Pack : ' + (pack.nom || 'Coffret') });
 
     if (token) {
       try {

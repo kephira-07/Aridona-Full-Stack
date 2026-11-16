@@ -25,23 +25,27 @@ const buildHashtags = (tags = []) => {
 
 /**
  * Construit la légende complète pour Instagram
+ * (Sur Instagram les URLs ne sont pas cliquables dans les légendes : on utilise
+ * la mention cliquable @aridonabijoux qui renvoie en 1 clic vers le lien en bio)
  */
 export const buildInstagramCaption = (produit) => {
-  const lienProduit = `${SITE_URL}/produit/${produit.slug || produit._id}`;
   const prixFormate = Number(produit.prix || 0).toLocaleString('fr-FR');
   const hashtags = buildHashtags(produit.tags);
   const couleurs = Array.isArray(produit.couleurs) && produit.couleurs.length > 0
-    ? `🎨 Couleur(s) : ${produit.couleurs.join(', ')}\n`
+    ? `• Couleur(s) : ${produit.couleurs.join(', ')}\n`
     : '';
 
   return [
-    `✨ NOUVEAUTÉ — ${produit.nom} ✨`,
+    `NOUVEAUTÉ — ${produit.nom}`,
     '',
     produit.description,
     '',
-    `💎 Matière : ${produit.matiere || 'Acier Inoxydable 316L (Waterproof & Hypoallergénique)'}`,
-    `${couleurs}🏷️ Prix : ${prixFormate} FCFA`,
-    `🛍️ Commander sur : ${lienProduit}`,
+    `• Matière : ${produit.matiere || 'Acier Inoxydable 316L (Résiste à l’eau & Hypoallergénique)'}`,
+    `${couleurs}• Prix : ${prixFormate} FCFA`,
+    '',
+    'COMMENT COMMANDER FACILEMENT :',
+    `1. Cliquez sur @aridonabijoux puis sur le lien aridona.store dans notre bio et recherchez « ${produit.nom} » dans la barre de recherche.`,
+    '2. Ou envoyez simplement la capture d’écran de ce bijou sur WhatsApp au +228 72 65 64 85 (ou ici en message privé).',
     '',
     hashtags,
   ].join('\n');

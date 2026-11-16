@@ -8,6 +8,7 @@ import Navbar from './composant/Navbar';
 import SidebarPanier from './composant/SidebarPanier';
 import Footer from './composant/Footer';
 import ScrollToTop from './composant/ScrollToTop';
+import ConsentBanner from './composant/ConsentBanner';
 
 // Chargement paresseux (Lazy Loading) des pages
 const Home = lazy(() => import('./pages/Home'));
@@ -82,6 +83,7 @@ function App() {
 
       {/* Pied de page */}
       <Footer />
+      <ConsentBanner />
     </div>
   );
 }

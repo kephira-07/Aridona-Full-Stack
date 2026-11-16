@@ -2,11 +2,12 @@ import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
 import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import logo from '../assets/logo.png';
+import { identifyVisitor } from '../utils/tracker';
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -15,6 +16,7 @@ const Login = () => {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [accepteConditions, setAccepteConditions] = useState(false);
 
   const [profil, setProfil] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -39,6 +41,12 @@ const Login = () => {
           adresse: u.adresse || '',
           ville: u.ville || 'Lomé'
         });
+        identifyVisitor({
+          name: u.name || u.nom || '',
+          email: u.email || '',
+          phone: u.telephone || '',
+          city: [u.adresse, u.ville].filter(Boolean).join(', '),
+        });
       }
     } catch (error) {
       console.error("Erreur chargement profil:", error);
@@ -62,8 +70,15 @@ const Login = () => {
         { headers: { token } }
       );
       if (response.data.success) {
-        setProfil(response.data.utilisateur);
+        const u = response.data.utilisateur;
+        setProfil(u);
         setIsEditing(false);
+        identifyVisitor({
+          name: u.name || u.nom || formProfil.name,
+          email: u.email || '',
+          phone: u.telephone || formProfil.telephone,
+          city: [u.adresse || formProfil.adresse, u.ville || formProfil.ville].filter(Boolean).join(', '),
+        });
       } else {
         toast.error(response.data.message || "Impossible de modifier le profil.", { theme: "dark" });
       }
@@ -109,7 +124,12 @@ const Login = () => {
   // ================= SOUMISSION PAR EMAIL (SANS MOT DE PASSE) =================
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+    if (!accepteConditions) {
+      toast.error("Veuillez accepter les conditions d'utilisation pour continuer.", { theme: "dark" });
+      return;
+    }
     try {
+      try { localStorage.setItem('aridona_consent', 'true'); } catch {}
       setLoading(true);
 
       const response = await axios.post(`${backendUrl}/api/utilisateur/register`, { 
@@ -343,14 +363,31 @@ const Login = () => {
                   />
                 </div>
 
-                <p className="text-[11px] text-stone-400 italic leading-relaxed">
-                  Aucun mot de passe requis. Votre adresse sert exclusivement à vous identifier et à vous faire profiter de nos sélections privées.
-                </p>
+                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-600 leading-relaxed select-none bg-white border border-stone-200/80 p-3 rounded-xl">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={accepteConditions}
+                    onChange={(e) => setAccepteConditions(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-amber-900 rounded cursor-pointer shrink-0"
+                  />
+                  <span>
+                    J'accepte les{' '}
+                    <Link to="/conditions-utilisation" target="_blank" className="text-amber-900 underline font-semibold hover:text-amber-700">
+                      Conditions d'utilisation
+                    </Link>{' '}
+                    et la{' '}
+                    <Link to="/politique-confidentialite" target="_blank" className="text-amber-900 underline font-semibold hover:text-amber-700">
+                      Politique de confidentialité
+                    </Link>{' '}
+                    d'Aridona Bijoux. *
+                  </span>
+                </label>
 
                 <button 
-                  disabled={loading}
+                  disabled={loading || !accepteConditions}
                   type="submit"
-                  className="w-full bg-[#1C1A17] hover:bg-stone-800 text-stone-100 py-3.5 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-md active:scale-[0.99] disabled:bg-stone-300 cursor-pointer"
+                  className="w-full bg-[#1C1A17] hover:bg-stone-800 text-stone-100 py-3.5 rounded-xl text-xs font-semibold tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-2 shadow-md active:scale-[0.99] disabled:bg-stone-300 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <span>{loading ? 'Enregistrement...' : 'Rejoindre le Club'}</span>
                   {!loading && <ArrowRight size={14} className="text-amber-400" />}

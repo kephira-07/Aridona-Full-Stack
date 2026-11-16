@@ -13,7 +13,7 @@ import {
   analyzeProductImage,
   shareProduitSocial
 } from '../controller/produitController.js';
-import { getDashboardStats } from "../controller/dashbordController.js";
+import { getDashboardStats, trackVisitorEvent, exportAnalyticsCSV } from "../controller/dashbordController.js";
 import upload from '../middleware/multer.js';
 import auth from '../middleware/auth.js';
 
@@ -48,6 +48,7 @@ produitRouter.get('/single/slug/:slug', publicLimiter, singleproduitBySlug);
 produitRouter.get('/single/:id', publicLimiter, singleproduit);
 produitRouter.get('/search', publicLimiter, searchProduits);
 produitRouter.get('/feed.xml', publicLimiter, getProductFeed); // Google Merchant Center
+produitRouter.post('/track-event', publicLimiter, trackVisitorEvent);
 
 // --- Routes Protégées Administrateur ---
 produitRouter.post('/add', adminLimiter, auth(['admin']), uploadFields, addproduit);
@@ -55,6 +56,7 @@ produitRouter.put('/update/:id', adminLimiter, auth(['admin']), uploadFields, up
 produitRouter.delete('/remove/:id', adminLimiter, auth(['admin']), removeproduit);
 produitRouter.put('/changer-stock/:id', adminLimiter, auth(['admin']), changerStatutStock);
 produitRouter.get('/stats-dashboard', adminLimiter, auth(['admin']), getDashboardStats);
+produitRouter.get('/export-analytics', adminLimiter, auth(['admin']), exportAnalyticsCSV);
 produitRouter.post('/ai-analyze', adminLimiter, auth(['admin']), analyzeProductImage);
 produitRouter.post('/share-social/:id', adminLimiter, auth(['admin']), shareProduitSocial);
 

@@ -6,6 +6,7 @@ import { Mail, MapPin, Send, MessageCircle, Clock, Loader2 } from 'lucide-react'
 import { ShopContext } from '../context/ShopContext';
 import { IconInstagram, IconFacebook, IconTikTok, IconX } from '../composant/SocialIcons';
 import Titre from '../composant/Titre';
+import { identifyVisitor } from '../utils/tracker';
 
 const Contact = () => {
   const { backendUrl, whatsappNum } = useContext(ShopContext);
@@ -30,6 +31,7 @@ const Contact = () => {
       setEnvoiEnCours(true);
       const response = await axios.post(`${backendUrl}/api/contact/envoyer`, formData);
       if (response.data.success) {
+        identifyVisitor({ name: formData.nom, email: formData.email });
         setSubmitted(true);
         setTimeout(() => setSubmitted(false), 5000);
         setFormData({ nom: '', email: '', sujet: '', message: '' });
