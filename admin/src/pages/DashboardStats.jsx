@@ -48,40 +48,48 @@ const getBadgeAction = (ev) => {
       return {
         label: 'Bijou consulté',
         detail: ev.produitNom || ev.pageLabel,
-        color: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
+        color: 'text-sky-700 bg-sky-100 border-sky-200',
       };
     case 'add_to_cart':
       return {
         label: 'Ajouté au panier',
         detail: ev.produitNom || 'Bijou',
-        color: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
+        color: 'text-amber-800 bg-amber-100 border-amber-200',
       };
     case 'add_to_favorites':
       return {
         label: 'Mis en favoris',
         detail: ev.produitNom || 'Bijou',
-        color: 'text-pink-400 bg-pink-500/10 border-pink-500/25',
+        color: 'text-rose-700 bg-rose-100 border-rose-200',
       };
     case 'checkout_start':
       return {
         label: 'Étape Livraison',
         detail: 'Formulaire de livraison ouvert',
-        color: 'text-violet-400 bg-violet-500/10 border-violet-500/25',
+        color: 'text-violet-700 bg-violet-100 border-violet-200',
       };
     case 'whatsapp_click':
       return {
         label: 'Clic WhatsApp',
         detail: ev.produitNom || 'Commande envoyée vers WhatsApp',
-        color: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+        color: 'text-emerald-700 bg-emerald-100 border-emerald-200',
       };
     default:
       return {
         label: 'Page visitée',
         detail: ev.pageLabel || ev.path || 'Accueil',
-        color: 'text-stone-300 bg-stone-800 border-stone-700',
+        color: 'text-indigo-700 bg-indigo-50 border-indigo-200',
       };
   }
 };
+
+const SOURCE_COLORS = [
+  'bg-pink-100 text-pink-800 border-pink-200',
+  'bg-sky-100 text-sky-800 border-sky-200',
+  'bg-emerald-100 text-emerald-800 border-emerald-200',
+  'bg-violet-100 text-violet-800 border-violet-200',
+  'bg-amber-100 text-amber-800 border-amber-200',
+];
 
 export default function DashboardStats({ token }) {
   const [stats, setStats] = useState(null);
@@ -142,20 +150,20 @@ export default function DashboardStats({ token }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-stone-950 gap-4">
-        <RefreshCw className="animate-spin text-amber-500 w-10 h-10" />
-        <span className="text-xs uppercase tracking-widest text-stone-500 font-medium">Chargement du tableau de bord...</span>
+      <div className="flex flex-col justify-center items-center h-screen bg-white gap-4">
+        <RefreshCw className="animate-spin text-amber-600 w-10 h-10" />
+        <span className="text-xs uppercase tracking-widest text-slate-500 font-semibold">Chargement du tableau de bord...</span>
       </div>
     );
   }
 
   if (!stats) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-stone-950 p-8 text-center">
-        <p className="text-stone-400 text-sm">Impossible de charger les statistiques.</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-white p-8 text-center">
+        <p className="text-slate-600 text-sm">Impossible de charger les statistiques.</p>
         <button
           onClick={fetchStats}
-          className="mt-4 px-4 py-2 bg-stone-900 border border-stone-800 rounded-xl text-amber-500 text-xs font-semibold uppercase tracking-wider hover:bg-stone-800 transition-all cursor-pointer"
+          className="mt-4 px-5 py-2.5 bg-amber-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-amber-700 transition-all cursor-pointer shadow-sm"
         >
           Réessayer
         </button>
@@ -185,13 +193,24 @@ export default function DashboardStats({ token }) {
     labels: (stats.zonesPlusDemandees || []).map((z) => z.zone),
     datasets: [
       {
-        label: 'Demandes / Commandes',
+        label: 'Commandes',
         data: (stats.zonesPlusDemandees || []).map((z) => z.total),
-        backgroundColor: 'rgba(217, 119, 6, 0.85)',
-        borderColor: '#d97706',
+        backgroundColor: [
+          'rgba(245, 158, 11, 0.85)',
+          'rgba(16, 185, 129, 0.85)',
+          'rgba(14, 165, 233, 0.85)',
+          'rgba(139, 92, 246, 0.85)',
+          'rgba(244, 63, 94, 0.85)',
+        ],
+        borderColor: [
+          '#d97706',
+          '#059669',
+          '#0284c7',
+          '#7c3aed',
+          '#e11d48',
+        ],
         borderWidth: 1,
         borderRadius: 8,
-        hoverBackgroundColor: '#f59e0b',
       },
     ],
   };
@@ -201,43 +220,41 @@ export default function DashboardStats({ token }) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#1c1917',
-        titleColor: '#f59e0b',
-        bodyColor: '#e7e5e4',
-        borderColor: '#292524',
-        borderWidth: 1,
+        backgroundColor: '#1e293b',
+        titleColor: '#fbbf24',
+        bodyColor: '#f8fafc',
         padding: 10,
-        displayColors: false,
+        displayColors: true,
       },
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255, 255, 255, 0.04)' },
-        ticks: { color: '#78716c', font: { size: 10 } },
+        grid: { color: 'rgba(148, 163, 184, 0.15)' },
+        ticks: { color: '#64748b', font: { size: 11 } },
       },
       y: {
         grid: { display: false },
-        ticks: { color: '#d6d3d1', font: { size: 11, weight: '500' } },
+        ticks: { color: '#334155', font: { size: 11, weight: '600' } },
       },
     },
     maintainAspectRatio: false,
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto bg-stone-950 min-h-screen text-stone-100 font-sans selection:bg-amber-500 selection:text-stone-950">
+    <div className="p-4 sm:p-6 md:p-8 space-y-8 max-w-7xl mx-auto bg-white min-h-screen text-slate-800 font-sans">
 
-      {/* EN-TÊTE PREMIUM */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-800/80 pb-6">
+      {/* EN-TÊTE COLORÉ SUR FOND BLANC */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-amber-50 via-rose-50/70 to-sky-50 border border-amber-200/60 p-6 rounded-3xl shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-amber-500/80 text-[11px] uppercase font-bold tracking-widest mb-1">
-            <Sparkles size={14} />
-            <span>Vue d'ensemble analytique</span>
+          <div className="flex items-center gap-2 text-amber-700 text-[11px] uppercase font-bold tracking-widest mb-1">
+            <Sparkles size={14} className="text-amber-600" />
+            <span>Tableau de bord analytique</span>
           </div>
-          <h1 className="font-serif text-2xl md:text-3xl tracking-wide bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent font-bold">
-            Aridona Héritage — Suivi & Comportement
+          <h1 className="font-serif text-2xl md:text-3xl tracking-wide bg-gradient-to-r from-amber-700 via-rose-600 to-indigo-700 bg-clip-text text-transparent font-bold">
+            Aridona Bijoux — Activité & Performances
           </h1>
-          <p className="text-xs text-stone-400 mt-1 tracking-wide">
-            Suivez en direct qui visite votre site, quels bijoux attirent l'attention et ce que font vos visiteurs.
+          <p className="text-xs text-slate-600 mt-1">
+            Suivez en direct vos visiteurs, les bijoux consultés, les ajouts au panier et vos ventes.
           </p>
         </div>
 
@@ -245,124 +262,126 @@ export default function DashboardStats({ token }) {
           <button
             onClick={downloadCsv}
             disabled={exporting}
-            className="flex items-center gap-2 px-4 py-2.5 border border-amber-500/40 rounded-xl hover:border-amber-400 text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 transition-all shadow-lg cursor-pointer text-xs font-semibold disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 transition-all shadow-sm cursor-pointer text-xs font-semibold disabled:opacity-50"
             title="Télécharger tout l'historique des visiteurs au format CSV (Excel)"
           >
-            <Download size={16} />
+            <Download size={15} />
             <span>{exporting ? 'Export...' : 'Télécharger CSV'}</span>
           </button>
 
           <button
             onClick={fetchStats}
-            className="flex items-center gap-2 px-4 py-2.5 border border-stone-800 rounded-xl hover:border-amber-500/50 text-stone-300 hover:text-amber-400 bg-stone-900/80 transition-all shadow-lg hover:shadow-amber-500/5 group cursor-pointer text-xs font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-xl hover:border-indigo-300 text-slate-700 hover:text-indigo-700 bg-white hover:bg-indigo-50/50 transition-all shadow-2xs group cursor-pointer text-xs font-semibold"
             title="Actualiser les données"
           >
-            <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
+            <RefreshCw size={15} className="group-hover:rotate-180 transition-transform duration-500 text-indigo-600" />
             <span>Actualiser</span>
           </button>
         </div>
       </div>
 
       {/* ================= SECTION 1 : COMPORTEMENT DES VISITEURS ================= */}
-      <div className="space-y-5">
+      <div className="space-y-6">
         <div className="flex items-center gap-2">
-          <Activity size={16} className="text-amber-400" />
-          <h2 className="text-xs uppercase font-bold tracking-widest text-amber-400">
-            Fréquentation & Parcours des Visiteurs
+          <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700">
+            <Activity size={16} />
+          </div>
+          <h2 className="text-sm uppercase font-bold tracking-wider text-slate-800">
+            Fréquentation & Comportement des Visiteurs
           </h2>
         </div>
 
-        {/* Cartes Visiteurs Uniques */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-stone-900/90 border border-stone-800 p-5 rounded-2xl flex items-center justify-between">
+        {/* 3 Cartes Visiteurs Uniques Colorées */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-semibold tracking-widest text-emerald-400">Visiteurs Aujourd'hui</span>
-              <p className="text-2xl font-bold font-serif text-white mt-1">
-                {behavior.visiteursAujourdHui} <span className="text-xs font-sans font-normal text-stone-400">personne{behavior.visiteursAujourdHui > 1 ? 's' : ''}</span>
+              <span className="text-[11px] uppercase font-bold tracking-wider text-emerald-700">Visiteurs Aujourd'hui</span>
+              <p className="text-3xl font-bold font-serif text-emerald-950 mt-1">
+                {behavior.visiteursAujourdHui} <span className="text-xs font-sans font-medium text-emerald-700">personne{behavior.visiteursAujourdHui > 1 ? 's' : ''}</span>
               </p>
             </div>
-            <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-              <Users size={20} />
+            <div className="p-3.5 bg-emerald-500 text-white rounded-2xl shadow-sm">
+              <Users size={22} />
             </div>
           </div>
 
-          <div className="bg-stone-900/90 border border-stone-800 p-5 rounded-2xl flex items-center justify-between">
+          <div className="bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-semibold tracking-widest text-sky-400">7 Derniers Jours</span>
-              <p className="text-2xl font-bold font-serif text-white mt-1">
-                {behavior.visiteurs7Jours} <span className="text-xs font-sans font-normal text-stone-400">visiteur{behavior.visiteurs7Jours > 1 ? 's' : ''}</span>
+              <span className="text-[11px] uppercase font-bold tracking-wider text-sky-700">7 Derniers Jours</span>
+              <p className="text-3xl font-bold font-serif text-sky-950 mt-1">
+                {behavior.visiteurs7Jours} <span className="text-xs font-sans font-medium text-sky-700">visiteur{behavior.visiteurs7Jours > 1 ? 's' : ''}</span>
               </p>
             </div>
-            <div className="p-3 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
-              <Users size={20} />
+            <div className="p-3.5 bg-sky-500 text-white rounded-2xl shadow-sm">
+              <Users size={22} />
             </div>
           </div>
 
-          <div className="bg-stone-900/90 border border-stone-800 p-5 rounded-2xl flex items-center justify-between">
+          <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 border border-violet-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
             <div>
-              <span className="text-[10px] uppercase font-semibold tracking-widest text-amber-400">30 Derniers Jours</span>
-              <p className="text-2xl font-bold font-serif text-white mt-1">
-                {behavior.visiteurs30Jours} <span className="text-xs font-sans font-normal text-stone-400">visiteur{behavior.visiteurs30Jours > 1 ? 's' : ''}</span>
+              <span className="text-[11px] uppercase font-bold tracking-wider text-violet-700">30 Derniers Jours</span>
+              <p className="text-3xl font-bold font-serif text-violet-950 mt-1">
+                {behavior.visiteurs30Jours} <span className="text-xs font-sans font-medium text-violet-700">visiteur{behavior.visiteurs30Jours > 1 ? 's' : ''}</span>
               </p>
             </div>
-            <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-              <Users size={20} />
+            <div className="p-3.5 bg-violet-600 text-white rounded-2xl shadow-sm">
+              <Users size={22} />
             </div>
           </div>
         </div>
 
-        {/* Entonnoir des actions sur 30 jours */}
-        <div className="bg-stone-900/80 border border-stone-800/80 p-5 rounded-2xl">
-          <p className="text-[11px] uppercase font-semibold tracking-wider text-stone-400 mb-4">
-            Entonnoir du comportement sur le site (30 derniers jours)
+        {/* Entonnoir des actions multicolore */}
+        <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-xs">
+          <p className="text-xs uppercase font-bold tracking-wider text-slate-600 mb-4">
+            Parcours des visiteurs sur le site (30 derniers jours)
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="bg-stone-950/90 border border-stone-800/80 p-3.5 rounded-xl">
-              <div className="flex items-center justify-between text-stone-400 mb-1">
-                <span className="text-[10px] uppercase tracking-wider">Pages Vues</span>
-                <Globe size={14} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="bg-indigo-50/90 border border-indigo-200 p-4 rounded-2xl">
+              <div className="flex items-center justify-between text-indigo-700 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Pages Vues</span>
+                <Globe size={15} />
               </div>
-              <p className="text-xl font-bold font-serif text-white">{behavior.entonnoir.pagesVues}</p>
+              <p className="text-2xl font-bold font-serif text-indigo-950">{behavior.entonnoir.pagesVues}</p>
             </div>
 
-            <div className="bg-stone-950/90 border border-sky-500/20 p-3.5 rounded-xl">
-              <div className="flex items-center justify-between text-sky-400 mb-1">
-                <span className="text-[10px] uppercase tracking-wider">Bijoux Vus</span>
-                <Eye size={14} />
+            <div className="bg-sky-50/90 border border-sky-200 p-4 rounded-2xl">
+              <div className="flex items-center justify-between text-sky-700 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Bijoux Vus</span>
+                <Eye size={15} />
               </div>
-              <p className="text-xl font-bold font-serif text-white">{behavior.entonnoir.vuesProduits}</p>
+              <p className="text-2xl font-bold font-serif text-sky-950">{behavior.entonnoir.vuesProduits}</p>
             </div>
 
-            <div className="bg-stone-950/90 border border-pink-500/20 p-3.5 rounded-xl">
-              <div className="flex items-center justify-between text-pink-400 mb-1">
-                <span className="text-[10px] uppercase tracking-wider">Mis en Favoris</span>
-                <Heart size={14} />
+            <div className="bg-rose-50/90 border border-rose-200 p-4 rounded-2xl">
+              <div className="flex items-center justify-between text-rose-700 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Mis en Favoris</span>
+                <Heart size={15} />
               </div>
-              <p className="text-xl font-bold font-serif text-white">{behavior.entonnoir.ajoutsFavoris}</p>
+              <p className="text-2xl font-bold font-serif text-rose-950">{behavior.entonnoir.ajoutsFavoris}</p>
             </div>
 
-            <div className="bg-stone-950/90 border border-amber-500/25 p-3.5 rounded-xl">
-              <div className="flex items-center justify-between text-amber-400 mb-1">
-                <span className="text-[10px] uppercase tracking-wider">Ajouts Panier</span>
-                <ShoppingBag size={14} />
+            <div className="bg-amber-50/90 border border-amber-200 p-4 rounded-2xl">
+              <div className="flex items-center justify-between text-amber-800 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Ajouts Panier</span>
+                <ShoppingBag size={15} />
               </div>
-              <p className="text-xl font-bold font-serif text-white">{behavior.entonnoir.ajoutsPanier}</p>
+              <p className="text-2xl font-bold font-serif text-amber-950">{behavior.entonnoir.ajoutsPanier}</p>
             </div>
 
-            <div className="bg-stone-950/90 border border-violet-500/25 p-3.5 rounded-xl">
-              <div className="flex items-center justify-between text-violet-400 mb-1">
-                <span className="text-[10px] uppercase tracking-wider">Page Livraison</span>
-                <MapPin size={14} />
+            <div className="bg-purple-50/90 border border-purple-200 p-4 rounded-2xl">
+              <div className="flex items-center justify-between text-purple-700 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Page Livraison</span>
+                <MapPin size={15} />
               </div>
-              <p className="text-xl font-bold font-serif text-white">{behavior.entonnoir.debutsCommande}</p>
+              <p className="text-2xl font-bold font-serif text-purple-950">{behavior.entonnoir.debutsCommande}</p>
             </div>
 
-            <div className="bg-stone-950/90 border border-emerald-500/30 p-3.5 rounded-xl">
-              <div className="flex items-center justify-between text-emerald-400 mb-1">
-                <span className="text-[10px] uppercase tracking-wider">Clics WhatsApp</span>
-                <MessageCircle size={14} />
+            <div className="bg-emerald-50/90 border border-emerald-200 p-4 rounded-2xl">
+              <div className="flex items-center justify-between text-emerald-700 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider">Clics WhatsApp</span>
+                <MessageCircle size={15} />
               </div>
-              <p className="text-xl font-bold font-serif text-white">{behavior.entonnoir.clicsWhatsapp}</p>
+              <p className="text-2xl font-bold font-serif text-emerald-950">{behavior.entonnoir.clicsWhatsapp}</p>
             </div>
           </div>
         </div>
@@ -371,61 +390,63 @@ export default function DashboardStats({ token }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Journal d'activité en direct */}
-          <div className="bg-stone-900/80 border border-stone-800/80 p-5 rounded-2xl lg:col-span-2 flex flex-col">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-stone-800/60">
+          <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-xs lg:col-span-2 flex flex-col">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Clock size={15} className="text-amber-400" />
-                <h3 className="text-xs uppercase font-semibold tracking-wider text-stone-200">
+                <div className="p-1.5 rounded-lg bg-amber-100 text-amber-700">
+                  <Clock size={15} />
+                </div>
+                <h3 className="text-xs uppercase font-bold tracking-wider text-slate-800">
                   Journal d'activité en direct (Dernières actions)
                 </h3>
               </div>
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                Temps réel
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                En direct
               </span>
             </div>
 
             {behavior.activiteRecente.length === 0 ? (
-              <div className="py-12 text-center text-xs text-stone-500">
+              <div className="py-12 text-center text-xs text-slate-400">
                 Les actions de vos prochains visiteurs apparaîtront ici automatiquement en direct.
               </div>
             ) : (
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
                 {behavior.activiteRecente.map((ev, index) => {
                   const badge = getBadgeAction(ev);
                   const identite = [ev.visitorName, ev.visitorEmail, ev.visitorPhone].filter(Boolean).join(' • ');
                   return (
                     <div
                       key={index}
-                      className="flex flex-col gap-1.5 bg-stone-950/80 border border-stone-800/70 px-3.5 py-2.5 rounded-xl text-xs"
+                      className="flex flex-col gap-1.5 bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/80 px-3.5 py-2.5 rounded-2xl text-xs transition-colors"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                          <span className="text-[10px] font-mono text-stone-400 bg-stone-900 px-2 py-0.5 rounded border border-stone-800 shrink-0">
+                          <span className="text-[10px] font-mono font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200 shrink-0">
                             #{ev.visitorCode || 'ANON'}
                           </span>
                           {identite && (
-                            <span className="text-[11px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded-md truncate max-w-xs">
+                            <span className="text-[11px] font-semibold text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-md truncate max-w-xs">
                               {identite}
                             </span>
                           )}
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${badge.color}`}>
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-md border shrink-0 ${badge.color}`}>
                             {badge.label}
                           </span>
-                          <span className="text-stone-200 truncate font-medium">
+                          <span className="text-slate-800 truncate font-semibold">
                             {badge.detail}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2.5 text-[11px] text-stone-500 shrink-0 flex-wrap">
-                          <span className="flex items-center gap-1 text-stone-400">
-                            {ev.device === 'Ordinateur' ? <Monitor size={12} /> : <Smartphone size={12} />}
+                        <div className="flex items-center gap-2.5 text-[11px] text-slate-500 shrink-0 flex-wrap">
+                          <span className="flex items-center gap-1 text-slate-600 font-medium">
+                            {ev.device === 'Ordinateur' ? <Monitor size={12} className="text-sky-600" /> : <Smartphone size={12} className="text-rose-600" />}
                             {ev.osBrowser || ev.device}
                           </span>
                           {(ev.visitorCity || ev.country) && (
-                            <span className="text-stone-400">• {ev.visitorCity || ev.country}</span>
+                            <span className="text-teal-700 font-medium">• {ev.visitorCity || ev.country}</span>
                           )}
-                          <span className="text-stone-300 font-medium">• {ev.source}</span>
-                          <span className="text-amber-500/80 font-medium">{formatTempsRelatif(ev.createdAt)}</span>
+                          <span className="text-violet-700 font-semibold">• {ev.source}</span>
+                          <span className="text-amber-700 font-semibold">{formatTempsRelatif(ev.createdAt)}</span>
                         </div>
                       </div>
                     </div>
@@ -435,33 +456,35 @@ export default function DashboardStats({ token }) {
             )}
           </div>
 
-          {/* Bijoux qui attirent le plus l'attention + Sources */}
+          {/* Bijoux les plus consultés + Sources */}
           <div className="space-y-6">
-            <div className="bg-stone-900/80 border border-stone-800/80 p-5 rounded-2xl">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-stone-800/60">
-                <Eye size={15} className="text-sky-400" />
-                <h3 className="text-xs uppercase font-semibold tracking-wider text-stone-200">
+            <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-xs">
+              <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-slate-100">
+                <div className="p-1.5 rounded-lg bg-sky-100 text-sky-700">
+                  <Eye size={15} />
+                </div>
+                <h3 className="text-xs uppercase font-bold tracking-wider text-slate-800">
                   Bijoux les Plus Consultés
                 </h3>
               </div>
 
               {behavior.topBijouxConsultes.length === 0 ? (
-                <p className="text-xs text-stone-500 py-4 text-center">
+                <p className="text-xs text-slate-400 py-4 text-center">
                   En attente des prochaines consultations de fiches bijoux.
                 </p>
               ) : (
                 <div className="space-y-2.5">
                   {behavior.topBijouxConsultes.map((item, idx) => (
-                    <div key={idx} className="bg-stone-950/80 border border-stone-800/70 p-2.5 rounded-xl flex items-center justify-between gap-2">
-                      <span className="text-xs text-stone-200 truncate flex-1 font-medium">
+                    <div key={idx} className="bg-slate-50 border border-slate-200/80 p-3 rounded-2xl flex items-center justify-between gap-2">
+                      <span className="text-xs text-slate-800 truncate flex-1 font-semibold">
                         {item.nom}
                       </span>
-                      <div className="flex items-center gap-2 shrink-0 text-[11px]">
-                        <span className="text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded" title="Vues de la fiche">
+                      <div className="flex items-center gap-1.5 shrink-0 text-[11px] font-semibold">
+                        <span className="text-sky-700 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded-md">
                           {item.vues} vue{item.vues > 1 ? 's' : ''}
                         </span>
                         {item.ajoutsPanier > 0 && (
-                          <span className="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded" title="Ajouts au panier">
+                          <span className="text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">
                             {item.ajoutsPanier} panier
                           </span>
                         )}
@@ -472,39 +495,41 @@ export default function DashboardStats({ token }) {
               )}
             </div>
 
-            <div className="bg-stone-900/80 border border-stone-800/80 p-5 rounded-2xl">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-stone-800/60">
-                <Globe size={15} className="text-amber-400" />
-                <h3 className="text-xs uppercase font-semibold tracking-wider text-stone-200">
+            <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-xs">
+              <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-slate-100">
+                <div className="p-1.5 rounded-lg bg-rose-100 text-rose-700">
+                  <Globe size={15} />
+                </div>
+                <h3 className="text-xs uppercase font-bold tracking-wider text-slate-800">
                   Origine des Visiteurs & Appareils
                 </h3>
               </div>
 
-              <div className="space-y-3 text-xs">
+              <div className="space-y-3.5 text-xs">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-stone-500 mb-1.5">Sources d'entrée</p>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2">Sources d'entrée</p>
                   <div className="flex flex-wrap gap-2">
                     {behavior.sources.length === 0 ? (
-                      <span className="text-stone-500 text-[11px]">Aucune donnée</span>
+                      <span className="text-slate-400 text-[11px]">Aucune donnée</span>
                     ) : (
                       behavior.sources.map((s, i) => (
-                        <span key={i} className="bg-stone-950 border border-stone-800 px-2.5 py-1 rounded-lg text-stone-300 text-[11px]">
-                          {s.source} : <strong className="text-amber-400">{s.visiteurs}</strong>
+                        <span key={i} className={`border px-2.5 py-1 rounded-xl text-[11px] font-semibold ${SOURCE_COLORS[i % SOURCE_COLORS.length]}`}>
+                          {s.source} : <strong>{s.visiteurs}</strong>
                         </span>
                       ))
                     )}
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-stone-800/60">
-                  <p className="text-[10px] uppercase tracking-wider text-stone-500 mb-1.5">Appareils</p>
+                <div className="pt-3 border-t border-slate-100">
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-2">Appareils utilisés</p>
                   <div className="flex flex-wrap gap-2">
                     {behavior.appareils.length === 0 ? (
-                      <span className="text-stone-500 text-[11px]">Aucune donnée</span>
+                      <span className="text-slate-400 text-[11px]">Aucune donnée</span>
                     ) : (
                       behavior.appareils.map((a, i) => (
-                        <span key={i} className="bg-stone-950 border border-stone-800 px-2.5 py-1 rounded-lg text-stone-300 text-[11px]">
-                          {a.device} : <strong className="text-sky-400">{a.visiteurs}</strong>
+                        <span key={i} className="bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-xl text-indigo-900 text-[11px] font-semibold">
+                          {a.device} : <strong>{a.visiteurs}</strong>
                         </span>
                       ))
                     )}
@@ -518,102 +543,100 @@ export default function DashboardStats({ token }) {
       </div>
 
       {/* ================= SECTION 2 : VENTES & CATALOGUE ================= */}
-      <div className="pt-4 border-t border-stone-800/80 space-y-6">
+      <div className="pt-6 border-t border-slate-200 space-y-6">
         <div className="flex items-center gap-2">
-          <TrendingUp size={16} className="text-amber-400" />
-          <h2 className="text-xs uppercase font-bold tracking-widest text-amber-400">
+          <div className="p-1.5 rounded-lg bg-amber-100 text-amber-700">
+            <TrendingUp size={16} />
+          </div>
+          <h2 className="text-sm uppercase font-bold tracking-wider text-slate-800">
             Résultats Commerciaux & État du Catalogue
           </h2>
         </div>
 
-        {/* BENTO GRID : Métriques Clés de Performance */}
+        {/* 4 Cartes KPI Multicolores */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
-          <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-amber-500/30 transition-all">
-            <div className="space-y-1.5 z-10">
-              <span className="text-[10px] uppercase font-semibold tracking-widest text-amber-500/80">Volume des Ventes</span>
-              <h3 className="text-2xl font-bold font-serif text-white tracking-tight">
-                {stats.chiffreAffairesTotal.toLocaleString('fr-FR')} <span className="text-xs text-amber-400 font-sans font-normal">FCFA</span>
+          <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-amber-100">Volume des Ventes</span>
+              <h3 className="text-2xl font-bold font-serif tracking-tight">
+                {stats.chiffreAffairesTotal.toLocaleString('fr-FR')} <span className="text-xs font-sans font-normal">FCFA</span>
               </h3>
             </div>
-            <div className="p-3.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 z-10">
-              <TrendingUp size={22} strokeWidth={1.5} />
+            <div className="p-3 bg-white/20 backdrop-blur-xs rounded-2xl">
+              <TrendingUp size={22} />
             </div>
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all" />
           </div>
 
-          <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-violet-500/30 transition-all">
-            <div className="space-y-1.5 z-10">
-              <span className="text-[10px] uppercase font-semibold tracking-widest text-violet-400/80">Sélection Boutique</span>
-              <h3 className="text-2xl font-bold font-serif text-white tracking-tight">
-                {stats.totalProduitsVedette} <span className="text-xs text-violet-400 font-sans font-normal">Vedette{stats.totalProduitsVedette > 1 ? 's' : ''}</span>
+          <div className="bg-gradient-to-br from-violet-500 to-purple-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-violet-100">Sélection Boutique</span>
+              <h3 className="text-2xl font-bold font-serif tracking-tight">
+                {stats.totalProduitsVedette} <span className="text-xs font-sans font-normal">Vedette{stats.totalProduitsVedette > 1 ? 's' : ''}</span>
               </h3>
             </div>
-            <div className="p-3.5 bg-violet-500/10 text-violet-400 rounded-xl border border-violet-500/20 z-10">
-              <Star size={22} strokeWidth={1.5} />
+            <div className="p-3 bg-white/20 backdrop-blur-xs rounded-2xl">
+              <Star size={22} />
             </div>
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-violet-500/5 rounded-full blur-2xl group-hover:bg-violet-500/10 transition-all" />
           </div>
 
-          <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-emerald-500/30 transition-all">
-            <div className="space-y-1.5 z-10">
-              <span className="text-[10px] uppercase font-semibold tracking-widest text-emerald-400/80">Commandes Traitées</span>
-              <h3 className="text-2xl font-bold font-serif text-white tracking-tight">
-                {stats.totalCommandes} <span className="text-xs text-emerald-400 font-sans font-normal">Expédiées</span>
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-100">Commandes Traitées</span>
+              <h3 className="text-2xl font-bold font-serif tracking-tight">
+                {stats.totalCommandes} <span className="text-xs font-sans font-normal">Expédiées</span>
               </h3>
             </div>
-            <div className="p-3.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 z-10">
-              <Package size={22} strokeWidth={1.5} />
+            <div className="p-3 bg-white/20 backdrop-blur-xs rounded-2xl">
+              <Package size={22} />
             </div>
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all" />
           </div>
 
-          <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-sky-500/30 transition-all">
-            <div className="space-y-1.5 z-10">
-              <span className="text-[10px] uppercase font-semibold tracking-widest text-sky-400/80">Zone Principale</span>
-              <h3 className="text-lg font-bold font-serif text-white tracking-tight truncate max-w-[160px]">
+          <div className="bg-gradient-to-br from-sky-500 to-indigo-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
+            <div className="space-y-1 min-w-0">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-sky-100">Zone Principale</span>
+              <h3 className="text-xl font-bold font-serif tracking-tight truncate max-w-[150px]">
                 {stats.zoneTop || "Non définie"}
               </h3>
             </div>
-            <div className="p-3.5 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20 z-10">
-              <MapPin size={22} strokeWidth={1.5} />
+            <div className="p-3 bg-white/20 backdrop-blur-xs rounded-2xl shrink-0">
+              <MapPin size={22} />
             </div>
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-all" />
           </div>
 
         </div>
 
-        {/* LIGNE SECONDAIRE : État du catalogue */}
+        {/* Ligne État du catalogue */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="flex items-center gap-3.5 bg-stone-900/60 border border-stone-800/60 p-4 rounded-2xl">
-            <div className="p-2.5 bg-stone-800 text-stone-300 rounded-lg shrink-0">
-              <Gem size={18} strokeWidth={1.5} />
+          <div className="flex items-center gap-3.5 bg-amber-50/70 border border-amber-200 p-4 rounded-2xl">
+            <div className="p-3 bg-amber-500 text-white rounded-xl shrink-0">
+              <Gem size={18} />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-semibold tracking-widest text-stone-500">Total Produits</p>
-              <p className="text-lg font-bold font-serif text-white">{stats.totalProduits}</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-amber-800">Total Produits</p>
+              <p className="text-xl font-bold font-serif text-amber-950">{stats.totalProduits}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5 bg-stone-900/60 border border-stone-800/60 p-4 rounded-2xl">
-            <div className="p-2.5 bg-stone-800 text-stone-300 rounded-lg shrink-0">
-              <Layers size={18} strokeWidth={1.5} />
+          <div className="flex items-center gap-3.5 bg-indigo-50/70 border border-indigo-200 p-4 rounded-2xl">
+            <div className="p-3 bg-indigo-500 text-white rounded-xl shrink-0">
+              <Layers size={18} />
             </div>
             <div>
-              <p className="text-[10px] uppercase font-semibold tracking-widest text-stone-500">Total Catégories</p>
-              <p className="text-lg font-bold font-serif text-white">{stats.totalCategories}</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-indigo-800">Total Catégories</p>
+              <p className="text-xl font-bold font-serif text-indigo-950">{stats.totalCategories}</p>
             </div>
           </div>
 
           <div className={`flex items-center gap-3.5 p-4 rounded-2xl border ${
-            stats.rupturesStock > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-stone-900/60 border-stone-800/60'
+            stats.rupturesStock > 0 ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'
           }`}>
-            <div className={`p-2.5 rounded-lg shrink-0 ${stats.rupturesStock > 0 ? 'bg-red-500/15 text-red-400' : 'bg-stone-800 text-stone-300'}`}>
-              <AlertTriangle size={18} strokeWidth={1.5} />
+            <div className={`p-3 rounded-xl shrink-0 text-white ${stats.rupturesStock > 0 ? 'bg-rose-500' : 'bg-emerald-500'}`}>
+              <AlertTriangle size={18} />
             </div>
             <div>
-              <p className={`text-[10px] uppercase font-semibold tracking-widest ${stats.rupturesStock > 0 ? 'text-red-400/90' : 'text-stone-500'}`}>Ruptures de Stock</p>
-              <p className={`text-lg font-bold font-serif ${stats.rupturesStock > 0 ? 'text-red-300' : 'text-white'}`}>{stats.rupturesStock}</p>
+              <p className={`text-[10px] uppercase font-bold tracking-widest ${stats.rupturesStock > 0 ? 'text-rose-700' : 'text-emerald-800'}`}>Ruptures de Stock</p>
+              <p className={`text-xl font-bold font-serif ${stats.rupturesStock > 0 ? 'text-rose-950' : 'text-emerald-950'}`}>{stats.rupturesStock}</p>
             </div>
           </div>
         </div>
@@ -621,12 +644,14 @@ export default function DashboardStats({ token }) {
         {/* BLOCS DE GRAPHIQUES & CLASSEMENTS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl lg:col-span-2 space-y-6">
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-xs lg:col-span-2 space-y-6">
 
             <div>
-              <div className="flex items-center gap-2 mb-4 pb-2 border-b border-stone-800/60">
-                <Trophy size={16} className="text-amber-400" />
-                <h2 className="text-xs uppercase font-semibold tracking-wider text-stone-300">
+              <div className="flex items-center gap-2 mb-4 pb-2.5 border-b border-slate-100">
+                <div className="p-1.5 rounded-lg bg-amber-100 text-amber-700">
+                  <Trophy size={16} />
+                </div>
+                <h2 className="text-xs uppercase font-bold tracking-wider text-slate-800">
                   Les Pièces les Plus Vendues
                 </h2>
               </div>
@@ -634,20 +659,20 @@ export default function DashboardStats({ token }) {
                 {stats.produitsPlusVendus.map((bijou, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center space-x-3.5 bg-stone-950/80 p-3 rounded-xl border border-stone-800/80 hover:border-amber-500/30 transition-all group"
+                    className="flex items-center space-x-3.5 bg-gradient-to-r from-amber-50/80 to-orange-50/50 p-3.5 rounded-2xl border border-amber-200/80"
                   >
-                    <span className="font-serif text-base font-bold text-amber-500/60 w-5 text-center">
+                    <span className="font-serif text-base font-bold text-amber-700 bg-amber-100 w-7 h-7 rounded-full flex items-center justify-center shrink-0">
                       #{idx + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-stone-200 truncate group-hover:text-amber-300 transition-colors">
+                      <p className="text-xs font-semibold text-slate-800 truncate">
                         {bijou.nom}
                       </p>
-                      <p className="text-[11px] text-stone-500 mt-0.5">
+                      <p className="text-[11px] text-slate-500 mt-0.5">
                         {bijou.ventes} unité{bijou.ventes > 1 ? 's' : ''} vendue{bijou.ventes > 1 ? 's' : ''}
                       </p>
                     </div>
-                    <span className="text-[11px] font-semibold text-stone-300 bg-stone-900 px-2.5 py-1 rounded-lg border border-stone-800">
+                    <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
                       {bijou.totalGenere.toLocaleString('fr-FR')} F
                     </span>
                   </div>
@@ -656,9 +681,11 @@ export default function DashboardStats({ token }) {
             </div>
 
             <div className="pt-2">
-              <div className="flex items-center gap-2 mb-4 pb-2 border-b border-stone-800/60">
-                <Star size={16} className="text-violet-400" />
-                <h2 className="text-xs uppercase font-semibold tracking-wider text-stone-300">
+              <div className="flex items-center gap-2 mb-4 pb-2.5 border-b border-slate-100">
+                <div className="p-1.5 rounded-lg bg-violet-100 text-violet-700">
+                  <Star size={16} />
+                </div>
+                <h2 className="text-xs uppercase font-bold tracking-wider text-slate-800">
                   Produits Vedette de la Boutique
                 </h2>
               </div>
@@ -666,21 +693,21 @@ export default function DashboardStats({ token }) {
                 {stats.produitsVedette.map((bijou, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center space-x-3.5 bg-stone-950/80 p-3 rounded-xl border border-stone-800/80 hover:border-violet-500/30 transition-all group"
+                    className="flex items-center space-x-3.5 bg-gradient-to-r from-violet-50/80 to-fuchsia-50/50 p-3.5 rounded-2xl border border-violet-200/80"
                   >
-                    <span className="font-serif text-base font-bold text-violet-500/50 w-5 text-center">
+                    <span className="font-serif text-base font-bold text-violet-700 bg-violet-100 w-7 h-7 rounded-full flex items-center justify-center shrink-0">
                       #{idx + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-stone-200 truncate group-hover:text-violet-300 transition-colors">
+                      <p className="text-xs font-semibold text-slate-800 truncate">
                         {bijou.nom}
                       </p>
-                      <p className="text-[11px] text-stone-500 mt-0.5">
+                      <p className="text-[11px] text-slate-500 mt-0.5">
                         {bijou.categorie}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 text-violet-400 bg-violet-500/10 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-violet-500/20">
-                      <Star size={11} fill="currentColor" />
+                    <div className="flex items-center gap-1 text-violet-700 bg-violet-100 px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-violet-200">
+                      <Star size={12} fill="currentColor" />
                     </div>
                   </div>
                 ))}
@@ -689,16 +716,18 @@ export default function DashboardStats({ token }) {
 
           </div>
 
-          <div className="bg-stone-900/80 border border-stone-800/80 p-6 rounded-2xl shadow-xl lg:col-span-1 flex flex-col justify-between">
+          <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-xs lg:col-span-1 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <BarChart3 size={16} className="text-amber-400" />
-                <h2 className="text-xs uppercase font-semibold tracking-wider text-stone-300">
+                <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
+                  <BarChart3 size={16} />
+                </div>
+                <h2 className="text-xs uppercase font-bold tracking-wider text-slate-800">
                   Zones à Forte Demande
                 </h2>
               </div>
-              <p className="text-[11px] text-stone-500">
-                Répartition des demandes par région ou ville.
+              <p className="text-[11px] text-slate-500">
+                Répartition des commandes par quartier ou ville.
               </p>
             </div>
 
@@ -706,8 +735,8 @@ export default function DashboardStats({ token }) {
               <Bar data={geoChartData} options={geoChartOptions} />
             </div>
 
-            <div className="text-[11px] text-stone-400 bg-stone-950/80 p-3 rounded-xl border border-stone-800 text-center italic">
-              Données utiles pour ajuster la logistique et cibler vos campagnes publicitaires.
+            <div className="text-[11px] text-indigo-800 bg-indigo-50 p-3 rounded-2xl border border-indigo-200 text-center font-medium">
+              Données utiles pour ajuster vos livraisons et cibler vos publications.
             </div>
           </div>
 
