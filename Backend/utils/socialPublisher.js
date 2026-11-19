@@ -223,6 +223,32 @@ const resolveInstagramAccountId = async (accessToken, configuredId, graphHost) =
   return cachedIgAccountId;
 };
 
+// Convertit toute image Cloudinary en JPEG compatible Instagram (ratio et format garantis)
+const toInstagramJpegUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  if (url.includes('/upload/') && !url.includes('/upload/f_jpg')) {
+    return url.replace('/upload/', '/upload/f_jpg,q_auto:good/');
+  }
+  return url;
+};
+
+// Attend que le conteneur média Instagram ait terminé son traitement avant de publier
+const waitForContainerReady = async (graphHost, creationId, accessToken) => {
+  for (let i = 0; i < 6; i++) {
+    try {
+      const statusRes = await axios.get(`${graphHost}/${GRAPH_API_VERSION}/${creationId}`, {
+        params: { fields: 'status_code', access_token: accessToken },
+      });
+      const code = statusRes.data?.status_code;
+      if (code === 'FINISHED' || !code) return;
+      if (code === 'ERROR') break;
+    } catch {
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+};
+
 /**
  * 1. Publie un produit sur Instagram via Meta Graph API (Photo unique ou Carrousel jusqu'à 4 photos)
  */
@@ -239,7 +265,7 @@ export const publishToInstagram = async (produit) => {
   }
 
   const imageUrls = (produit.image || [])
-    .map((img) => (typeof img === 'object' ? img.url : img))
+    .map((img) => toInstagramJpegUrl(typeof img === 'object' ? img.url : img))
     .filter(Boolean)
     .slice(0, 4);
 
@@ -295,6 +321,9 @@ export const publishToInstagram = async (produit) => {
       });
       creationId = carouselRes.data.id;
     }
+
+    // Attendre que Meta ait fini de préparer l'image / le carrousel avant de publier
+    await waitForContainerReady(graphHost, creationId, accessToken);
 
     // Validation finale du conteneur média sur le profil Instagram
     const publishRes = await axios.post(`${baseUrl}/media_publish`, {
