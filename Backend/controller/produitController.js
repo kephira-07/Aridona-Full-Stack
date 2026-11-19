@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import axios from 'axios';
 import produitModel from '../models/produitModel.js';
 import { v2 as cloudinary } from 'cloudinary';
 import generateUniqueSlug from '../utils/slug.js';
@@ -6,18 +7,17 @@ import { GoogleGenAI } from '@google/genai';
 import { cleanLocalFiles } from '../utils/cleanLocalFile.js';
 import { publishProductToSocials } from '../utils/socialPublisher.js';
 
-// Initialisation du SDK Google GenAI
+// Initialisation des clés IA (Groq Vision en priorité, fallback Gemini)
 const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/g, '').trim() : '');
 
-const getGenAIClient = () => {
-  const apiKey = cleanEnvValue(process.env.GEMINI_API_KEY);
-  if (!apiKey) {
-    throw new Error("La variable GEMINI_API_KEY est manquante dans la configuration du serveur (.env / Render).");
-  }
-  return new GoogleGenAI({ apiKey });
-};
+const GROQ_VISION_MODELS = [
+  'meta-llama/llama-4-scout-17b-16e-instruct',
+  'meta-llama/llama-4-maverick-17b-128e-instruct',
+  'llama-3.2-90b-vision-preview',
+  'llama-3.2-11b-vision-preview',
+];
 
-// Contrôleur pour l'analyse IA (Gemini)
+// Contrôleur pour l'analyse IA d'image (Groq Vision en priorité, fallback Gemini)
 const analyzeProductImage = async (req, res) => {
   try {
     const { imageBase64, mimeType } = req.body;
@@ -27,7 +27,8 @@ const analyzeProductImage = async (req, res) => {
     }
 
     const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
-    const ai = getGenAIClient();
+    const validMime = typeof mimeType === 'string' && mimeType ? mimeType : 'image/jpeg';
+    const dataUrl = `data:${validMime};base64,${cleanBase64}`;
 
     const prompt = [
       "Tu es un expert en e-commerce de bijoux en acier inoxydable pour Aridona Bijoux.",
@@ -42,53 +43,104 @@ const analyzeProductImage = async (req, res) => {
       '- "alt": Un texte alternatif SEO court décrivant visuellement le bijou sur la photo.'
     ].join('\n');
 
-    const candidateModels = [
-      'gemini-3.5-flash',
-      'gemini-3.5-flash-lite',
-      'gemini-3-flash-preview',
-      'gemini-flash-latest',
-    ];
-    let response = null;
+    const groqKey = cleanEnvValue(process.env.GROQ_API_KEY) ||
+      (cleanEnvValue(process.env.GEMINI_API_KEY).startsWith('gsk_') ? cleanEnvValue(process.env.GEMINI_API_KEY) : '');
+    const geminiKey = !cleanEnvValue(process.env.GEMINI_API_KEY).startsWith('gsk_')
+      ? cleanEnvValue(process.env.GEMINI_API_KEY)
+      : '';
+
+    let candidateText = '';
     let lastError = null;
 
-    for (const modelName of candidateModels) {
-      try {
-        response = await ai.models.generateContent({
-          model: modelName,
-          contents: [
+    // 1. Analyse d'image avec GROQ VISION en priorité !
+    if (groqKey) {
+      for (const modelName of GROQ_VISION_MODELS) {
+        try {
+          const groqRes = await axios.post(
+            'https://api.groq.com/openai/v1/chat/completions',
             {
-              role: 'user',
-              parts: [
-                { text: prompt },
+              model: modelName,
+              messages: [
                 {
-                  inlineData: {
-                    mimeType: typeof mimeType === 'string' && mimeType ? mimeType : 'image/jpeg',
-                    data: cleanBase64,
-                  },
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: prompt },
+                    { type: 'image_url', image_url: { url: dataUrl } },
+                  ],
                 },
               ],
+              temperature: 0.5,
+              max_tokens: 900,
+              response_format: { type: 'json_object' },
             },
-          ],
-          config: {
-            responseMimeType: 'application/json',
-          },
-        });
-        if (response) break;
-      } catch (modelErr) {
-        lastError = modelErr;
-        console.warn(`Tentative avec ${modelName} échouée :`, modelErr.message);
+            {
+              headers: {
+                Authorization: `Bearer ${groqKey}`,
+                'Content-Type': 'application/json',
+              },
+              timeout: 20000,
+            }
+          );
+          const content = groqRes.data?.choices?.[0]?.message?.content;
+          if (content && content.trim()) {
+            candidateText = content.trim();
+            break;
+          }
+        } catch (groqErr) {
+          lastError = groqErr;
+          const errMsg = groqErr.response?.data?.error?.message || groqErr.message;
+          console.warn(`Tentative Groq Vision avec ${modelName} échouée :`, errMsg);
+        }
       }
     }
 
-    if (!response) {
-      throw lastError || new Error("Aucun modèle Gemini n'a pu répondre.");
+    // 2. Fallback sur Gemini uniquement si Groq n'a pas répondu
+    if (!candidateText && geminiKey) {
+      const ai = new GoogleGenAI({ apiKey: geminiKey });
+      const candidateModels = [
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-flash-latest',
+      ];
+      for (const modelName of candidateModels) {
+        try {
+          const response = await Promise.race([
+            ai.models.generateContent({
+              model: modelName,
+              contents: [
+                {
+                  role: 'user',
+                  parts: [
+                    { text: prompt },
+                    { inlineData: { mimeType: validMime, data: cleanBase64 } },
+                  ],
+                },
+              ],
+              config: { responseMimeType: 'application/json' },
+            }),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error(`Timeout (15s) dépassé sur ${modelName}`)), 15000)
+            ),
+          ]);
+          const text =
+            (typeof response?.text === 'function' ? response.text() : response?.text) ||
+            response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+            '';
+          if (text && String(text).trim()) {
+            candidateText = String(text).trim();
+            break;
+          }
+        } catch (modelErr) {
+          lastError = modelErr;
+          console.warn(`Tentative Gemini avec ${modelName} échouée :`, modelErr.message);
+        }
+      }
     }
 
-    // Récupération sécurisée du texte généré
-    const candidateText =
-      (typeof response.text === 'function' ? response.text() : response.text) ||
-      response.candidates?.[0]?.content?.parts?.[0]?.text ||
-      '';
+    if (!candidateText) {
+      throw lastError || new Error("Aucun modèle Groq Vision n'a pu analyser l'image.");
+    }
+
     let rawText = String(candidateText).trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -97,7 +149,7 @@ const analyzeProductImage = async (req, res) => {
 
     const productData = JSON.parse(rawText);
 
-    // Normalisation au cas où Gemini renvoie tags sous forme de tableau
+    // Normalisation au cas où l'IA renvoie tags sous forme de tableau
     if (Array.isArray(productData.tags)) {
       productData.tags = productData.tags.join(', ');
     }
@@ -105,10 +157,10 @@ const analyzeProductImage = async (req, res) => {
     return res.json({ success: true, product: productData });
 
   } catch (error) {
-    console.error("Erreur détaillée analyse Gemini :", error);
+    console.error("Erreur détaillée analyse IA :", error);
     return res.status(500).json({
       success: false,
-      message: error.message || "Erreur lors de l'analyse de l'image par l'IA."
+      message: error.message || "Erreur lors de l'analyse de l'image par l'IA Groq."
     });
   }
 };

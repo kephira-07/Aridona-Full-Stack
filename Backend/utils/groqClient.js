@@ -5,16 +5,16 @@ const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/
 
 // Modèles Groq disponibles par ordre de priorité
 const GROQ_MODELS = [
-  'qwen/qwen3.8-27b',
-  'openai/gpt-oss-120b',
-  'openai/gpt-oss-20b'
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'qwen/qwen3-32b',
 ];
 
 // Modèles Gemini disponibles (identiques à Ajouter Produit)
 const GEMINI_MODELS = [
-  'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
-  'gemini-3-flash-preview',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
   'gemini-flash-latest',
 ];
 
@@ -155,25 +155,46 @@ Note : 'prixSuggere' doit être un nombre entier en FCFA (arrondi à 500 FCFA pr
   return parseJsonFromResponse(raw);
 };
 
+const ANGLES_EDITORIAL = [
+  "Conseils look & association mode : comment porter ce bijou au quotidien, au bureau ou en soirée à Lomé (layering, superposition, accord avec les tenues)",
+  "Guide d'achat & tendances bijoux au Togo : pourquoi ce style de bijou est l'indispensable de la saison pour sublimer sa silhouette",
+  "Idée cadeau parfaite à Lomé : pourquoi offrir ce bijou (anniversaire, fête, surprise) et comment choisir la pièce idéale qui dure toute une vie",
+  "Bijoux & climat tropical au Togo : comment rester élégante à la plage, sous la chaleur ou la pluie avec des bijoux waterproof et hypoallergéniques",
+  "Morphologie & style personnel : comment choisir et associer ce bijou pour mettre en valeur son teint, son cou, ses mains ou son poignet",
+  "Histoire & symbolique du bijou : l'élégance intemporelle, la confiance en soi et l'art d'accessoiriser une tenue minimaliste ou chic",
+];
+
 /**
- * Rédige automatiquement un article de blog complet
+ * Rédige automatiquement un article de blog complet et varié
  */
 export const genererArticleAvecGroq = async ({ sujet, produit }) => {
-  const systemPrompt = "Tu es le rédacteur en chef du blog d'Aridona Bijoux, expert en joaillerie durable et acier inoxydable 316L. Tu rédiges des articles de blog captivants, chaleureux et optimisés pour le référencement Google. Tu réponds UNIQUEMENT en JSON valide.";
+  const systemPrompt = "Tu es le rédacteur en chef mode & lifestyle du blog d'Aridona Bijoux (boutique de vente de bijoux en ligne à Lomé, Togo). Tu rédiges des articles variés, inspirants, chaleureux et optimisés pour le SEO Google au Togo (acheter des bijoux au Togo, tendances mode Lomé, idées cadeaux, guides de style). INTERDICTION de faire un article centré uniquement sur le nettoyage ou l'entretien sauf si le sujet le demande explicitement. Tu réponds UNIQUEMENT en JSON valide.";
 
-  const detailsProduit = produit ? `Produit mis en avant : "${produit.nom}" (${produit.description || ''})` : '';
+  const angleAleatoire = ANGLES_EDITORIAL[Math.floor(Math.random() * ANGLES_EDITORIAL.length)];
+  const orientation = (sujet && sujet.trim())
+    ? sujet.trim()
+    : (produit
+        ? `${angleAleatoire} — autour de notre création "${produit.nom}"`
+        : angleAleatoire);
 
-  const userPrompt = `Rédige un article de blog complet et soigné pour notre boutique en ligne.
-Sujet ou orientation souhaitée : "${sujet || 'Conseils mode et entretien des bijoux en acier inoxydable'}"
+  const detailsProduit = produit ? `Produit mis en avant dans l'article : "${produit.nom}" (${produit.description || ''})` : '';
+
+  const userPrompt = `Rédige un article de blog complet, original et captivant pour notre boutique de bijoux en ligne à Lomé, Togo (Aridona Bijoux).
+Angle et sujet précis de l'article : "${orientation}"
 ${detailsProduit}
+
+Consignes éditoriales importantes :
+- Ne fais PAS un énième guide sur "comment nettoyer/entretenir l'acier inoxydable".
+- Parle de style, d'élégance, d'idées de looks, d'occasions (soirée, bureau, cadeau, mariage, plage à Lomé), de tendances mode au Togo, et explique pourquoi acheter ce bijou sur Aridona Bijoux est un coup de cœur durable (waterproof, ne noircit pas, livraison rapide à Lomé et partout au Togo).
+- Intègre naturellement des mots-clés SEO locaux comme "acheter des bijoux au Togo", "boutique de bijoux à Lomé", "Aridona Bijoux".
 
 Format JSON strict attendu (sans texte autour) avec exactement ces clés :
 {
-  "titre": "Un titre accrocheur et optimisé SEO (moins de 70 caractères)",
+  "titre": "Un titre accrocheur, original et optimisé SEO (moins de 70 caractères, sans le mot 'entretien')",
   "extrait": "Un résumé engageant de 2 à 3 phrases donnant immédiatement envie de lire la suite",
-  "contenu": "Le texte complet de l'article (au moins 3 ou 4 paragraphes bien développés avec conseils pratiques, astuces de style, arguments sur la durabilité et l'acier 316L, et conclusion chaleureuse)",
-  "tags": ["bijoux", "acier inoxydable", "mode", "conseils", "lome"],
-  "metaTitle": "Titre SEO percutant pour Google (< 65 caractères)",
+  "contenu": "Le texte complet de l'article (3 à 4 paragraphes riches et bien développés, séparés par une ligne vide \\n\\n)",
+  "tags": ["bijoux togo", "mode lome", "style", "idee cadeau", "aridona bijoux"],
+  "metaTitle": "Titre SEO percutant pour Google au Togo (< 65 caractères)",
   "metaDescription": "Méta description SEO engageante avec appel à l'action (< 155 caractères)"
 }`;
 
