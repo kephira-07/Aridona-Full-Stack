@@ -10,10 +10,10 @@ import { publishProductToSocials } from '../utils/socialPublisher.js';
 const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/g, '').trim() : '');
 
 const GROQ_VISION_MODELS = [
-  'meta-llama/llama-4-scout-17b-16e-instruct',
-  'meta-llama/llama-4-maverick-17b-128e-instruct',
-  'llama-3.2-90b-vision-preview',
-  'llama-3.2-11b-vision-preview',
+  'qwen/qwen3.8-27b',
+  'qwen/qwen3.6-27b',
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
 ];
 
 // Contrôleur pour l'analyse IA d'image (100% Groq Vision)
@@ -64,8 +64,8 @@ const analyzeProductImage = async (req, res) => {
       });
       const apiModels = (modelsRes.data?.data || [])
         .map((m) => m.id)
-        .filter((id) => /llama-4|vision|pixtral|llava/i.test(id));
-      modelsToTry = [...new Set([...apiModels, ...GROQ_VISION_MODELS])];
+        .filter((id) => /qwen3|vision|pixtral|llava/i.test(id));
+      modelsToTry = [...new Set([...GROQ_VISION_MODELS, ...apiModels])];
     } catch {
       // Ignore si la liste des modèles échoue, on garde GROQ_VISION_MODELS
     }

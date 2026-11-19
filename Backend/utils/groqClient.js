@@ -4,10 +4,11 @@ const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/
 
 // Modèles Groq disponibles par ordre de priorité
 const GROQ_MODELS = [
+  'qwen/qwen3.8-27b',
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
   'llama-3.3-70b-versatile',
   'llama-3.1-8b-instant',
-  'qwen/qwen3-32b',
-  'meta-llama/llama-4-scout-17b-16e-instruct',
 ];
 
 /**
