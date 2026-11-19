@@ -523,9 +523,21 @@ const escapeXml = (str) => String(str ?? '')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&apos;');
 
+const MOCK_SLUGS = new Set([
+  'p001', 'p002', 'p003', 'p004', 'p005', 'p006', 'p007', 'p008', 'p009', 'p010',
+  'collier-etoile-argent', 'boucles-doreilles-perle', 'chaine-a-lunettes-doree',
+  'bracelet-tresse-cuir', 'bague-saphir-royal', 'ensemble-collier-boucles-cristal',
+  'collier-quartz-rose', 'boucles-doreilles-creoles-dorees', 'bracelet-pierre-volcanique',
+  'ensemble-bague-collier-rubis'
+]);
+
 const getProductFeed = async (req, res) => {
   try {
-    const produits = await produitModel.find({}).populate('categorie', 'nom');
+    const allProduits = await produitModel.find({}).populate('categorie', 'nom');
+    const produits = allProduits.filter((p) => {
+      const slug = String(p.slug || '').toLowerCase();
+      return !MOCK_SLUGS.has(slug) && !slug.startsWith('p00') && Array.isArray(p.image) && p.image.length > 0;
+    });
 
     const items = produits.map((p) => {
       const images = Array.isArray(p.image) ? p.image : [];
@@ -549,7 +561,7 @@ ${additionalImages}
       <g:brand>Aridona Bijoux</g:brand>
       <g:condition>new</g:condition>
       <g:identifier_exists>no</g:identifier_exists>
-      <g:google_product_category>Apparel & Accessories &gt; Jewelry</g:google_product_category>
+      <g:google_product_category>Apparel &amp; Accessories &gt; Jewelry</g:google_product_category>
       ${p.categorie?.nom ? `<g:product_type>${escapeXml(p.categorie.nom)}</g:product_type>` : ''}
     </item>`;
     });
