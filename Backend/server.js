@@ -1,5 +1,11 @@
 import 'dotenv/config';
+import dns from 'node:dns';
+import https from 'node:https';
 import express from 'express';
+
+// Force IPv4 en priorité (évite les Request Timeout 499 vers Cloudinary dans les conteneurs Podman/Docker)
+dns.setDefaultResultOrder('ipv4first');
+https.globalAgent.options.family = 4;
 import cors from 'cors';
 import helmet from 'helmet';
 import multer from 'multer';
