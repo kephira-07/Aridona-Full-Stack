@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import fs from 'node:fs/promises';
 import axios from 'axios';
 import produitModel from '../models/produitModel.js';
 import { v2 as cloudinary } from 'cloudinary';
@@ -201,6 +202,30 @@ const parseTagsHelper = (input) => {
 const LEGACY_COULEURS = { 'Or Rose': 'Rosé' };
 const parseCouleursHelper = (input) => parseArrayHelper(input).map((c) => LEGACY_COULEURS[String(c)] || String(c));
 
+// Helper partagé pour uploader une image vers Cloudinary via data-URI base64
+// (évite les Request Timeout 499 du streaming multipart dans les conteneurs Podman)
+const uploadFileToCloudinary = async (file) => {
+  const buffer = await fs.readFile(file.path);
+  const mime = file.mimetype || 'image/jpeg';
+  const dataUri = `data:${mime};base64,${buffer.toString('base64')}`;
+
+  let lastUploadErr = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const uploadRes = await cloudinary.uploader.upload(dataUri, {
+        resource_type: 'image',
+        folder: 'aridona/bijoux',
+        timeout: 120000,
+      });
+      if (uploadRes) return uploadRes;
+    } catch (upErr) {
+      lastUploadErr = upErr;
+      console.warn(`Tentative upload Cloudinary (${attempt}/2) échouée :`, upErr?.message || upErr);
+    }
+  }
+  throw lastUploadErr || new Error("Échec de l'envoi de l'image vers Cloudinary.");
+};
+
 // 1. Ajouter un produit
 const addproduit = async (req, res) => {
   try {
@@ -227,24 +252,7 @@ const addproduit = async (req, res) => {
 
     const uploaded = [];
     for (const item of images) {
-      let uploadRes = null;
-      let lastUploadErr = null;
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          uploadRes = await cloudinary.uploader.upload(item.path, {
-            resource_type: 'image',
-            folder: 'aridona/bijoux',
-            timeout: 120000,
-          });
-          if (uploadRes) break;
-        } catch (upErr) {
-          lastUploadErr = upErr;
-          console.warn(`Tentative upload Cloudinary (${attempt}/2) échouée :`, upErr?.message || upErr);
-        }
-      }
-      if (!uploadRes) {
-        throw lastUploadErr || new Error("Échec de l'envoi de l'image vers Cloudinary.");
-      }
+      const uploadRes = await uploadFileToCloudinary(item);
       uploaded.push(uploadRes);
     }
     const imageDocs = uploaded.map((r, i) => ({
@@ -459,7 +467,7 @@ const updateproduit = async (req, res) => {
         } else if (slot.type === 'new') {
           const file = req.files?.[`image${i + 1}`]?.[0];
           if (file) {
-            const result = await cloudinary.uploader.upload(file.path, { resource_type: 'image', folder: 'aridona/bijoux' });
+            const result = await uploadFileToCloudinary(file);
             finalImages.push({
               url: result.secure_url,
               publicId: result.public_id,
