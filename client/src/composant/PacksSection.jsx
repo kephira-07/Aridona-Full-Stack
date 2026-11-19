@@ -66,36 +66,26 @@ export default function PacksSection() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 self-end md:self-auto">
-            {/* Boutons flèches précédent / suivant (visibles sur mobile et PC) */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => scrollByAmount('left')}
-                disabled={!canScrollLeft}
-                aria-label="Pack précédent"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 shadow-xs transition-all hover:border-amber-900 hover:bg-amber-900 hover:text-white disabled:opacity-35 disabled:pointer-events-none cursor-pointer"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollByAmount('right')}
-                disabled={!canScrollRight}
-                aria-label="Pack suivant"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 shadow-xs transition-all hover:border-amber-900 hover:bg-amber-900 hover:text-white disabled:opacity-35 disabled:pointer-events-none cursor-pointer"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
-
-            <Link 
-              to="/packs" 
-              className="hidden sm:inline-flex group items-center gap-2.5 rounded-full bg-amber-900 px-6 py-3 text-xs font-medium uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-amber-950 hover:shadow-md"
+          {/* Uniquement les flèches < et > en haut à droite */}
+          <div className="flex items-center gap-2 self-end md:self-auto">
+            <button
+              type="button"
+              onClick={() => scrollByAmount('left')}
+              disabled={!canScrollLeft}
+              aria-label="Pack précédent"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 shadow-xs transition-all hover:border-amber-900 hover:bg-amber-900 hover:text-white disabled:opacity-35 disabled:pointer-events-none cursor-pointer"
             >
-              <span>Voir plus</span>
-              <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByAmount('right')}
+              disabled={!canScrollRight}
+              aria-label="Pack suivant"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-stone-300 bg-white text-stone-800 shadow-xs transition-all hover:border-amber-900 hover:bg-amber-900 hover:text-white disabled:opacity-35 disabled:pointer-events-none cursor-pointer"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
 
@@ -113,36 +103,15 @@ export default function PacksSection() {
               <PackCard pack={pack} />
             </div>
           ))}
-
-          {/* Carte finale "Voir tous les packs" intégrée à la fin du carrousel */}
-          <Link
-            to="/packs"
-            className="w-[75%] sm:w-[40%] lg:w-[26%] shrink-0 snap-start flex flex-col items-center justify-center gap-4 border border-dashed border-amber-900/30 bg-white/70 hover:bg-white hover:border-amber-900 p-8 text-center transition-all duration-300 group min-h-[340px]"
-          >
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-900/10 text-amber-900 transition-transform duration-300 group-hover:scale-110 group-hover:bg-amber-900 group-hover:text-white">
-              <ArrowRight size={22} />
-            </div>
-            <div className="space-y-1.5">
-              <p className="font-ebgaramond text-2xl font-medium text-stone-900">
-                Voir tous nos packs
-              </p>
-              <p className="text-xs text-stone-500 font-light max-w-[200px]">
-                Découvrez l'ensemble de nos coffrets et parures à prix réduit
-              </p>
-            </div>
-            <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-amber-900 group-hover:underline">
-              Voir plus ({packs.length})
-            </span>
-          </Link>
         </div>
 
-        {/* Bouton "Voir plus" centré en bas (toujours bien visible sur Mobile & PC) */}
+        {/* Un seul bouton "Voir plus" centré en bas */}
         <div className="mt-8 flex justify-center">
           <Link 
             to="/packs" 
             className="group inline-flex items-center gap-3 rounded-full bg-amber-900 px-8 py-3.5 text-xs font-semibold uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-amber-950 hover:shadow-md active:scale-95"
           >
-            <span>Voir plus — Tous les packs disponibles</span>
+            <span>Voir tous les packs</span>
             <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1.5" />
           </Link>
         </div>
