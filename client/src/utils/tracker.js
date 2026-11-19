@@ -13,13 +13,10 @@ const getVisitorId = () => {
   }
 };
 
+let memoryIdentity = {};
+
 const getSavedIdentity = () => {
-  try {
-    const raw = localStorage.getItem("aridona_vinfo");
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+  return memoryIdentity;
 };
 
 // Enregistre l'identité du visiteur (nom, email, téléphone, ville) dès qu'il la saisit sur le site
@@ -32,7 +29,7 @@ export const identifyVisitor = ({ name, email, phone, city } = {}) => {
       phone: (phone && String(phone).trim()) || current.phone || "",
       city: (city && String(city).trim()) || current.city || "",
     };
-    localStorage.setItem("aridona_vinfo", JSON.stringify(updated));
+    memoryIdentity = updated;
     trackEvent("identify", updated);
   } catch {
     // Silencieux
@@ -96,23 +93,33 @@ const getTrafficSource = () => {
 
     const params = new URLSearchParams(window.location.search);
     const utm = (params.get("utm_source") || "").toLowerCase();
-    const ref = (document.referrer || "").toLowerCase();
     const ua = (navigator.userAgent || "").toLowerCase();
-    const combined = `${utm} ${ref} ${ua}`;
+    let refHost = "";
+    if (document.referrer) {
+      try {
+        refHost = new URL(document.referrer).hostname.replace(/^www\./, "").toLowerCase();
+      } catch {
+        refHost = "";
+      }
+    }
+
+    const matchesHost = (host, domain) => host === domain || host.endsWith(`.${domain}`);
 
     let source = "Accès direct";
-    if (combined.includes("instagram")) source = "Instagram";
-    else if (combined.includes("google")) source = "Google";
-    else if (combined.includes("facebook") || combined.includes("fb.") || combined.includes("fban")) source = "Facebook";
-    else if (combined.includes("tiktok")) source = "TikTok";
-    else if (combined.includes("whatsapp") || combined.includes("wa.me")) source = "WhatsApp";
-    else if (combined.includes("twitter") || combined.includes("t.co") || combined.includes("x.com")) source = "X (Twitter)";
-    else if (ref && !ref.includes(window.location.hostname)) {
-      try {
-        source = new URL(document.referrer).hostname.replace(/^www\./, "");
-      } catch {
-        source = "Lien externe";
-      }
+    if (utm.includes("instagram") || ua.includes("instagram") || matchesHost(refHost, "instagram.com")) {
+      source = "Instagram";
+    } else if (utm.includes("google") || matchesHost(refHost, "google.com") || matchesHost(refHost, "google.fr")) {
+      source = "Google";
+    } else if (utm.includes("facebook") || utm.includes("fb") || ua.includes("fban") || ua.includes("fbav") || matchesHost(refHost, "facebook.com") || matchesHost(refHost, "fb.com")) {
+      source = "Facebook";
+    } else if (utm.includes("tiktok") || matchesHost(refHost, "tiktok.com")) {
+      source = "TikTok";
+    } else if (utm.includes("whatsapp") || matchesHost(refHost, "whatsapp.com") || matchesHost(refHost, "wa.me")) {
+      source = "WhatsApp";
+    } else if (utm.includes("twitter") || utm.includes("x") || matchesHost(refHost, "twitter.com") || matchesHost(refHost, "t.co") || matchesHost(refHost, "x.com")) {
+      source = "X (Twitter)";
+    } else if (refHost && refHost !== window.location.hostname.replace(/^www\./, "").toLowerCase()) {
+      source = refHost;
     }
 
     sessionStorage.setItem("aridona_src", source);

@@ -205,7 +205,10 @@ export const generateArticleWithAI = async (req, res) => {
     const { sujet, produitId } = req.body;
     let produit = null;
     if (produitId) {
-      produit = await produitModel.findById(produitId).select('nom description');
+      if (typeof produitId !== 'string' || !mongoose.isValidObjectId(produitId)) {
+        return res.status(400).json({ success: false, message: "Identifiant de produit invalide." });
+      }
+      produit = await produitModel.findOne({ _id: { $eq: produitId } }).select('nom description');
     }
     const articleGenere = await genererArticleAvecGroq({ sujet, produit });
     return res.json({ success: true, article: articleGenere });
