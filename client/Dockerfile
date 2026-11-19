@@ -8,6 +8,10 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+ARG VITE_BACKEND_URL=https://api.aridona.store
+ARG VITE_GOOGLE_CLIENT_ID=150301338312-stgp473sf4mf2fnitnhlumb148oafjs0.apps.googleusercontent.com
+ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN npm run build
 
 # Serve stage

@@ -5,17 +5,20 @@ services:
   backend:
     build: ./Backend
     ports:
-      - "4000:4000"
+      - "127.0.0.1:3001:4000"
+    env_file:
+      - ./Backend/.env
     environment:
       - NODE_ENV=production
-      # - MONGODB_URI=... # À décommenter et remplir si nécessaire
+      - PORT=4000
+      - FRONTEND_URL=https://aridona.store
     restart: unless-stopped
 
   # 2. Le Client (Vite + Nginx)
   client:
     build: ./client
     ports:
-      - "4545:80" # On mappe le port 4545 de ta machine (comme demandé) vers le port 80 du Nginx
+      - "127.0.0.1:3002:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -24,7 +27,7 @@ services:
   admin:
     build: ./admin
     ports:
-      - "4546:80" # On mappe le port 4546 pour l'admin
+      - "127.0.0.1:3003:80"
     depends_on:
       - backend
     restart: unless-stopped

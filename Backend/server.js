@@ -39,6 +39,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Origines autorisées : client et dashboard admin en production + ports de dev locaux.
 const defaultOrigins = [
   'https://aridona.store',
+  'https://www.aridona.store',
+  'https://admin.aridona.store',
   'https://aridona-bijoux-admin.onrender.com',
   'http://localhost:5173',
   'http://localhost:5174',
