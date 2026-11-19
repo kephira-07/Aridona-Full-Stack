@@ -110,11 +110,59 @@ const Edit = ({ token }) => {
     if (id) fetchCategoriesAndProduct();
   }, [id]);
 
+  const compressImageFile = (file) =>
+    new Promise((resolve) => {
+      if (!file || !file.type?.startsWith('image/')) return resolve(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDim = 1400;
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) return resolve(file);
+                const cleanName = (file.name || 'bijou.jpg').replace(/\.[^.]+$/, '') + '.jpg';
+                resolve(new File([blob], cleanName, { type: 'image/jpeg', lastModified: Date.now() }));
+              },
+              'image/jpeg',
+              0.85
+            );
+          } catch {
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+        img.src = typeof reader.result === 'string' ? reader.result : '';
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+
   // Gestion des nouvelles images localement
-  const handleImageChange = (index, file) => {
-    const newImages = [...images];
-    newImages[index] = file;
-    setImages(newImages);
+  const handleImageChange = async (index, file) => {
+    if (!file) return;
+    const compressed = await compressImageFile(file);
+    setImages((prev) => {
+      const next = [...prev];
+      next[index] = compressed;
+      return next;
+    });
   };
 
   const removeNewImage = (index) => {

@@ -75,11 +75,65 @@ const Add = ({ token }) => {
     fetchCategories();
   }, []);
 
+  // Compresse et redimensionne une image côté navigateur avant l'upload (max 1400px, JPEG 0.85)
+  // pour éviter les timeouts Cloudinary sur les photos brutes de smartphone (3-5 Mo).
+  const compressImageFile = (file) =>
+    new Promise((resolve) => {
+      if (!file || !file.type?.startsWith('image/')) return resolve(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxDim = 1400;
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) return resolve(file);
+                const cleanName = (file.name || 'bijou.jpg').replace(/\.[^.]+$/, '') + '.jpg';
+                const compressedFile = new File([blob], cleanName, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              },
+              'image/jpeg',
+              0.85
+            );
+          } catch {
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+        img.src = typeof reader.result === 'string' ? reader.result : '';
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+
   // Gestion des images localement
-  const handleImageChange = (index, file) => {
-    const newImages = [...images];
-    newImages[index] = file;
-    setImages(newImages);
+  const handleImageChange = async (index, file) => {
+    if (!file) return;
+    const compressed = await compressImageFile(file);
+    setImages((prev) => {
+      const next = [...prev];
+      next[index] = compressed;
+      return next;
+    });
   };
 
   const removeImage = (index) => {

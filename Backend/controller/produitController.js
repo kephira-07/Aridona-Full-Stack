@@ -225,11 +225,28 @@ const addproduit = async (req, res) => {
     const images = [image1, image2, image3, image4].filter(Boolean);
     const parsedAlts = parseArrayHelper(alts);
 
-    const uploaded = await Promise.all(
-      images.map((item) =>
-        cloudinary.uploader.upload(item.path, { resource_type: 'image', folder: 'aridona/bijoux' })
-      )
-    );
+    const uploaded = [];
+    for (const item of images) {
+      let uploadRes = null;
+      let lastUploadErr = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          uploadRes = await cloudinary.uploader.upload(item.path, {
+            resource_type: 'image',
+            folder: 'aridona/bijoux',
+            timeout: 120000,
+          });
+          if (uploadRes) break;
+        } catch (upErr) {
+          lastUploadErr = upErr;
+          console.warn(`Tentative upload Cloudinary (${attempt}/2) échouée :`, upErr?.message || upErr);
+        }
+      }
+      if (!uploadRes) {
+        throw lastUploadErr || new Error("Échec de l'envoi de l'image vers Cloudinary.");
+      }
+      uploaded.push(uploadRes);
+    }
     const imageDocs = uploaded.map((r, i) => ({
       url: r.secure_url,
       publicId: r.public_id,
@@ -289,7 +306,8 @@ const addproduit = async (req, res) => {
   } catch (error) {
     cleanLocalFiles(req.files);
     console.error("Erreur ajout produit:", error);
-    return res.status(500).json({ success: false, message: "Erreur interne du serveur." });
+    const errDetail = error?.message || error?.error?.message || "Erreur interne du serveur.";
+    return res.status(500).json({ success: false, message: `Erreur ajout produit : ${errDetail}` });
   }
 };
 
