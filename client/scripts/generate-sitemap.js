@@ -34,11 +34,19 @@ const envBackend = process.env.VITE_BACKEND_URL || readEnvVar('VITE_BACKEND_URL'
 // afin que sitemap.xml contienne toujours les vrais produits de la base de données.
 const BACKEND_URL = (envBackend && !envBackend.includes('localhost') && !envBackend.includes('127.0.0.1'))
   ? envBackend
-  : 'https://aridona-full-stack.onrender.com';
+  : 'https://api.aridona.store';
 
 const STATIC_PAGES = [
   { loc: '/', changefreq: 'daily', priority: '1.0' },
-  { loc: '/collection', changefreq: 'daily', priority: '0.8' },
+  { loc: '/collection', changefreq: 'daily', priority: '0.9' },
+  { loc: '/collection/bague', changefreq: 'weekly', priority: '0.8' },
+  { loc: '/collection/collier', changefreq: 'weekly', priority: '0.8' },
+  { loc: '/collection/bracelet', changefreq: 'weekly', priority: '0.8' },
+  { loc: '/collection/boucle-doreille', changefreq: 'weekly', priority: '0.8' },
+  { loc: '/collection/bracelet-de-bras', changefreq: 'weekly', priority: '0.7' },
+  { loc: '/collection/ceinture-chaine', changefreq: 'weekly', priority: '0.7' },
+  { loc: '/collection/chaine-de-lunette', changefreq: 'weekly', priority: '0.7' },
+  { loc: '/collection/ensembles-de-bijoux', changefreq: 'weekly', priority: '0.8' },
   { loc: '/packs', changefreq: 'daily', priority: '0.9' },
   { loc: '/blog', changefreq: 'weekly', priority: '0.6' },
   { loc: '/a-propos', changefreq: 'monthly', priority: '0.5' },

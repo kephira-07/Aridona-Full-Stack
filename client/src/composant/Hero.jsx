@@ -102,19 +102,30 @@ const Caroussel = ({ children, autoSlide = true, autoSlideInterval = 3500, onCha
 const StructuredData = () => {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Store",
+    "@type": ["JewelryStore", "OnlineStore"],
     "name": "ARIDONA Bijoux",
-    "description": "Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo : bagues, colliers, bracelets, boucles d'oreilles et parures waterproof et hypoallergéniques. Livraison rapide à Lomé et partout au Togo.",
+    "alternateName": "Aridona Bijoux Togo - Site de vente de bijoux en ligne à Lomé",
+    "url": "https://aridona.store/",
+    "telephone": "+22872656485",
+    "currenciesAccepted": "XOF",
+    "paymentAccepted": "Cash, Mobile Money (Flooz, Mixx by Yas)",
+    "description": "Site de vente de bijoux en ligne à Lomé et au Togo : acheter bagues, colliers, bracelets, boucles d'oreilles et parures en acier inoxydable 316L waterproof et hypoallergéniques. Livraison rapide à Lomé et partout au Togo.",
     "image": [Heroimg1],
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Lomé",
       "addressCountry": "TG"
     },
-    "areaServed": {
-      "@type": "City",
-      "name": "Lomé"
-    },
+    "areaServed": [
+      { "@type": "City", "name": "Lomé" },
+      { "@type": "Country", "name": "Togo" }
+    ],
+    "sameAs": [
+      "https://www.instagram.com/aridonabijoux/",
+      "https://www.facebook.com/profile.php?id=61593227000931",
+      "https://www.tiktok.com/@aridonabijoux",
+      "https://x.com/AridonaBijoux"
+    ],
     "priceRange": "$$"
     // Pas de "makesOffer" ici : Google traitait son "itemOffered" (Product générique sans
     // prix ni avis) comme un élément Product à part entière, ce qui le faisait échouer à la

@@ -70,11 +70,26 @@ export default function APropos() {
     <div className="bg-[#FAF8F5] text-stone-800 min-h-screen pt-8 pb-28 font-sans selection:bg-amber-100 selection:text-amber-900">
       
       <Helmet>
-        <title>Aridona Bijoux | Notre Histoire & Nos Engagements à Lomé</title>
+        <title>Aridona Bijoux | Boutique de Vente de Bijoux en Ligne à Lomé, Togo</title>
         <meta
           name="description"
-          content="Aridona Bijoux sélectionne pour vous des bijoux en acier inoxydable 316L waterproof, hypoallergéniques et durables. Découvrez notre histoire et nos engagements qualité. Livraison rapide à Lomé et partout au Togo."
+          content="Où acheter des bijoux en acier inoxydable au Togo ? Aridona Bijoux est votre site de vente de bijoux en ligne à Lomé : bagues, colliers, bracelets waterproof. Livraison rapide à Lomé et partout au Togo."
         />
+        <link rel="canonical" href="https://aridona.store/a-propos" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faqs.map((f) => ({
+              "@type": "Question",
+              "name": f.q,
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": f.r
+              }
+            }))
+          })}
+        </script>
       </Helmet>
 
       <div className="px-4 sm:px-8 md:px-12 lg:px-20 max-w-7xl mx-auto space-y-24">

@@ -1,32 +1,41 @@
-# Aridona Bijoux
+# Aridona Bijoux — Boutique de vente de bijoux en ligne à Lomé, Togo
 
-> Boutique en ligne de bijoux en acier inoxydable 316L, waterproof et hypoallergéniques.
+> Aridona Bijoux (https://aridona.store) est le site de référence pour acheter des bijoux en acier inoxydable 316L à Lomé et partout au Togo : bagues, colliers, bracelets, boucles d'oreilles, chaînes de lunettes, ceintures chaîne et coffrets cadeaux (packs). Nos bijoux sont 100% waterproof (résistent à l'eau, à la douche et à la mer), hypoallergéniques (sans nickel) et ne noircissent jamais.
 
-## Site officiel
+## Informations locales & Livraison au Togo
 
-- Site : https://aridona.store/
-- Catalogue : https://aridona.store/collection
-- Blog : https://aridona.store/blog
+- **Localisation** : Lomé, Togo (Boutique 100% en ligne)
+- **Zone de livraison** : Livraison rapide à Lomé (24h-48h) et dans toutes les villes du Togo (2-5 jours ouvrés)
+- **Moyens de paiement** : Paiement à la livraison en espèces (FCFA / XOF) ou par Mobile Money (Flooz, Mixx by Yas), confirmé sur WhatsApp (+228 72 65 64 85)
+- **WhatsApp Service Client & Commandes** : https://wa.me/22872656485
+- **Email** : aridonabijoux@gmail.com
+
+## Comptes officiels & Réseaux sociaux (Aridona Bijoux)
+
+- **Site Web Officiel** : https://aridona.store/
+- **Instagram** : https://www.instagram.com/aridonabijoux/ (@aridonabijoux)
+- **TikTok** : https://www.tiktok.com/@aridonabijoux (@aridonabijoux)
+- **Facebook** : https://www.facebook.com/profile.php?id=61593227000931 (Aridona Bijoux)
+- **X (Twitter)** : https://x.com/AridonaBijoux (@AridonaBijoux)
+
+## Pages principales du site
+
+- Accueil : https://aridona.store/
+- Catalogue complet : https://aridona.store/collection
+- Packs & Coffrets cadeaux : https://aridona.store/packs
+- Journal / Blog conseils bijoux : https://aridona.store/blog
+- À propos & FAQ : https://aridona.store/a-propos
 - Contact : https://aridona.store/contact
-- Sitemap : https://aridona.store/sitemap.xml
+- Sitemap XML (Produits, Packs, Articles) : https://aridona.store/sitemap.xml
+- Flux Produits Google Merchant (RSS/XML) : https://api.aridona.store/api/produit/feed.xml
 
-## Catégories
+## Catégories de bijoux à acheter au Togo
 
-- Bagues : https://aridona.store/collection/bague
-- Boucles d'oreilles : https://aridona.store/collection/boucle-doreille
-- Bracelets : https://aridona.store/collection/bracelet
+- Bagues en acier inoxydable : https://aridona.store/collection/bague
+- Boucles d'oreilles en acier inoxydable : https://aridona.store/collection/boucle-doreille
+- Bracelets & Joncs en acier inoxydable : https://aridona.store/collection/bracelet
 - Bracelets de bras : https://aridona.store/collection/bracelet-de-bras
 - Ceintures chaîne : https://aridona.store/collection/ceinture-chaine
 - Chaînes de lunettes : https://aridona.store/collection/chaine-de-lunette
-- Colliers : https://aridona.store/collection/collier
-- Ensembles de bijoux : https://aridona.store/collection/ensembles-de-bijoux
-
-## Commandes
-
-Le site ne réalise aucun paiement en ligne. La cliente prépare sa commande sur le site, puis la confirme et convient du paiement et de la livraison avec Aridona sur WhatsApp.
-
-## Crawl
-
-Les pages panier, commande, connexion, favoris, réinitialisation du mot de passe, administration et API ne sont pas des pages publiques destinées à l'indexation.
-
-Pour les informations complètes sur l'architecture, les règles SEO, les catégories et les bonnes pratiques, consulter le fichier `llms-full.txt` à la racine du dépôt.
+- Colliers & Pendentifs : https://aridona.store/collection/collier
+- Parures & Ensembles de bijoux : https://aridona.store/collection/ensembles-de-bijoux

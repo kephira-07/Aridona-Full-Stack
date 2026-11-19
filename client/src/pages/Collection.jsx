@@ -16,24 +16,24 @@ import { Helmet } from 'react-helmet-async';
 // positionnement sur les recherches géolocalisées, en plus du nom de la catégorie.
 const SEO_TEXTS = {
     default: {
-        title: "Bijoux en Acier Inoxydable",
-        description: "Bagues, colliers, bracelets et boucles en acier inoxydable 316L : ils ne noircissent pas, n'irritent pas la peau et gardent leur éclat des années. Vendus en ligne à Lomé, Togo."
+        title: "Acheter des Bijoux en Ligne au Togo — Acier Inoxydable 316L",
+        description: "Boutique de vente de bijoux en ligne à Lomé, Togo : achetez vos bagues, colliers, bracelets et boucles en acier inoxydable 316L qui ne noircissent pas et résistent à l'eau."
     },
     bague: {
-        title: "Bagues en Acier Inoxydable",
-        description: "Ajustables, dorées ou argentées : nos bagues en acier inoxydable se portent sous la douche, à la mer, tous les jours, sans jamais noircir votre doigt. Livrées à Lomé, Togo."
+        title: "Acheter des Bagues en Acier Inoxydable à Lomé, Togo",
+        description: "Ajustables, dorées ou argentées : achetez vos bagues en acier inoxydable au Togo. Elles se portent sous la douche et tous les jours sans jamais noircir votre doigt. Livrées à Lomé et au Togo."
     },
     collier: {
-        title: "Colliers & Ras de Cou en Acier Inoxydable",
-        description: "Ras de cou, chaînes fines et pendentifs en acier inoxydable waterproof, pour sublimer votre décolleté sans jamais ternir, même au contact de l'eau. Livrés à Lomé, Togo."
+        title: "Acheter des Colliers & Ras de Cou en Acier Inoxydable au Togo",
+        description: "Vente de colliers, ras de cou, chaînes fines et pendentifs en acier inoxydable waterproof à Lomé, Togo : sublimez votre décolleté sans jamais ternir, même au contact de l'eau."
     },
     bracelet: {
-        title: "Bracelets & Joncs en Acier Inoxydable",
-        description: "Joncs rigides, chaînettes dorées, maillons tendance : nos bracelets en acier inoxydable résistent à l'eau et au quotidien le plus chargé. Livrés à Lomé, Togo."
+        title: "Acheter des Bracelets & Joncs en Acier Inoxydable au Togo",
+        description: "Joncs rigides, chaînettes dorées, maillons tendance : achetez vos bracelets en acier inoxydable à Lomé, Togo. Ils résistent à l'eau et au quotidien le plus chargé."
     },
     boucle: {
-        title: "Boucles d'Oreilles en Acier Inoxydable",
-        description: "Créoles, puces ou pendantes en acier inoxydable, légères et douces même pour les oreilles sensibles — sans nickel, sans irritation. Livrées à Lomé, Togo."
+        title: "Acheter des Boucles d'Oreilles en Acier Inoxydable au Togo",
+        description: "Créoles, puces ou pendantes en acier inoxydable vendues en ligne à Lomé, Togo : légères et douces même pour les oreilles sensibles — sans nickel, sans irritation."
     },
     braceletDeBras: {
         title: "Bracelets de Bras en Acier Inoxydable",

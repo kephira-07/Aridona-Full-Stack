@@ -1,0 +1,19 @@
+/* TEAM */
+Brand: Aridona Bijoux
+Role: Boutique de vente de bijoux en acier inoxydable 316L en ligne
+Location: Lomé, Togo
+Website: https://aridona.store
+Contact: aridonabijoux@gmail.com
+WhatsApp: +228 72 65 64 85
+
+/* SOCIAL ACCOUNTS */
+Instagram: https://www.instagram.com/aridonabijoux/
+TikTok: https://www.tiktok.com/@aridonabijoux
+Facebook: https://www.facebook.com/profile.php?id=61593227000931
+X (Twitter): https://x.com/AridonaBijoux
+
+/* SITE */
+Language: Français (fr-TG)
+Standards: HTML5, CSS3, React, Node.js, Schema.org (JewelryStore, Product, FAQPage)
+Sitemap: https://aridona.store/sitemap.xml
+AI Guide: https://aridona.store/llms.txt
