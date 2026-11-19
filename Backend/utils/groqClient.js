@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { GoogleGenAI } from '@google/genai';
 
 const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/g, '').trim() : '');
 
@@ -8,97 +7,59 @@ const GROQ_MODELS = [
   'llama-3.3-70b-versatile',
   'llama-3.1-8b-instant',
   'qwen/qwen3-32b',
-];
-
-// Modèles Gemini disponibles (identiques à Ajouter Produit)
-const GEMINI_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-flash-latest',
+  'meta-llama/llama-4-scout-17b-16e-instruct',
 ];
 
 /**
- * Envoie un prompt à l'IA (Groq si GROQ_API_KEY est configurée, sinon utilise automatiquement
- * la clé GEMINI_API_KEY déjà active sur Ajouter Produit)
+ * Envoie un prompt à l'IA Groq (100% Groq)
  */
 export const callGroqChat = async ({ systemPrompt, userPrompt, temperature = 0.7, maxTokens = 1500 }) => {
   const groqKey = cleanEnvValue(process.env.GROQ_API_KEY) ||
     (cleanEnvValue(process.env.GEMINI_API_KEY).startsWith('gsk_') ? cleanEnvValue(process.env.GEMINI_API_KEY) : '');
-  const geminiKey = !cleanEnvValue(process.env.GEMINI_API_KEY).startsWith('gsk_')
-    ? cleanEnvValue(process.env.GEMINI_API_KEY)
-    : '';
 
-  let lastError = null;
+  if (!groqKey) {
+    throw new Error("La clé GROQ_API_KEY est manquante dans le fichier .env du serveur.");
+  }
 
-  // 1. Si une clé Groq est disponible, on passe par Groq
-  if (groqKey) {
-    for (const model of GROQ_MODELS) {
-      try {
-        const messages = [];
-        if (systemPrompt) {
-          messages.push({ role: 'system', content: systemPrompt });
-        }
-        messages.push({ role: 'user', content: userPrompt });
+  let lastErrorMsg = '';
 
-        const response = await axios.post(
-          'https://api.groq.com/openai/v1/chat/completions',
-          {
-            model,
-            messages,
-            temperature,
-            max_tokens: maxTokens,
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${groqKey}`,
-              'Content-Type': 'application/json',
-            },
-            timeout: 25000,
-          }
-        );
-
-        const content = response.data?.choices?.[0]?.message?.content;
-        if (content && content.trim()) {
-          return content.trim();
-        }
-      } catch (err) {
-        lastError = err;
-        const errMsg = err.response?.data?.error?.message || err.message;
-        console.warn(`Tentative Groq avec ${model} échouée :`, errMsg);
+  for (const model of GROQ_MODELS) {
+    try {
+      const messages = [];
+      if (systemPrompt) {
+        messages.push({ role: 'system', content: systemPrompt });
       }
+      messages.push({ role: 'user', content: userPrompt });
+
+      const response = await axios.post(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+          model,
+          messages,
+          temperature,
+          max_tokens: maxTokens,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${groqKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 25000,
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      if (content && content.trim()) {
+        return content.trim();
+      }
+    } catch (err) {
+      const errMsg = err.response?.data?.error?.message || err.message;
+      lastErrorMsg = `Groq (${model}): ${errMsg}`;
+      console.warn(`Tentative Groq avec ${model} échouée :`, errMsg);
     }
   }
 
-  // 2. Relais automatique sur la clé IA déjà active sur Ajouter Produit (GEMINI_API_KEY sur Render)
-  if (geminiKey) {
-    const ai = new GoogleGenAI({ apiKey: geminiKey });
-    const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${userPrompt}` : userPrompt;
-
-    for (const modelName of GEMINI_MODELS) {
-      try {
-        const response = await ai.models.generateContent({
-          model: modelName,
-          contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
-          config: {
-            responseMimeType: 'application/json',
-          },
-        });
-        const candidateText =
-          (typeof response.text === 'function' ? response.text() : response.text) ||
-          response.candidates?.[0]?.content?.parts?.[0]?.text ||
-          '';
-        if (candidateText && String(candidateText).trim()) {
-          return String(candidateText).trim();
-        }
-      } catch (err) {
-        lastError = err;
-        console.warn(`Tentative Gemini avec ${modelName} échouée :`, err.message);
-      }
-    }
-  }
-
-  throw lastError || new Error("Aucune clé IA valide (GROQ_API_KEY ou GEMINI_API_KEY) n'a pu répondre.");
+  throw new Error(lastErrorMsg || "Aucun modèle Groq n'a pu répondre.");
 };
 
 /**

@@ -3,11 +3,10 @@ import axios from 'axios';
 import produitModel from '../models/produitModel.js';
 import { v2 as cloudinary } from 'cloudinary';
 import generateUniqueSlug from '../utils/slug.js';
-import { GoogleGenAI } from '@google/genai';
 import { cleanLocalFiles } from '../utils/cleanLocalFile.js';
 import { publishProductToSocials } from '../utils/socialPublisher.js';
 
-// Initialisation des clés IA (Groq Vision en priorité, fallback Gemini)
+// Initialisation de la clé IA Groq uniquement
 const cleanEnvValue = (val) => (val ? String(val).trim().replace(/^["']+|["']+$/g, '').trim() : '');
 
 const GROQ_VISION_MODELS = [
@@ -17,7 +16,7 @@ const GROQ_VISION_MODELS = [
   'llama-3.2-11b-vision-preview',
 ];
 
-// Contrôleur pour l'analyse IA d'image (Groq Vision en priorité, fallback Gemini)
+// Contrôleur pour l'analyse IA d'image (100% Groq Vision)
 const analyzeProductImage = async (req, res) => {
   try {
     const { imageBase64, mimeType } = req.body;
@@ -26,12 +25,22 @@ const analyzeProductImage = async (req, res) => {
       return res.status(400).json({ success: false, message: "Aucune image fournie." });
     }
 
+    const groqKey = cleanEnvValue(process.env.GROQ_API_KEY) ||
+      (cleanEnvValue(process.env.GEMINI_API_KEY).startsWith('gsk_') ? cleanEnvValue(process.env.GEMINI_API_KEY) : '');
+
+    if (!groqKey) {
+      return res.status(500).json({
+        success: false,
+        message: "La variable GROQ_API_KEY est manquante dans la configuration du serveur (.env).",
+      });
+    }
+
     const cleanBase64 = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
     const validMime = typeof mimeType === 'string' && mimeType ? mimeType : 'image/jpeg';
     const dataUrl = `data:${validMime};base64,${cleanBase64}`;
 
     const prompt = [
-      "Tu es un expert en e-commerce de bijoux en acier inoxydable pour Aridona Bijoux.",
+      "Tu es un expert en e-commerce de bijoux en acier inoxydable pour Aridona Bijoux (boutique en ligne à Lomé, Togo).",
       "Analyse l'image de ce bijou et génère une fiche produit au format JSON strict (sans aucun texte autour, sans balises markdown).",
       "Le JSON doit contenir exactement ces clés :",
       '- "nom": Un titre élégant et vendeur en français.',
@@ -43,105 +52,72 @@ const analyzeProductImage = async (req, res) => {
       '- "alt": Un texte alternatif SEO court décrivant visuellement le bijou sur la photo.'
     ].join('\n');
 
-    const groqKey = cleanEnvValue(process.env.GROQ_API_KEY) ||
-      (cleanEnvValue(process.env.GEMINI_API_KEY).startsWith('gsk_') ? cleanEnvValue(process.env.GEMINI_API_KEY) : '');
-    const geminiKey = !cleanEnvValue(process.env.GEMINI_API_KEY).startsWith('gsk_')
-      ? cleanEnvValue(process.env.GEMINI_API_KEY)
-      : '';
-
     let candidateText = '';
-    let lastError = null;
+    let lastErrorMsg = '';
 
-    // 1. Analyse d'image avec GROQ VISION en priorité !
-    if (groqKey) {
-      for (const modelName of GROQ_VISION_MODELS) {
-        try {
-          const groqRes = await axios.post(
-            'https://api.groq.com/openai/v1/chat/completions',
-            {
-              model: modelName,
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    { type: 'text', text: prompt },
-                    { type: 'image_url', image_url: { url: dataUrl } },
-                  ],
-                },
-              ],
-              temperature: 0.5,
-              max_tokens: 900,
-              response_format: { type: 'json_object' },
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${groqKey}`,
-                'Content-Type': 'application/json',
-              },
-              timeout: 20000,
-            }
-          );
-          const content = groqRes.data?.choices?.[0]?.message?.content;
-          if (content && content.trim()) {
-            candidateText = content.trim();
-            break;
-          }
-        } catch (groqErr) {
-          lastError = groqErr;
-          const errMsg = groqErr.response?.data?.error?.message || groqErr.message;
-          console.warn(`Tentative Groq Vision avec ${modelName} échouée :`, errMsg);
-        }
-      }
+    // 1. Découverte dynamique des modèles Vision actifs sur le compte Groq + liste connue
+    let modelsToTry = [...GROQ_VISION_MODELS];
+    try {
+      const modelsRes = await axios.get('https://api.groq.com/openai/v1/models', {
+        headers: { Authorization: `Bearer ${groqKey}` },
+        timeout: 5000,
+      });
+      const apiModels = (modelsRes.data?.data || [])
+        .map((m) => m.id)
+        .filter((id) => /llama-4|vision|pixtral|llava/i.test(id));
+      modelsToTry = [...new Set([...apiModels, ...GROQ_VISION_MODELS])];
+    } catch {
+      // Ignore si la liste des modèles échoue, on garde GROQ_VISION_MODELS
     }
 
-    // 2. Fallback sur Gemini uniquement si Groq n'a pas répondu
-    if (!candidateText && geminiKey) {
-      const ai = new GoogleGenAI({ apiKey: geminiKey });
-      const candidateModels = [
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-flash-latest',
-      ];
-      for (const modelName of candidateModels) {
-        try {
-          const response = await Promise.race([
-            ai.models.generateContent({
-              model: modelName,
-              contents: [
-                {
-                  role: 'user',
-                  parts: [
-                    { text: prompt },
-                    { inlineData: { mimeType: validMime, data: cleanBase64 } },
-                  ],
-                },
-              ],
-              config: { responseMimeType: 'application/json' },
-            }),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error(`Timeout (15s) dépassé sur ${modelName}`)), 15000)
-            ),
-          ]);
-          const text =
-            (typeof response?.text === 'function' ? response.text() : response?.text) ||
-            response?.candidates?.[0]?.content?.parts?.[0]?.text ||
-            '';
-          if (text && String(text).trim()) {
-            candidateText = String(text).trim();
-            break;
+    for (const modelName of modelsToTry) {
+      try {
+        const groqRes = await axios.post(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            model: modelName,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompt },
+                  { type: 'image_url', image_url: { url: dataUrl } },
+                ],
+              },
+            ],
+            temperature: 0.5,
+            max_tokens: 900,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${groqKey}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 25000,
           }
-        } catch (modelErr) {
-          lastError = modelErr;
-          console.warn(`Tentative Gemini avec ${modelName} échouée :`, modelErr.message);
+        );
+        const content = groqRes.data?.choices?.[0]?.message?.content;
+        if (content && content.trim()) {
+          candidateText = content.trim();
+          break;
         }
+      } catch (groqErr) {
+        const errMsg = groqErr.response?.data?.error?.message || groqErr.message;
+        lastErrorMsg = `Groq (${modelName}): ${errMsg}`;
+        console.warn(`Tentative Groq Vision avec ${modelName} échouée :`, errMsg);
       }
     }
 
     if (!candidateText) {
-      throw lastError || new Error("Aucun modèle Groq Vision n'a pu analyser l'image.");
+      throw new Error(lastErrorMsg || "Aucun modèle Groq Vision n'a pu analyser l'image.");
     }
 
-    let rawText = String(candidateText).trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    let rawText = String(candidateText)
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .trim()
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/, '')
+      .replace(/\s*```$/, '');
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       rawText = jsonMatch[0];
@@ -157,7 +133,7 @@ const analyzeProductImage = async (req, res) => {
     return res.json({ success: true, product: productData });
 
   } catch (error) {
-    console.error("Erreur détaillée analyse IA :", error);
+    console.error("Erreur détaillée analyse IA Groq :", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Erreur lors de l'analyse de l'image par l'IA Groq."
