@@ -10,8 +10,10 @@ import Footer from './composant/Footer';
 import ScrollToTop from './composant/ScrollToTop';
 import ConsentBanner from './composant/ConsentBanner';
 
-// Chargement paresseux (Lazy Loading) des pages
-const Home = lazy(() => import('./pages/Home'));
+// Page d'accueil chargée directement (évite le CLS et accélère le LCP sur mobile)
+import Home from './pages/Home';
+
+// Chargement paresseux (Lazy Loading) des autres pages
 const Collection = lazy(() => import('./pages/Collection'));
 const PageProduit = lazy(() => import('./pages/PageProduit'));
 const Panier = lazy(() => import('./pages/Panier'));
@@ -31,7 +33,7 @@ const PackDetail = lazy(() => import('./pages/PackDetail'));
 
 // Composant de chargement pendant le passage d'une page à une autre
 const PageLoader = () => (
-  <div className="flex justify-center items-center h-64 text-amber-700">
+  <div className="flex justify-center items-center min-h-[70vh] text-amber-700">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-700"></div>
   </div>
 );

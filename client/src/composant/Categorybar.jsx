@@ -4,6 +4,7 @@ import axios from 'axios';
 import { backendUrl } from '../config';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Titre from './Titre';
+import { getOptimizedImageUrl } from '../utils/imageUrl';
 
 import imageTout from '../assets/Heroimg12.jpg';
 
@@ -208,7 +209,7 @@ export default function Categorybar({ selectedCategories = [], toggleCategorie, 
                         ? 'w-30 h-30 md:w-50 md:h-50 hover:scale-105' 
                         : 'w-10 h-10 md:w-12 md:h-12'
                     } ${isChecked ? 'ring-2 ring-amber-500 ring-offset-2' : ''}`}>
-                      <img src={cat.image} alt={cat.nom} className="w-full h-full object-cover" />
+                      <img src={getOptimizedImageUrl(cat.image, 300)} alt={cat.nom} loading="lazy" width="160" height="160" className="w-full h-full object-cover" />
                     </div>
 
                     <span className={`tracking-wide font-dmsans px-1 whitespace-nowrap leading-tight transition-all ${
