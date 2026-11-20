@@ -27,7 +27,7 @@ export default function AboutSection() {
 
         {/* Texte : priorité mobile-first */}
         <div className="w-full md:w-1/2 order-1 md:order-2 flex flex-col items-start text-left">
-          <span className="text-[10px] uppercase tracking-[0.3em] text-amber-600 font-semibold mb-3">
+          <span className="text-[10px] uppercase tracking-[0.3em] text-amber-800 font-semibold mb-3">
             Boutique de Bijoux en Ligne — Lomé, Togo
           </span>
 

@@ -29,7 +29,7 @@ const Footer = () => {
               Bijoux en acier inoxydable 316L, waterproof et hypoallergéniques, pensés pour tenir tête à votre quotidien. Créez un compte pour suivre vos commandes et retrouver vos pièces favorites.
             </p>
 
-            <p className="text-stone-500 font-light max-w-sm leading-relaxed text-sm"> 
+            <p className="text-stone-300 font-light max-w-sm leading-relaxed text-sm"> 
               Inscrivez-vous pour recevoir les invitations à nos ventes privées et découvrir nos nouvelles créations exclusives.
             </p>
             
@@ -38,9 +38,10 @@ const Footer = () => {
               <input 
                 type="email" 
                 placeholder="Votre adresse email" 
-                className="w-full bg-transparent border-b border-stone-600 py-2 text-stone-200 focus:outline-none focus:border-amber-500 transition-all duration-300 placeholder:text-stone-400 text-sm"
+                aria-label="Votre adresse email"
+                className="w-full bg-transparent border-b border-stone-500 py-3 pr-24 text-stone-100 focus:outline-none focus:border-amber-400 transition-all duration-300 placeholder:text-stone-400 text-sm"
               />
-              <button className="absolute right-0 bottom-2 text-amber-500 hover:text-amber-400 transition-colors duration-300 flex items-center gap-2 cursor-pointer">
+              <button type="button" className="absolute right-0 bottom-0.5 py-3 px-2 text-amber-400 hover:text-amber-300 transition-colors duration-300 flex items-center gap-2 cursor-pointer">
                 <span className="text-[11px] uppercase font-semibold tracking-[0.2em]">S'inscrire</span>
               </button>
             </div>
@@ -137,7 +138,7 @@ const Footer = () => {
         </div>
 
         {/* Ligne du bas : Copyright & Liens Légaux */}
-        <div className="pt-8 border-t border-stone-700 flex flex-col md:flex-row items-center justify-between text-[11px] uppercase tracking-[0.2em] text-stone-500 gap-4">
+        <div className="pt-8 border-t border-stone-700 flex flex-col md:flex-row items-center justify-between text-[11px] uppercase tracking-[0.2em] text-stone-300 gap-4">
           <p>&copy; {currentYear} Aridona Bijoux. Tous droits réservés.</p>
           <div className="flex gap-6">
             <Link onClick={scrollToTop} to="/politique-confidentialite" className="hover:text-stone-200 transition-colors">

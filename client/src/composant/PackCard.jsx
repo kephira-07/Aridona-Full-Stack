@@ -101,7 +101,7 @@ export default function PackCard({ pack }) {
             que d'écraser son texte. */}
         <div className="mt-6 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="block text-[10px] font-semibold uppercase tracking-wider text-stone-400">Total Pack</span>
+            <span className="block text-[10px] font-semibold uppercase tracking-wider text-stone-600">Total Pack</span>
             <span className="text-lg font-semibold text-stone-900">
               {Number(pack.prix).toLocaleString('fr-FR')} FCFA
             </span>

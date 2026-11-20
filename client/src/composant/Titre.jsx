@@ -5,7 +5,7 @@ const Titre = ({ text1, text2 }) => {
     <div className='max-w-max mx-auto text-center my-4 px-4 select-none'>
       {/* Surtitre discret et aéré */}
       {text1 && (
-        <span className='block text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] text-amber-600 font-caveat transition-all duration-300'>
+        <span className='block text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] text-amber-800 font-caveat transition-all duration-300'>
           {text1}
         </span>
       )}
