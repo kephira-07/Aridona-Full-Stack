@@ -1,7 +1,8 @@
 import React, { useContext, useState } from 'react';
 import { ShopContext } from '../context/ShopContext'; 
 import { Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Check } from "lucide-react"; 
+import { Heart, ShoppingBag, Check } from "lucide-react";
+import { getOptimizedImageUrl } from '../utils/imageUrl';
 
 const ProduitItem = ({ id, slug, image, nom, prix, enStock, stock }) => {
     const { monnaie, ajouterPanier, favoris, toggleFavori } = useContext(ShopContext);
@@ -72,7 +73,7 @@ const ProduitItem = ({ id, slug, image, nom, prix, enStock, stock }) => {
                 <div className="relative overflow-hidden aspect-square bg-stone-50"> 
                     <img 
                         className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" 
-                        src={imageUrl}
+                        src={getOptimizedImageUrl(imageUrl, 500)}
                         alt={imageAlt || `${nom || 'Bijou'} - Aridona Bijoux`}
                         loading="lazy"
                         width="300"

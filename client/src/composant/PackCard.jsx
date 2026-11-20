@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
+import { getOptimizedImageUrl } from '../utils/imageUrl';
 
 const getImageUrl = (image) => {
   const first = Array.isArray(image) ? image[0] : image;
@@ -55,7 +56,7 @@ export default function PackCard({ pack }) {
                     className={`absolute w-[52%] aspect-square overflow-hidden border-2 border-white shadow-md transition-all duration-500 group-hover:scale-105 group-hover:shadow-lg ${shiftStyle}`}
                   >
                     <img 
-                      src={getImageUrl(produit.image)} 
+                      src={getOptimizedImageUrl(getImageUrl(produit.image), 400)} 
                       alt={produit.nom} 
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" 
                       loading="lazy" 
