@@ -1,0 +1,50 @@
+{
+  "specVersion": "0.91",
+  "host": {
+    "displayName": "Aridona Bijoux",
+    "identifier": "did:web:aridona.store"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:aridona.store:content:llms",
+      "displayName": "Aridona Bijoux — Guide Boutique & Catégories",
+      "type": "text/markdown",
+      "url": "https://aridona.store/llms.txt",
+      "representativeQueries": [
+        "acheter bijoux en acier inoxydable au Togo",
+        "site de vente de bijoux à Lomé",
+        "bijoux waterproof qui ne noircissent pas Togo"
+      ]
+    },
+    {
+      "identifier": "urn:air:aridona.store:catalog:products",
+      "displayName": "Catalogue API Produits Aridona Bijoux",
+      "type": "application/json",
+      "url": "https://api.aridona.store/api/produit/list",
+      "representativeQueries": [
+        "liste des bagues colliers bracelets Aridona Bijoux",
+        "prix bijoux acier inoxydable Lomé FCFA"
+      ]
+    },
+    {
+      "identifier": "urn:air:aridona.store:feed:merchant",
+      "displayName": "Flux Produits XML Aridona Bijoux",
+      "type": "application/xml",
+      "url": "https://api.aridona.store/api/produit/feed.xml",
+      "representativeQueries": [
+        "flux produits bijoux Aridona Bijoux",
+        "disponibilité stock bijoux Togo"
+      ]
+    },
+    {
+      "identifier": "urn:air:aridona.store:content:sitemap",
+      "displayName": "Sitemap XML Aridona Bijoux",
+      "type": "application/xml",
+      "url": "https://aridona.store/sitemap.xml",
+      "representativeQueries": [
+        "pages et fiches produits aridona.store",
+        "articles blog bijoux acier inoxydable Togo"
+      ]
+    }
+  ]
+}
