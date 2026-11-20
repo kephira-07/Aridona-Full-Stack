@@ -1,4 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from './Titre';
 import { default as ProduitItem } from './ProduitItem';
@@ -61,6 +63,18 @@ const MeilleurVente = () => {
               ))
             )}
         </div>
+
+        {meilleurVente.length > 0 && (
+          <div className="mt-8 flex justify-center px-4">
+            <Link
+              to="/collection"
+              className="group inline-flex items-center gap-3 rounded-full bg-amber-900 px-8 py-3.5 text-xs font-semibold uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-amber-950 hover:shadow-md active:scale-95"
+            >
+              <span>Visiter la boutique</span>
+              <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1.5" />
+            </Link>
+          </div>
+        )}
     </section>
   );
 };
