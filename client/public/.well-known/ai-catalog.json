@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "name": "Aridona Bijoux",
+  "description": "Boutique en ligne de bijoux en acier inoxydable 316L à Lomé, Togo (bagues, colliers, bracelets, boucles d'oreilles et coffrets cadeaux waterproof).",
+  "url": "https://aridona.store",
+  "resources": [
+    {
+      "name": "Catalogue de bijoux",
+      "type": "catalog",
+      "url": "https://api.aridona.store/api/produit/list",
+      "format": "application/json"
+    },
+    {
+      "name": "Flux produits Google Merchant",
+      "type": "feed",
+      "url": "https://api.aridona.store/api/produit/feed.xml",
+      "format": "application/xml"
+    },
+    {
+      "name": "Sitemap XML",
+      "type": "sitemap",
+      "url": "https://aridona.store/sitemap.xml",
+      "format": "application/xml"
+    },
+    {
+      "name": "Guide LLM",
+      "type": "llms",
+      "url": "https://aridona.store/llms.txt",
+      "format": "text/markdown"
+    }
+  ]
+}

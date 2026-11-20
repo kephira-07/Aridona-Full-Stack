@@ -20,22 +20,22 @@
 
 ## Pages principales du site
 
-- Accueil : https://aridona.store/
-- Catalogue complet : https://aridona.store/collection
-- Packs & Coffrets cadeaux : https://aridona.store/packs
-- Journal / Blog conseils bijoux : https://aridona.store/blog
-- À propos & FAQ : https://aridona.store/a-propos
-- Contact : https://aridona.store/contact
-- Sitemap XML (Produits, Packs, Articles) : https://aridona.store/sitemap.xml
-- Flux Produits Google Merchant (RSS/XML) : https://api.aridona.store/api/produit/feed.xml
+- [Accueil Aridona Bijoux](https://aridona.store/): Boutique de vente de bijoux en acier inoxydable 316L à Lomé, Togo.
+- [Catalogue complet](https://aridona.store/collection): Toutes nos bagues, colliers, bracelets et boucles d'oreilles.
+- [Packs & Coffrets cadeaux](https://aridona.store/packs): Coffrets de bijoux assortis à prix réduit.
+- [Journal / Blog conseils bijoux](https://aridona.store/blog): Conseils mode, idées cadeaux et guides bijoux au Togo.
+- [À propos & FAQ](https://aridona.store/a-propos): Livraison à Lomé et au Togo, paiement à la livraison et FAQ.
+- [Contact](https://aridona.store/contact): Service client et commandes WhatsApp (+228 72 65 64 85).
+- [Sitemap XML](https://aridona.store/sitemap.xml): Plan complet des fiches produits, packs et articles.
+- [Flux Produits XML](https://api.aridona.store/api/produit/feed.xml): Catalogue produits pour Google Merchant Center.
 
 ## Catégories de bijoux à acheter au Togo
 
-- Bagues en acier inoxydable : https://aridona.store/collection/bague
-- Boucles d'oreilles en acier inoxydable : https://aridona.store/collection/boucle-doreille
-- Bracelets & Joncs en acier inoxydable : https://aridona.store/collection/bracelet
-- Bracelets de bras : https://aridona.store/collection/bracelet-de-bras
-- Ceintures chaîne : https://aridona.store/collection/ceinture-chaine
-- Chaînes de lunettes : https://aridona.store/collection/chaine-de-lunette
-- Colliers & Pendentifs : https://aridona.store/collection/collier
-- Parures & Ensembles de bijoux : https://aridona.store/collection/ensembles-de-bijoux
+- [Bagues en acier inoxydable](https://aridona.store/collection/bague): Bagues dorées, argentées et ajustables waterproof.
+- [Boucles d'oreilles en acier inoxydable](https://aridona.store/collection/boucle-doreille): Créoles, puces et boucles hypoallergéniques.
+- [Bracelets & Joncs en acier inoxydable](https://aridona.store/collection/bracelet): Bracelets résistants à l'eau pour le quotidien.
+- [Bracelets de bras](https://aridona.store/collection/bracelet-de-bras): Bracelets de bras dorés et élégants.
+- [Ceintures chaîne](https://aridona.store/collection/ceinture-chaine): Ceintures chaîne en acier inoxydable.
+- [Chaînes de lunettes](https://aridona.store/collection/chaine-de-lunette): Chaînes de lunettes chic et durables.
+- [Colliers & Pendentifs](https://aridona.store/collection/collier): Ras de cou, chaînes fines et pendentifs waterproof.
+- [Parures & Ensembles de bijoux](https://aridona.store/collection/ensembles-de-bijoux): Ensembles de bijoux assortis prêts à offrir.

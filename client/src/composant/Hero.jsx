@@ -194,7 +194,7 @@ export default function Hero() {
             <img 
               src={images[0].src} 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-103" 
-              alt={images[0].alt}
+              alt={images[0].alt} fetchPriority="high" decoding="async"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent"></div>
             
@@ -274,11 +274,11 @@ export default function Hero() {
         {/* ================= APPAREILS MOBILES ================= */}
         <div className="md:hidden w-full relative overflow-hidden shadow-xl aspect-[4/5.5] border border-stone-200/50">
           <Caroussel autoSlide={true} autoSlideInterval={4000} onChange={setActiveMobileIndex}>
-            {images.map((image) => (
+            {images.map((image, idx) => (
               <img 
                 key={image.id} 
                 src={image.src} 
-                alt={image.alt} 
+                alt={image.alt} loading={idx === 0 ? "eager" : "lazy"} fetchPriority={idx === 0 ? "high" : "low"} decoding="async" 
                 className="min-w-full h-full object-cover flex-shrink-0"
               />
             ))}
