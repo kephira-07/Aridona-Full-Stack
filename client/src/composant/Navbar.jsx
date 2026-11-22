@@ -50,10 +50,10 @@ export default function Navbar() {
                 100% { transform: translateX(-50%); }
               }
             `}</style>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
-            <span className="px-6">LIVRAISON OFFERTE À PARTIR DE 25 000 FCFA D'ACHAT • </span>
+            <span className="px-6">10% DE RÉDUCTION DÈS 25 000 FCFA D'ACHAT • </span>
+            <span className="px-6">LIVRAISON RAPIDE À LOMÉ ET PARTOUT AU TOGO • </span>
+            <span className="px-6">10% DE RÉDUCTION DÈS 25 000 FCFA D'ACHAT • </span>
+            <span className="px-6">LIVRAISON RAPIDE À LOMÉ ET PARTOUT AU TOGO • </span>
           </div>
         </div>
 

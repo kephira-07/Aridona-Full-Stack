@@ -17,9 +17,9 @@ const PasserCommande = () => {
     packs = [],
     produits = [],
     getPanierMontant,
-    delivery_free = 0,
-    seuilLivraisonGratuite = 25000,
-    calculerFraisLivraison,
+    seuilReduction = 25000,
+    tauxReduction = 0.1,
+    calculerReduction,
     backendUrl,
     token,
     viderPanier,
@@ -139,10 +139,10 @@ const PasserCommande = () => {
       }
 
       const sousTotal = typeof getPanierMontant === 'function' ? Number(getPanierMontant()) : 0;
-      const fraisLivraison = typeof calculerFraisLivraison === 'function'
-        ? calculerFraisLivraison(sousTotal)
-        : (sousTotal >= (seuilLivraisonGratuite || 25000) ? 0 : (sousTotal === 0 ? 0 : (Number(delivery_free) || 1000)));
-      const totalFinal = sousTotal + fraisLivraison;
+      const reduction = typeof calculerReduction === 'function'
+        ? calculerReduction(sousTotal)
+        : (sousTotal >= seuilReduction ? Math.round(sousTotal * tauxReduction) : 0);
+      const totalFinal = Math.max(0, sousTotal - reduction);
 
       const nameParts = formData.fullName.trim().split(' ');
       const firstName = nameParts[0] || 'Client';
@@ -195,12 +195,10 @@ const PasserCommande = () => {
           message += `${index + 1}. *${item.nom}* (Taille: ${tailleFormatee}) x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString()} ${monnaie}\n`;
         });
 
-        const livraisonTexte = fraisLivraison === 0
-          ? `Offerte dès ${(seuilLivraisonGratuite || 25000).toLocaleString()} ${monnaie} 🎉`
-          : `${fraisLivraison.toLocaleString()} ${monnaie}`;
-
         message += `\n💰 *Sous-total :* ${sousTotal.toLocaleString()} ${monnaie}`;
-        message += `\n📦 *Frais de livraison :* ${livraisonTexte}`;
+        if (reduction > 0) {
+          message += `\n🎁 *Réduction (-${Math.round(tauxReduction * 100)}%) :* -${reduction.toLocaleString()} ${monnaie}`;
+        }
         message += `\n⭐ *TOTAL À PAYER : ${totalFinal.toLocaleString()} ${monnaie}*`;
 
         const encodedMessage = encodeURIComponent(message);
