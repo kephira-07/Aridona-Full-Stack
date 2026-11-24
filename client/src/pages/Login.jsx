@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate, Link } from 'react-router-dom';
 import BoutonRetour from '../composant/BoutonRetour';
-import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { LogOut, MapPin, Phone, Mail, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useGoogleLogin } from '@react-oauth/google';
 import logo from '../assets/logo.png';
 import { identifyVisitor } from '../utils/tracker';
@@ -205,7 +205,7 @@ const Login = () => {
               <div className="space-y-2">
                 <span className="font-caveat text-2xl text-amber-800">Mon doux espace</span>
                 <h1 className="font-serif text-4xl text-stone-900 tracking-wide font-alice">
-                  Ravi de vous revoir, {profil.name || profil.nom} <Sparkles size={22} className="inline-block text-amber-700 ml-1 -mt-1" />
+                  Ravi de vous revoir, {profil.name || profil.nom} <CheckCircle2 size={20} className="inline-block text-amber-700 ml-1.5 -mt-1" />
                 </h1>
                 <div className="h-[2px] w-12 bg-amber-800 mt-2"></div>
               </div>

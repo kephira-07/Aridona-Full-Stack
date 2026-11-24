@@ -6,7 +6,8 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  Sparkles,
+  Wand2,
+  Check,
   Image as ImageIcon,
   Eye,
   EyeOff
@@ -94,7 +95,7 @@ export default function Articles({ token }) {
         if (Array.isArray(art.tags)) setTagsInput(art.tags.join(', '));
         if (art.metaTitle) setMetaTitle(art.metaTitle);
         if (art.metaDescription) setMetaDescription(art.metaDescription);
-        toast.success("✨ Article rédigé avec succès par Groq !");
+        toast.success("Article rédigé avec succès par Groq !");
       } else {
         toast.error(response.data.message || "L'IA n'a pas pu rédiger l'article.");
       }
@@ -142,7 +143,7 @@ export default function Articles({ token }) {
       }
 
       if (response.data.success) {
-        toast.success(idEdition ? "✨ Article mis à jour !" : "✨ Article créé !");
+        toast.success(idEdition ? "Article mis à jour !" : "Article créé !");
         annulerEdition();
         fetchArticles();
       } else {
@@ -222,7 +223,7 @@ export default function Articles({ token }) {
           <div className="mb-5 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 rounded-xl p-3.5 shadow-2xs">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-semibold text-amber-900 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-700" /> Rédaction Assistée par Groq
+                <Wand2 className="w-3.5 h-3.5 text-amber-700" /> Rédaction Assistée par Groq
               </span>
               <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">IA Rapide</span>
             </div>
@@ -235,8 +236,8 @@ export default function Articles({ token }) {
               disabled={aiLoading}
               className="w-full flex items-center justify-center gap-2 bg-amber-800 hover:bg-amber-900 text-white rounded-lg py-2.5 px-3 text-xs font-semibold uppercase tracking-wider shadow-xs transition-all disabled:opacity-50 cursor-pointer"
             >
-              <Sparkles className={`w-3.5 h-3.5 ${aiLoading ? "animate-spin" : ""}`} />
-              <span>{aiLoading ? "Groq rédige l'article..." : "✨ Rédiger l'article avec Groq"}</span>
+              <Wand2 className={`w-3.5 h-3.5 ${aiLoading ? "animate-spin" : ""}`} />
+              <span>{aiLoading ? "Groq rédige l'article..." : "Rédiger l'article avec Groq"}</span>
             </button>
           </div>
 
@@ -379,7 +380,7 @@ export default function Articles({ token }) {
                 {loading ? (
                   <><Loader2 size={16} className="animate-spin" /><span>Enregistrement...</span></>
                 ) : (
-                  <><Sparkles size={14} className="text-amber-400" /><span>{idEdition ? "Enregistrer les modifications" : "Créer l'article"}</span></>
+                  <><Check size={14} className="text-amber-400" /><span>{idEdition ? "Enregistrer les modifications" : "Créer l'article"}</span></>
                 )}
               </button>
               {idEdition && (

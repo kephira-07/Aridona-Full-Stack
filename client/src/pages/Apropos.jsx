@@ -25,7 +25,7 @@ export default function APropos() {
   const [openFaq, setOpenFaq] = useState(null);
 
   const ouvrirWhatsApp = () => {
-    const message = "Bonjour Aridona Bijoux ! 💎 Je souhaite échanger avec votre service conciergerie.";
+    const message = "Bonjour Aridona Bijoux ! Je souhaite échanger avec votre service conciergerie.";
     window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank');
   };
 

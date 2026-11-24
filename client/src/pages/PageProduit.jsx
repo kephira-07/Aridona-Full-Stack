@@ -49,7 +49,7 @@ const ANCIENS_SLUGS_FAUX_PRODUITS = new Set([
 ]);
 
 const PageProduit = () => {
-const { slug } = useParams();
+  const { slug } = useParams();
   const { produits, categories, monnaie, ajouterPanier, whatsappNum, backendUrl } = useContext(ShopContext);
   const [produitData, setProduitData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -124,7 +124,7 @@ const { slug } = useParams();
         if (produitTrouve) {
           trackEvent('product_view', { produitId: String(produitTrouve._id || ''), produitNom: produitTrouve.nom, pageLabel: 'Fiche Bijou' });
         }
-        
+
         if (produitTrouve.image && produitTrouve.image.length > 0) {
           setImage(getImageUrl(produitTrouve.image[0]));
           setImageAlt(getImageAlt(produitTrouve.image[0], produitTrouve.nom));
@@ -239,7 +239,7 @@ const { slug } = useParams();
   const notifierSurWhatsApp = () => {
     if (!produitData) return;
     const prixFormate = produitData.prix ? Number(produitData.prix).toLocaleString() : 0;
-    const message = `Bonjour Aridona Bijoux ! 💎\n\nJe souhaite être informée lorsque la création *"${produitData.nom}"* (${prixFormate} ${monnaie || 'FCFA'}) sera à nouveau disponible.\n\nLien du produit : ${window.location.href}`;
+    const message = `Bonjour Aridona Bijoux !\n\nJe souhaite être informée lorsque la création *"${produitData.nom}"* (${prixFormate} ${monnaie || 'FCFA'}) sera à nouveau disponible.\n\nLien du produit : ${window.location.href}`;
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -254,55 +254,55 @@ const { slug } = useParams();
   };
 
   const schemaData = produitData && produitData.prix ? {
-  "@context": "https://schema.org/",
-  "@type": "Product",
-  "name": produitData.nom || "",
-  "image": Array.isArray(produitData.image) 
-    ? produitData.image.map(img => getImageUrl(img)) 
-    : [getImageUrl(produitData.image)],
-  "description": (produitData.description && produitData.description.trim())
-    || `${produitData.nom} : bijou en acier inoxydable 316L, waterproof et hypoallergénique. Livraison rapide à Lomé et partout au Togo.`,
-  "sku": String(produitData._id || produitData.id || ""),
-  "mpn": String(produitData._id || produitData.id || ""),
-  "brand": {
-    "@type": "Brand",
-    "name": "Aridona Bijoux"
-  },
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": "XOF",
-    "price": String(produitData.prix),
-    "priceValidUntil": "2027-12-31",
-    "availability": produitData.enStock !== false 
-      ? "https://schema.org/InStock" 
-      : "https://schema.org/OutOfStock",
-    "itemCondition": "https://schema.org/NewCondition",
-    "url": typeof window !== "undefined" ? window.location.href : "",
-    "shippingDetails": DEFAULT_SHIPPING_DETAILS,
-    "hasMerchantReturnPolicy": DEFAULT_RETURN_POLICY
-  },
-  ...(totalAvis > 0 ? {
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": String(Number(moyenneNotes).toFixed(1)), // Force un format décimal propre (ex: 4.8)
-      "reviewCount": String(totalAvis)
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": produitData.nom || "",
+    "image": Array.isArray(produitData.image)
+      ? produitData.image.map(img => getImageUrl(img))
+      : [getImageUrl(produitData.image)],
+    "description": (produitData.description && produitData.description.trim())
+      || `${produitData.nom} : bijou en acier inoxydable 316L, waterproof et hypoallergénique. Livraison rapide à Lomé et partout au Togo.`,
+    "sku": String(produitData._id || produitData.id || ""),
+    "mpn": String(produitData._id || produitData.id || ""),
+    "brand": {
+      "@type": "Brand",
+      "name": "Aridona Bijoux"
     },
-    "review": avisListe.map(a => ({
-      "@type": "Review", // Correction : suppression du doublon
-      "author": { 
-        "@type": "Person", 
-        "name": a.nom || "Client anonyme" 
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "XOF",
+      "price": String(produitData.prix),
+      "priceValidUntil": "2027-12-31",
+      "availability": produitData.enStock !== false
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      "itemCondition": "https://schema.org/NewCondition",
+      "url": typeof window !== "undefined" ? window.location.href : "",
+      "shippingDetails": DEFAULT_SHIPPING_DETAILS,
+      "hasMerchantReturnPolicy": DEFAULT_RETURN_POLICY
+    },
+    ...(totalAvis > 0 ? {
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": String(Number(moyenneNotes).toFixed(1)), // Force un format décimal propre (ex: 4.8)
+        "reviewCount": String(totalAvis)
       },
-      "datePublished": a.createdAt ? new Date(a.createdAt).toISOString() : new Date().toISOString(),
-      "reviewBody": a.commentaire || "",
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": String(a.note || 5),
-        "bestRating": "5"
-      }
-    }))
-  } : {})
-} : null;
+      "review": avisListe.map(a => ({
+        "@type": "Review", // Correction : suppression du doublon
+        "author": {
+          "@type": "Person",
+          "name": a.nom || "Client anonyme"
+        },
+        "datePublished": a.createdAt ? new Date(a.createdAt).toISOString() : new Date().toISOString(),
+        "reviewBody": a.commentaire || "",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": String(a.note || 5),
+          "bestRating": "5"
+        }
+      }))
+    } : {})
+  } : null;
 
   const pageTitle = produitData
     ? (produitData.metaTitle || `${produitData.nom} - Bijoux en Acier Inoxydable | Aridona Bijoux`)
@@ -389,10 +389,10 @@ const { slug } = useParams();
         )}
         <span className="mx-2">/</span><span aria-current="page">{produitData.nom}</span>
       </nav>
-      
+
       {/* CONTENEUR PRINCIPAL */}
       <div className='flex gap-8 lg:gap-16 flex-col md:flex-row px-4 md:px-10 lg:px-20 mt-6'>
-        
+
         {/* GALERIE IMAGES */}
         <div className='flex-1  flex flex-col-reverse gap-3 md:flex-row'>
           <div className='flex md:flex-col overflow-x-auto md:overflow-y-auto justify-start gap-3 md:w-[20%] w-full no-scrollbar'>
@@ -415,8 +415,8 @@ const { slug } = useParams();
           </div>
 
           <div className='w-full md:w-[80%]'>
-            <div 
-              onClick={() => setShowModal(true)} 
+            <div
+              onClick={() => setShowModal(true)}
               className='aspect-square w-full overflow-hidden bg-stone-50 border border-stone-100 cursor-zoom-in group relative'
             >
               {image ? (
@@ -424,11 +424,11 @@ const { slug } = useParams();
               ) : (
                 <div className='w-full h-full flex items-center justify-center text-stone-300'>Image non disponible</div>
               )}
-              
+
               <div className='absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center'>
-                 <span className='bg-white/80 px-4 py-2 rounded-full text-xs font-medium text-stone-800 backdrop-blur-sm'>
-                    Cliquez pour agrandir
-                 </span>
+                <span className='bg-white/80 px-4 py-2 rounded-full text-xs font-medium text-stone-800 backdrop-blur-sm'>
+                  Cliquez pour agrandir
+                </span>
               </div>
             </div>
           </div>
@@ -487,7 +487,7 @@ const { slug } = useParams();
               <span className="text-sm text-emerald-700">En stock</span>
             )}
           </div>
-          
+
           <div className='mt-6 md:w-11/12 border-y border-stone-200'>
             <button
               type='button'
@@ -509,29 +509,29 @@ const { slug } = useParams();
           {/* SÉLECTION TAILLE */}
           {produitData.sizes && produitData.sizes.length > 0 && (
             <div className='flex flex-col gap-4 my-8'>
-                <p className='font-medium text-stone-800 text-sm'>
-                  {produitData.sizes.length === 1 ? 'Taille disponible :' : 'Choisissez votre taille avant d’ajouter au panier :'}
-                </p>
-                <div className='flex flex-wrap gap-3'>
-                  {produitData.sizes.map((item, index) => {
-                    const isSelected = selectedSizes.includes(item);
-                    return (
-                      <button 
-                        key={index} 
-                        type="button"
-                        disabled={produitData.enStock === false}
-                        onClick={() => handleSizeToggle(item)}
-                        className={`min-w-[3rem] h-12 px-4 flex items-center justify-center border-2 transition-all duration-200 font-medium rounded-lg text-sm cursor-pointer
-                          ${isSelected 
-                            ? 'border-black bg-black text-white shadow-md' 
-                            : 'border-stone-200 bg-white text-stone-600 hover:border-black'}
+              <p className='font-medium text-stone-800 text-sm'>
+                {produitData.sizes.length === 1 ? 'Taille disponible :' : 'Choisissez votre taille avant d’ajouter au panier :'}
+              </p>
+              <div className='flex flex-wrap gap-3'>
+                {produitData.sizes.map((item, index) => {
+                  const isSelected = selectedSizes.includes(item);
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      disabled={produitData.enStock === false}
+                      onClick={() => handleSizeToggle(item)}
+                      className={`min-w-[3rem] h-12 px-4 flex items-center justify-center border-2 transition-all duration-200 font-medium rounded-lg text-sm cursor-pointer
+                          ${isSelected
+                          ? 'border-black bg-black text-white shadow-md'
+                          : 'border-stone-200 bg-white text-stone-600 hover:border-black'}
                           ${produitData.enStock === false ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        {item}
-                      </button>
-                    );
-                  })}
-                </div>
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -539,35 +539,35 @@ const { slug } = useParams();
           <div className="md:w-11/12 mt-6 flex flex-col gap-3">
             {produitData.enStock !== false ? (
               <>
-              <button 
-                type="button"
-                onClick={() => {
-                  const idProduit = produitData._id || produitData.id;
-                  ajouterPanier(idProduit, selectedSizes[0] || 'Unique');
-                  
-                  setEstAjoute(true);
-                  setTimeout(() => setEstAjoute(false), 2000);
-                }} 
-                className={`w-full flex items-center justify-center gap-3 text-xs font-semibold tracking-widest py-4 px-4 transition-all duration-300 uppercase ease-in-out shadow-sm active:scale-[0.98] cursor-pointer
-                  ${estAjoute 
-                    ? 'bg-emerald-700 text-white shadow-emerald-100' 
-                    : 'bg-amber-900 text-white hover:bg-amber-950'
-                  }`}
-              >
-                <ShoppingBag size={16} strokeWidth={2} className={estAjoute ? 'scale-110 animate-bounce' : ''} />
-                <span>{estAjoute ? 'Ajouté au panier !' : 'Ajouter au panier'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={commanderSurWhatsApp}
-                className="w-full flex items-center justify-center gap-3 text-xs font-bold tracking-wider py-4 px-4 border border-emerald-700 text-emerald-800 hover:bg-emerald-50 transition-all uppercase cursor-pointer"
-              >
-                <MessageCircle size={18} />
-                <span>Achat rapide sur WhatsApp (cet article seul)</span>
-              </button>
-              <p className="text-[11px] text-stone-500 text-center leading-relaxed pt-1">
-                <ShieldCheck size={14} className="inline-block text-amber-800 mr-1.5 -mt-0.5" /><strong>Astuce :</strong> Cliquez sur <em>Ajouter au panier</em> si vous souhaitez commander plusieurs bijoux ensemble, ou sur <em>WhatsApp</em> pour réserver cette pièce immédiatement.
-              </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const idProduit = produitData._id || produitData.id;
+                    ajouterPanier(idProduit, selectedSizes[0] || 'Unique');
+
+                    setEstAjoute(true);
+                    setTimeout(() => setEstAjoute(false), 2000);
+                  }}
+                  className={`w-full flex items-center justify-center gap-3 text-xs font-semibold tracking-widest py-4 px-4 transition-all duration-300 uppercase ease-in-out shadow-sm active:scale-[0.98] cursor-pointer
+                  ${estAjoute
+                      ? 'bg-emerald-700 text-white shadow-emerald-100'
+                      : 'bg-amber-900 text-white hover:bg-amber-950'
+                    }`}
+                >
+                  <ShoppingBag size={16} strokeWidth={2} className={estAjoute ? 'scale-110 animate-bounce' : ''} />
+                  <span>{estAjoute ? 'Ajouté au panier !' : 'Ajouter au panier'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={commanderSurWhatsApp}
+                  className="w-full flex items-center justify-center gap-3 text-xs font-bold tracking-wider py-4 px-4 border border-emerald-700 text-emerald-800 hover:bg-emerald-50 transition-all uppercase cursor-pointer"
+                >
+                  <MessageCircle size={18} />
+                  <span>Achat rapide sur WhatsApp (cet article seul)</span>
+                </button>
+                <p className="text-[11px] text-stone-500 text-center leading-relaxed pt-1">
+                  <ShieldCheck size={14} className="inline-block text-amber-800 mr-1.5 -mt-0.5" /><strong>Astuce :</strong> Cliquez sur <em>Ajouter au panier</em> si vous souhaitez commander plusieurs bijoux ensemble, ou sur <em>WhatsApp</em> pour réserver cette pièce immédiatement.
+                </p>
               </>
             ) : null}
             {produitData.enStock === false && (
@@ -582,8 +582,8 @@ const { slug } = useParams();
             )}
           </div>
 
-          <hr className='mt-10 border-stone-200 md:w-11/12'/>
-          
+          <hr className='mt-10 border-stone-200 md:w-11/12' />
+
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-3 gap-3 mt-6 w-full lg:w-11/12'>
             <div className='flex items-center gap-3 rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-3'>
               <ShieldCheck className='shrink-0 text-amber-700' size={20} strokeWidth={1.6} aria-hidden='true' />
@@ -609,184 +609,184 @@ const { slug } = useParams();
           </div>
         </div>
       </div>
-<section className="mt-16 md:mt-20 pt-12 border-t border-stone-200 px-4 md:px-10 lg:px-20">
-  <div className="max-w-5xl mx-auto">
+      <section className="mt-16 md:mt-20 pt-12 border-t border-stone-200 px-4 md:px-10 lg:px-20">
+        <div className="max-w-5xl mx-auto">
 
-    {/* EN-TÊTE + RÉSUMÉ DES NOTES */}
-    <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
-      <div>
-        <span className="text-xs uppercase tracking-[0.3em] text-amber-700 font-semibold">Retours clients</span>
-        <h2 className="font-ebgaramond text-3xl md:text-4xl text-stone-900 tracking-wide mt-1.5">
-          Avis de nos clientes
-        </h2>
-        <p className="text-sm text-stone-500 mt-3 max-w-md leading-relaxed">
-          {totalAvis > 0
-            ? `Basé sur ${totalAvis} retour${totalAvis > 1 ? 's' : ''} d'expérience.`
-            : "Soyez la première à partager votre expérience sur ce bijou."}
-        </p>
-
-        <button
-          type="button"
-          onClick={() => setShowFormAvis(!showFormAvis)}
-          className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-stone-900 hover:bg-amber-900 text-white text-xs font-semibold uppercase tracking-widest transition-all rounded-full shadow-sm active:scale-[0.98] cursor-pointer"
-        >
-          <span>{showFormAvis ? "Fermer le formulaire" : "Laisser un avis"}</span>
-          {showFormAvis ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </button>
-      </div>
-
-      {/* Carte résumé : note moyenne + répartition par étoile */}
-      {totalAvis > 0 && (
-        <div className="w-full md:w-80 shrink-0 bg-stone-50/80 border border-stone-200/80 rounded-2xl p-6">
-          <div className="flex items-center gap-4 mb-5">
-            <span className="font-ebgaramond text-4xl text-stone-900">{moyenneNotes}</span>
+          {/* EN-TÊTE + RÉSUMÉ DES NOTES */}
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 mb-10">
             <div>
-              <div className="flex text-amber-500">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={14} className={i < Math.round(Number(moyenneNotes)) ? "fill-amber-500" : "text-stone-200"} />
-                ))}
-              </div>
-              <p className="text-[11px] text-stone-500 mt-1">{totalAvis} avis</p>
-            </div>
-          </div>
+              <span className="text-xs uppercase tracking-[0.3em] text-amber-700 font-semibold">Retours clients</span>
+              <h2 className="font-ebgaramond text-3xl md:text-4xl text-stone-900 tracking-wide mt-1.5">
+                Avis de nos clientes
+              </h2>
+              <p className="text-sm text-stone-500 mt-3 max-w-md leading-relaxed">
+                {totalAvis > 0
+                  ? `Basé sur ${totalAvis} retour${totalAvis > 1 ? 's' : ''} d'expérience.`
+                  : "Soyez la première à partager votre expérience sur ce bijou."}
+              </p>
 
-          <div className="space-y-1.5">
-            {[5, 4, 3, 2, 1].map((n) => {
-              const count = avisListe.filter((a) => a.note === n).length;
-              const pct = totalAvis > 0 ? Math.round((count / totalAvis) * 100) : 0;
-              return (
-                <div key={n} className="flex items-center gap-2 text-[11px] text-stone-500">
-                  <span className="w-2.5 shrink-0">{n}</span>
-                  <Star size={10} className="text-amber-400 fill-amber-400 shrink-0" />
-                  <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+              <button
+                type="button"
+                onClick={() => setShowFormAvis(!showFormAvis)}
+                className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-stone-900 hover:bg-amber-900 text-white text-xs font-semibold uppercase tracking-widest transition-all rounded-full shadow-sm active:scale-[0.98] cursor-pointer"
+              >
+                <span>{showFormAvis ? "Fermer le formulaire" : "Laisser un avis"}</span>
+                {showFormAvis ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </div>
+
+            {/* Carte résumé : note moyenne + répartition par étoile */}
+            {totalAvis > 0 && (
+              <div className="w-full md:w-80 shrink-0 bg-stone-50/80 border border-stone-200/80 rounded-2xl p-6">
+                <div className="flex items-center gap-4 mb-5">
+                  <span className="font-ebgaramond text-4xl text-stone-900">{moyenneNotes}</span>
+                  <div>
+                    <div className="flex text-amber-500">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={14} className={i < Math.round(Number(moyenneNotes)) ? "fill-amber-500" : "text-stone-200"} />
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-stone-500 mt-1">{totalAvis} avis</p>
                   </div>
-                  <span className="w-6 shrink-0 text-right text-stone-400">{count}</span>
                 </div>
-              );
-            })}
+
+                <div className="space-y-1.5">
+                  {[5, 4, 3, 2, 1].map((n) => {
+                    const count = avisListe.filter((a) => a.note === n).length;
+                    const pct = totalAvis > 0 ? Math.round((count / totalAvis) * 100) : 0;
+                    return (
+                      <div key={n} className="flex items-center gap-2 text-[11px] text-stone-500">
+                        <span className="w-2.5 shrink-0">{n}</span>
+                        <Star size={10} className="text-amber-400 fill-amber-400 shrink-0" />
+                        <div className="flex-1 h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="w-6 shrink-0 text-right text-stone-400">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
-    </div>
 
-    {/* FORMULAIRE ACCORDÉON (DÉROULANT) */}
-    {showFormAvis && (
-      <div className="mb-12 p-6 sm:p-8 bg-white rounded-2xl border border-stone-200/80 shadow-sm animate-in fade-in duration-300">
-        <h3 className="font-ebgaramond text-xl text-stone-900 mb-5">Partagez votre expérience</h3>
+          {/* FORMULAIRE ACCORDÉON (DÉROULANT) */}
+          {showFormAvis && (
+            <div className="mb-12 p-6 sm:p-8 bg-white rounded-2xl border border-stone-200/80 shadow-sm animate-in fade-in duration-300">
+              <h3 className="font-ebgaramond text-xl text-stone-900 mb-5">Partagez votre expérience</h3>
 
-        {avisEnvoye && (
-          <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
-            <CheckCircle size={16} /> Merci ! Votre avis a été publié.
-          </div>
-        )}
+              {avisEnvoye && (
+                <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+                  <CheckCircle size={16} /> Merci ! Votre avis a été publié.
+                </div>
+              )}
 
-        <form onSubmit={handleSoumettreAvis} className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Votre prénom / nom
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="ex: Aminata K."
-                value={nouvelAvis.nom}
-                onChange={(e) => setNouvelAvis({ ...nouvelAvis, nom: e.target.value })}
-                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Votre note
-              </label>
-              <div className="flex items-center gap-1.5 h-[42px]">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setNouvelAvis({ ...nouvelAvis, note: n })}
-                    aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
-                    className="p-0.5 cursor-pointer"
-                  >
-                    <Star
-                      size={22}
-                      className={n <= Number(nouvelAvis.note) ? "fill-amber-500 text-amber-500" : "text-stone-300"}
+              <form onSubmit={handleSoumettreAvis} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                      Votre prénom / nom
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="ex: Aminata K."
+                      value={nouvelAvis.nom}
+                      onChange={(e) => setNouvelAvis({ ...nouvelAvis, nom: e.target.value })}
+                      className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
                     />
-                  </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                      Votre note
+                    </label>
+                    <div className="flex items-center gap-1.5 h-[42px]">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setNouvelAvis({ ...nouvelAvis, note: n })}
+                          aria-label={`${n} étoile${n > 1 ? 's' : ''}`}
+                          className="p-0.5 cursor-pointer"
+                        >
+                          <Star
+                            size={22}
+                            className={n <= Number(nouvelAvis.note) ? "fill-amber-500 text-amber-500" : "text-stone-300"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                    Votre commentaire
+                  </label>
+                  <textarea
+                    required
+                    rows="3"
+                    placeholder="Qu'avez-vous pensé de la qualité du bijou, du rendu ou de la livraison ?"
+                    value={nouvelAvis.commentaire}
+                    onChange={(e) => setNouvelAvis({ ...nouvelAvis, commentaire: e.target.value })}
+                    className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all resize-none"
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={envoiEnCours}
+                  className="inline-flex items-center gap-2 px-7 py-3 bg-stone-900 hover:bg-amber-900 text-white text-xs font-semibold uppercase tracking-widest rounded-full shadow-sm transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+                >
+                  <Send size={13} /> {envoiEnCours ? "Envoi..." : "Publier mon avis"}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* CARROUSEL DES AVIS */}
+          {!avisLoading && avisListe.length === 0 && (
+            <p className="text-sm text-stone-400 italic text-center py-12 border border-dashed border-stone-200 rounded-2xl">
+              Aucun avis publié pour le moment.
+            </p>
+          )}
+
+          {avisListe.length === 1 && (
+            <div className="flex justify-center">
+              <div className="w-full max-w-md">
+                <CarteAvis item={avisListe[0]} />
+              </div>
+            </div>
+          )}
+
+          {avisListe.length > 1 && (
+            <div
+              className="group relative overflow-hidden mask-[linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]"
+            >
+              <div
+                className="flex w-max gap-5 animate-avis-marquee group-hover:[animation-play-state:paused]"
+                style={{ '--avis-marquee-duration': `${Math.max(avisListe.length * 8, 20)}s` }}
+              >
+                {[...avisListe, ...avisListe].map((item, index) => (
+                  <div key={`${item._id}-${index}`} className="w-75 sm:w-90 shrink-0">
+                    <CarteAvis item={item} />
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-              Votre commentaire
-            </label>
-            <textarea
-              required
-              rows="3"
-              placeholder="Qu'avez-vous pensé de la qualité du bijou, du rendu ou de la livraison ?"
-              value={nouvelAvis.commentaire}
-              onChange={(e) => setNouvelAvis({ ...nouvelAvis, commentaire: e.target.value })}
-              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all resize-none"
-            ></textarea>
-          </div>
-
-          <button
-            type="submit"
-            disabled={envoiEnCours}
-            className="inline-flex items-center gap-2 px-7 py-3 bg-stone-900 hover:bg-amber-900 text-white text-xs font-semibold uppercase tracking-widest rounded-full shadow-sm transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
-          >
-            <Send size={13} /> {envoiEnCours ? "Envoi..." : "Publier mon avis"}
-          </button>
-        </form>
-      </div>
-    )}
-
-    {/* CARROUSEL DES AVIS */}
-    {!avisLoading && avisListe.length === 0 && (
-      <p className="text-sm text-stone-400 italic text-center py-12 border border-dashed border-stone-200 rounded-2xl">
-        Aucun avis publié pour le moment.
-      </p>
-    )}
-
-    {avisListe.length === 1 && (
-      <div className="flex justify-center">
-        <div className="w-full max-w-md">
-          <CarteAvis item={avisListe[0]} />
         </div>
-      </div>
-    )}
-
-    {avisListe.length > 1 && (
-      <div
-        className="group relative overflow-hidden mask-[linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]"
-      >
-        <div
-          className="flex w-max gap-5 animate-avis-marquee group-hover:[animation-play-state:paused]"
-          style={{ '--avis-marquee-duration': `${Math.max(avisListe.length * 8, 20)}s` }}
-        >
-          {[...avisListe, ...avisListe].map((item, index) => (
-            <div key={`${item._id}-${index}`} className="w-75 sm:w-90 shrink-0">
-              <CarteAvis item={item} />
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-
-  </div>
-</section>
+      </section>
 
 
       {/* PRODUITS APPARENTÉS */}
       <div className=''>
-        <ApparenteProduit 
-          categorie={produitData.categorie} 
-          matiere={produitData.matiere} 
-          actuelId={produitData._id || produitData.id} 
+        <ApparenteProduit
+          categorie={produitData.categorie}
+          matiere={produitData.matiere}
+          actuelId={produitData._id || produitData.id}
         />
       </div>
     </div>

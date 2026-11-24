@@ -661,13 +661,13 @@ const ShopContextProvider = (props) => {
     const totalFinal = Math.max(0, sousTotal - reduction);
     const numero = whatsappNum || '22872656485';
 
-    let message = `✨ *NOUVELLE COMMANDE — ARIDONA BIJOUX* ✨\n\n`;
+    let message = `*NOUVELLE COMMANDE — ARIDONA BIJOUX*\n\n`;
     message += `Bonjour Aridona Bijoux ! Je souhaite commander :\n\n`;
-    message += `🛍️ *DÉTAILS DU PANIER :*\n`;
+    message += `*DÉTAILS DU PANIER :*\n`;
 
     orderItems.forEach((item, index) => {
       if (item.type === 'pack') {
-        message += `${index + 1}. 🎁 *Pack ${item.nom}* x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString('fr-FR')} ${monnaie}\n`;
+        message += `${index + 1}. *Pack ${item.nom}* x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString('fr-FR')} ${monnaie}\n`;
         return;
       }
       const tailleFormatee = (!item.size || item.size.trim() === '' || item.size === '""' || item.size.toLowerCase() === 'unique')
@@ -676,12 +676,12 @@ const ShopContextProvider = (props) => {
       message += `${index + 1}. *${item.nom}* (Taille: ${tailleFormatee}) x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString('fr-FR')} ${monnaie}\n`;
     });
 
-    message += `\n💰 *Sous-total :* ${sousTotal.toLocaleString('fr-FR')} ${monnaie}`;
+    message += `\n*Sous-total :* ${sousTotal.toLocaleString('fr-FR')} ${monnaie}`;
     if (reduction > 0) {
-      message += `\n🎁 *Réduction (-${Math.round(tauxReduction * 100)}%) :* -${reduction.toLocaleString('fr-FR')} ${monnaie}`;
+      message += `\n*Réduction (-${Math.round(tauxReduction * 100)}%) :* -${reduction.toLocaleString('fr-FR')} ${monnaie}`;
     }
-    message += `\n⭐ *TOTAL À PAYER : ${totalFinal.toLocaleString('fr-FR')} ${monnaie}*\n\n`;
-    message += `📍 Je vous indique mon quartier de livraison et mon mode de règlement (Espèces ou Mobile Money) ici sur WhatsApp.`;
+    message += `\n*TOTAL À PAYER : ${totalFinal.toLocaleString('fr-FR')} ${monnaie}*\n\n`;
+    message += `Je vous indique mon quartier de livraison et mon mode de règlement (Espèces ou Mobile Money) ici sur WhatsApp.`;
 
     const whatsappUrl = `https://wa.me/${numero}?text=${encodeURIComponent(message)}`;
 
@@ -720,7 +720,7 @@ const ShopContextProvider = (props) => {
       // Silencieux : ne bloque jamais l'ouverture de WhatsApp
     }
 
-    try { localStorage.setItem('aridona_guide_done', 'true'); } catch {}
+    try { localStorage.setItem('aridona_guide_done', 'true'); } catch { }
     setPanierOuvert(false);
     viderPanier();
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { backendUrl } from '../config';
+import { Phone, CheckCircle2, Clock } from 'lucide-react';
 
 const Orders = ({ token }) => {
   const [orders, setOrders] = useState([]);
@@ -147,7 +148,7 @@ const Orders = ({ token }) => {
                     <p className="text-gray-500 text-xs leading-relaxed">
                       {order.address.street}, {order.address.zipcode} {order.address.city}
                     </p>
-                    <p className="text-gray-600 font-medium text-xs pt-1">📞 {order.address.phone}</p>
+                    <p className="text-gray-600 font-medium text-xs pt-1 flex items-center gap-1.5"><Phone size={12} className="text-amber-700" /> {order.address.phone}</p>
                   </>
                 ) : (
                   <p className="text-red-500 text-xs">Adresse non renseignée</p>
@@ -160,10 +161,10 @@ const Orders = ({ token }) => {
                 <p className="font-bold text-slate-800 text-base">{Number(order.amount || 0).toLocaleString()} FCFA</p>
                 <p className="text-gray-500 text-xs">Méthode : <span className="font-medium">{order.paymentMethod}</span></p>
                 <div>
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mt-1 ${
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 mt-1 ${
                     order.payment ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'
                   }`}>
-                    {order.payment ? 'Payé ✅' : 'En attente ⏳'}
+                    {order.payment ? <><CheckCircle2 size={12} /> Payé</> : <><Clock size={12} /> En attente</>}
                   </span>
                 </div>
               </div>

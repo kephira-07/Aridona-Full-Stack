@@ -5,8 +5,8 @@ import { backendUrl } from '../config';
 import { 
   Upload, 
   X, 
-  Plus, 
-  Sparkles, 
+  Plus,
+  Star,
   Loader2, 
   Check, 
   Pencil, 
@@ -266,7 +266,7 @@ const Edit = ({ token }) => {
       );
 
       if (response.data.success) {
-        toast.success("✨ Bijou mis à jour avec succès !");
+        toast.success("Bijou mis à jour avec succès !");
         navigate('/listeProduits');
       } else {
         toast.error(response.data.message || "Erreur lors de la mise à jour.");
@@ -646,7 +646,7 @@ const Edit = ({ token }) => {
           <div className="p-4 bg-stone-50/80 border border-stone-200/60 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-100/60 text-amber-800 rounded-lg">
-                <Sparkles size={16} />
+                <Star size={16} />
               </div>
               <div>
                 <label htmlFor="edit-meilleurVente" className="text-xs font-semibold text-stone-900 cursor-pointer block">
@@ -682,7 +682,7 @@ const Edit = ({ token }) => {
               </>
             ) : (
               <>
-                <Sparkles size={16} className="text-amber-400" />
+                <Check size={16} className="text-amber-400" />
                 <span>Enregistrer les Modifications</span>
               </>
             )}

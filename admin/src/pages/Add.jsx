@@ -4,8 +4,8 @@ import { backendUrl } from '../config';
 import { 
   Upload, 
   X, 
-  Plus, 
-  Sparkles, 
+  Plus,
+  Star,
   Loader2, 
   Check, 
   PackagePlus, 
@@ -240,7 +240,7 @@ const Add = ({ token }) => {
           if (validColors.length > 0) setCouleurs(validColors);
         }
 
-        toast.success("✨ Fiche produit générée avec succès par l'IA !");
+        toast.success("Fiche produit générée avec succès par l'IA !");
       } else {
         toast.error(response.data.message || "L'IA n'a pas pu analyser l'image.");
       }
@@ -315,19 +315,19 @@ const Add = ({ token }) => {
       );
 
       if (response.data.success) {
-        toast.success("✨ Bijou ajouté avec succès au catalogue !");
+        toast.success("Bijou ajouté avec succès au catalogue !");
 
         const social = response.data.social;
         if (social?.instagram) {
           if (social.instagram.success) {
-            toast.success("📸 Publié automatiquement sur Instagram !");
+            toast.success("Publié automatiquement sur Instagram !");
           } else {
             toast.warning(`Instagram : ${social.instagram.message}`);
           }
         }
         if (social?.x) {
           if (social.x.success) {
-            toast.success("🐦 Publié automatiquement sur X (Twitter) !");
+            toast.success("Publié automatiquement sur X (Twitter) !");
           } else {
             toast.warning(`X (Twitter) : ${social.x.message}`);
           }
@@ -382,7 +382,7 @@ const Add = ({ token }) => {
           ) : (
             <>
               <Wand2 size={15} className="text-amber-300" />
-              <span>✨ Remplir avec l'IA</span>
+              <span>Remplir avec l'IA</span>
             </>
           )}
         </button>
@@ -678,7 +678,7 @@ const Add = ({ token }) => {
           <div className="p-4 bg-stone-50/80 border border-stone-200/60 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-amber-100/60 text-amber-800 rounded-lg">
-                <Sparkles size={16} />
+                <Star size={16} />
               </div>
               <div>
                 <label htmlFor="meilleurVente" className="text-xs font-semibold text-stone-900 cursor-pointer block">
@@ -779,7 +779,7 @@ const Add = ({ token }) => {
               </>
             ) : (
               <>
-                <Sparkles size={16} className="text-amber-400" />
+                <Check size={16} className="text-amber-400" />
                 <span>Enregistrer & Publier le Bijou</span>
               </>
             )}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, Package, Plus, X, Sparkles, Search, Check } from 'lucide-react';
+import { Pencil, Trash2, Package, Plus, X, Wand2, Search, Check } from 'lucide-react';
 import { backendUrl } from '../config';
 import { toast } from 'react-toastify';
 
@@ -87,7 +87,7 @@ export default function Packs({ token }) {
           description: description || prev.description,
           prix: prixSuggere !== undefined ? String(prixSuggere) : prev.prix,
         }));
-        toast.success("✨ Pack composé avec succès par Groq !");
+        toast.success("Pack composé avec succès par Groq !");
       } else {
         toast.error(response.data.message || "L'IA n'a pas pu composer le pack.");
       }
@@ -257,8 +257,8 @@ export default function Packs({ token }) {
                 disabled={aiLoading || form.produits.length < 2}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 py-2.5 px-3 text-xs font-semibold uppercase tracking-wider text-white shadow-xs hover:from-amber-800 hover:to-amber-900 disabled:opacity-50 transition-all cursor-pointer"
               >
-                <Sparkles size={14} className={aiLoading ? "animate-spin" : ""} />
-                <span>{aiLoading ? "Groq compose l'offre..." : "✨ Remplir automatiquement avec Groq"}</span>
+                <Wand2 size={14} className={aiLoading ? "animate-spin" : ""} />
+                <span>{aiLoading ? "Groq compose l'offre..." : "Remplir automatiquement avec Groq"}</span>
               </button>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

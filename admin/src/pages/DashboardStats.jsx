@@ -8,7 +8,6 @@ import {
   MapPin,
   RefreshCw,
   TrendingUp,
-  Sparkles,
   BarChart3,
   Layers,
   Gem,
@@ -247,7 +246,7 @@ export default function DashboardStats({ token }) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-amber-50 via-rose-50/70 to-sky-50 border border-amber-200/60 p-6 rounded-3xl shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-amber-700 text-[11px] uppercase font-bold tracking-widest mb-1">
-            <Sparkles size={14} className="text-amber-600" />
+            <BarChart3 size={14} className="text-amber-600" />
             <span>Tableau de bord analytique</span>
           </div>
           <h1 className="font-serif text-2xl md:text-3xl tracking-wide bg-gradient-to-r from-amber-700 via-rose-600 to-indigo-700 bg-clip-text text-transparent font-bold">

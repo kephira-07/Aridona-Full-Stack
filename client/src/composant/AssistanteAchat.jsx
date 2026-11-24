@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Sparkles, X, ArrowRight } from 'lucide-react';
+import { Gem, X, ArrowRight } from 'lucide-react';
 import { ShopContext } from '../context/ShopContext';
 
 const AUTO_HIDE_MS = 7500;
@@ -148,7 +148,7 @@ export default function AssistanteAchat() {
       >
         <div className="flex items-start justify-between gap-2">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-100/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900">
-            <Sparkles size={12} className="text-amber-700" />
+            <Gem size={12} className="text-amber-700" />
             <span>{activeGuide.badge}</span>
           </div>
           <button
