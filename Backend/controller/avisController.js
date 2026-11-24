@@ -17,6 +17,13 @@ const ajouterAvis = async (req, res) => {
       return res.status(400).json({ success: false, message: "Identifiant produit invalide." });
     }
 
+    if (nom.trim().length < 2 || nom.trim().length > 80) {
+      return res.status(400).json({ success: false, message: "Le nom doit contenir entre 2 et 80 caractères." });
+    }
+    if (commentaire.trim().length < 3 || commentaire.trim().length > 1000) {
+      return res.status(400).json({ success: false, message: "Le commentaire doit contenir entre 3 et 1000 caractères." });
+    }
+
     const noteNum = Number(note);
     if (!Number.isInteger(noteNum) || noteNum < 1 || noteNum > 5) {
       return res.status(400).json({ success: false, message: "La note doit être un entier compris entre 1 et 5." });

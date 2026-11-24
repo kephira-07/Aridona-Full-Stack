@@ -13,6 +13,12 @@ const envoyerMessageContact = async (req, res) => {
     if (!nom || !email || !message) {
       return res.status(400).json({ success: false, message: "Nom, email et message sont obligatoires." });
     }
+    if (typeof nom !== 'string' || typeof email !== 'string' || typeof message !== 'string' || (sujet !== undefined && typeof sujet !== 'string')) {
+      return res.status(400).json({ success: false, message: "Données invalides." });
+    }
+    if (nom.length > 100 || email.length > 160 || message.length > 5000 || (sujet && sujet.length > 150)) {
+      return res.status(400).json({ success: false, message: "Un des champs est trop long." });
+    }
     if (!validator.isEmail(email)) {
       return res.status(400).json({ success: false, message: "Adresse email invalide." });
     }

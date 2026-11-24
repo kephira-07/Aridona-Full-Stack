@@ -28,8 +28,17 @@ const placeOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "Votre panier est vide." });
         }
 
-        if (!address || !address.firstName || !address.phone || !address.street) {
+        if (!address || typeof address !== 'object' || !address.firstName || !address.phone || !address.street) {
             return res.status(400).json({ success: false, message: "Les informations de livraison sont incomplètes." });
+        }
+
+        // Validation du type et de la taille des champs d'adresse (évite le stockage de données abusives)
+        const champsAdresse = [address.firstName, address.lastName, address.email, address.street, address.city, address.zipcode, address.phone];
+        if (champsAdresse.some((valeur) => valeur !== undefined && valeur !== null && (typeof valeur !== 'string' || valeur.length > 200))) {
+            return res.status(400).json({ success: false, message: "Les informations de livraison sont invalides." });
+        }
+        if (!/^\+?[\d\s().-]{6,20}$/.test(address.phone.trim())) {
+            return res.status(400).json({ success: false, message: "Numéro de téléphone invalide." });
         }
 
         if (items.length > 50) {

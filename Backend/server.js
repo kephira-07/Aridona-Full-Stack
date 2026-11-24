@@ -36,9 +36,12 @@ connectCloudinary();
 // Middlewares
 app.use(helmet());
 
-// ⚠️ Correction : Augmentation de la limite à 10mb pour accepter les images en Base64 (IA)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Seule la route admin d'analyse d'image IA reçoit une image en Base64 : on lui réserve 10 Mo.
+// Partout ailleurs (routes publiques comprises) la limite est de 1 Mo, pour éviter qu'un attaquant
+// ne sature le serveur avec de gros corps de requête.
+app.use('/api/produit/ai-analyze', express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Origines autorisées : client et dashboard admin en production + ports de dev locaux.
 const defaultOrigins = [
