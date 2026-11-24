@@ -1,15 +1,30 @@
 import backendUrl from "../config";
 
+let memoryVisitorId = "";
+
+const generateVisitorId = () =>
+  "v-" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36).slice(-4);
+
 const getVisitorId = () => {
   try {
     let vid = localStorage.getItem("aridona_vid");
     if (!vid) {
-      vid = "v-" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36).slice(-4);
+      vid = generateVisitorId();
       localStorage.setItem("aridona_vid", vid);
     }
     return vid;
   } catch {
-    return "v-anon";
+    try {
+      let vid = sessionStorage.getItem("aridona_vid");
+      if (!vid) {
+        vid = generateVisitorId();
+        sessionStorage.setItem("aridona_vid", vid);
+      }
+      return vid;
+    } catch {
+      if (!memoryVisitorId) memoryVisitorId = generateVisitorId();
+      return memoryVisitorId;
+    }
   }
 };
 

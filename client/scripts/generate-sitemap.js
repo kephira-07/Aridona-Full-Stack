@@ -57,14 +57,26 @@ const STATIC_PAGES = [
 
 const escapeXml = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const urlEntry = ({ loc, changefreq, priority, lastmod }) => `  <url>
+const urlEntry = ({ loc, changefreq, priority, lastmod, images }) => {
+  const imagesXml = Array.isArray(images) && images.length > 0
+    ? images
+        .filter((img) => img && img.loc)
+        .map((img) => `    <image:image>
+      <image:loc>${escapeXml(img.loc)}</image:loc>
+${img.title ? `      <image:title>${escapeXml(img.title)}</image:title>\n` : ''}    </image:image>`)
+        .join('\n') + '\n'
+    : '';
+
+  return `  <url>
     <loc>${escapeXml(SITE_URL + loc)}</loc>
 ${lastmod ? `    <lastmod>${lastmod}</lastmod>\n` : ''}    <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>
-  </url>`;
+${imagesXml}  </url>`;
+};
 
 const buildXml = (entries) => `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${entries.map(urlEntry).join('\n')}
 </urlset>
 `;
@@ -99,12 +111,19 @@ const fetchProduitEntries = async () => {
 
   return data.produits
     .filter((p) => p.enStock !== false)
-    .map((p) => ({
-      loc: `/produit/${p.slug || p._id}`,
-      changefreq: 'weekly',
-      priority: '0.7',
-      lastmod: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : undefined,
-    }));
+    .map((p) => {
+      const images = (Array.isArray(p.image) ? p.image : [])
+        .map((img) => (typeof img === 'object' ? img?.url : img))
+        .filter(Boolean)
+        .map((url) => ({ loc: url, title: p.nom }));
+      return {
+        loc: `/produit/${p.slug || p._id}`,
+        changefreq: 'weekly',
+        priority: '0.7',
+        lastmod: p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : undefined,
+        images,
+      };
+    });
 };
 
 const fetchArticleEntries = async () => {
@@ -131,12 +150,22 @@ const fetchPackEntries = async () => {
 
   return data.packs
     .filter((pack) => pack.slug)
-    .map((pack) => ({
-      loc: `/pack/${pack.slug}`,
-      changefreq: 'weekly',
-      priority: '0.8',
-      lastmod: pack.updatedAt ? new Date(pack.updatedAt).toISOString().split('T')[0] : undefined,
-    }));
+    .map((pack) => {
+      const images = (Array.isArray(pack.produits) ? pack.produits : [])
+        .map((item) => {
+          const first = Array.isArray(item?.produit?.image) ? item.produit.image[0] : item?.produit?.image;
+          return typeof first === 'object' ? first?.url : first;
+        })
+        .filter(Boolean)
+        .map((url) => ({ loc: url, title: pack.nom }));
+      return {
+        loc: `/pack/${pack.slug}`,
+        changefreq: 'weekly',
+        priority: '0.8',
+        lastmod: pack.updatedAt ? new Date(pack.updatedAt).toISOString().split('T')[0] : undefined,
+        images,
+      };
+    });
 };
 
 console.log(`[sitemap] Connexion au backend sur : ${BACKEND_URL}`);

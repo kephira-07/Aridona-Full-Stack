@@ -13,12 +13,14 @@ const VALID_EVENTS = new Set([
   "identify",
 ]);
 
+const BOT_UA_REGEX = /bot|crawl|spider|slurp|facebookexternalhit|lighthouse|headless|bingpreview|googleweblight|whatsapp|telegram|twitterbot|pinterest|bytespider|semrush|ahrefs|yandex|duckduckbot|applebot|petalbot|uptime|pagespeed|gtmetrix|puppeteer|playwright|curl|python-requests|axios|node-fetch|postman/i;
+
 // Enregistre une action d'un visiteur réel sur le site + rapproche son identité
 export const trackVisitorEvent = async (req, res) => {
   try {
-    const ua = String(req.headers["user-agent"] || "").toLowerCase();
-    // Ignorer les robots d'indexation (Googlebot, Meta, etc.) pour ne compter que les vrais humains
-    if (/bot|crawl|spider|slurp|facebookexternalhit|lighthouse|headless/i.test(ua)) {
+    const ua = String(req.headers["user-agent"] || "").trim();
+    // Ignorer les requêtes sans User-Agent et les robots/scripts pour ne compter que les vrais humains
+    if (!ua || BOT_UA_REGEX.test(ua)) {
       return res.status(200).json({ success: true, ignored: true });
     }
 
@@ -97,7 +99,8 @@ export const trackVisitorEvent = async (req, res) => {
 export const getDashboardStats = async (req, res) => {
   try {
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Togo (Africa/Lome) = UTC+0 : minuit UTC garantit la cohérence quel que soit le fuseau du serveur
+    const startOfToday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -120,7 +123,7 @@ export const getDashboardStats = async (req, res) => {
     ] = await Promise.all([
       produitModel.countDocuments({}),
       categorieModel.countDocuments({}),
-      produitModel.countDocuments({ enStock: false }),
+      produitModel.countDocuments({ $or: [{ enStock: false }, { stock: 0 }] }),
       produitModel.countDocuments({ meilleurVente: true }),
 
       orderModel.aggregate([
@@ -140,6 +143,7 @@ export const getDashboardStats = async (req, res) => {
         {
           $group: {
             _id: "$items._id",
+            nomStocke: { $first: "$items.nom" },
             totalVentes: { $sum: "$items.quantity" },
             totalGenere: { $sum: { $multiply: ["$items.quantity", "$items.prix"] } },
           },
@@ -152,7 +156,7 @@ export const getDashboardStats = async (req, res) => {
             as: "details",
           },
         },
-        { $unwind: "$details" },
+        { $unwind: { path: "$details", preserveNullAndEmptyArrays: true } },
         { $sort: { totalVentes: -1 } },
         { $limit: 5 },
       ]),
@@ -165,8 +169,6 @@ export const getDashboardStats = async (req, res) => {
             total: { $sum: 1 },
           },
         },
-        { $sort: { total: -1 } },
-        { $limit: 5 },
       ]),
 
       analyticsEventModel.distinct("visitorId", { createdAt: { $gte: startOfToday } }),
@@ -255,7 +257,7 @@ export const getDashboardStats = async (req, res) => {
     const totalCommandes = commandesStats.length > 0 ? commandesStats[0].count : 0;
 
     const produitsPlusVendus = bestSellersAggregation.map((item) => ({
-      nom: item.details.nom,
+      nom: item.details?.nom || item.nomStocke || "Article",
       ventes: item.totalVentes,
       totalGenere: item.totalGenere,
     }));
@@ -271,10 +273,32 @@ export const getDashboardStats = async (req, res) => {
       categorie: p.categorie?.nom || "Bijoux",
     }));
 
-    const zonesPlusDemandees = zonesAggregation.map((z) => ({
-      zone: z._id || "Non spécifiée",
-      total: z.total,
-    }));
+    // Fusionne les variantes de casse/accents/espaces (ex: "Lomé", "lome", "Lome ")
+    const zonesMap = new Map();
+    for (const z of zonesAggregation) {
+      const raw = String(z._id || "").trim();
+      const label = raw || "Non spécifiée";
+      const key = label
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+      const existing = zonesMap.get(key);
+      if (existing) {
+        existing.total += z.total;
+        // Préférer un libellé avec majuscule/accent (ex: "Lomé" plutôt que "lome")
+        if (/[À-ÿ]/.test(label) && !/[À-ÿ]/.test(existing.zone)) {
+          existing.zone = label;
+        }
+      } else {
+        const formatted = label === label.toLowerCase()
+          ? label.charAt(0).toUpperCase() + label.slice(1)
+          : label;
+        zonesMap.set(key, { zone: formatted, total: z.total });
+      }
+    }
+    const zonesPlusDemandees = Array.from(zonesMap.values())
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
 
     const zoneTop = zonesPlusDemandees.length > 0 ? zonesPlusDemandees[0].zone : "N/A";
 
@@ -288,7 +312,11 @@ export const getDashboardStats = async (req, res) => {
       visiteurs7Jours: visiteurs7JoursList.length,
       visiteurs30Jours: visiteurs30JoursList.length,
       entonnoir: {
-        pagesVues: countsByType.page_view || 0,
+        // product_view et checkout_start sont aussi des pages consultées (évite Bijoux Vus > Pages Vues)
+        pagesVues:
+          (countsByType.page_view || 0) +
+          (countsByType.product_view || 0) +
+          (countsByType.checkout_start || 0),
         vuesProduits: countsByType.product_view || 0,
         ajoutsPanier: countsByType.add_to_cart || 0,
         ajoutsFavoris: countsByType.add_to_favorites || 0,

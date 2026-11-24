@@ -370,7 +370,7 @@ export default function DashboardStats({ token }) {
 
             <div className="bg-purple-50/90 border border-purple-200 p-4 rounded-2xl">
               <div className="flex items-center justify-between text-purple-700 mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Page Livraison</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">Page Commande</span>
                 <MapPin size={15} />
               </div>
               <p className="text-2xl font-bold font-serif text-purple-950">{behavior.entonnoir.debutsCommande}</p>
@@ -582,9 +582,9 @@ export default function DashboardStats({ token }) {
 
           <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-100">Commandes Traitées</span>
+              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-100">Commandes Validées</span>
               <h3 className="text-2xl font-bold font-serif tracking-tight">
-                {stats.totalCommandes} <span className="text-xs font-sans font-normal">Expédiées</span>
+                {stats.totalCommandes} <span className="text-xs font-sans font-normal">Hors annulées</span>
               </h3>
             </div>
             <div className="p-3 bg-white/20 backdrop-blur-xs rounded-2xl">

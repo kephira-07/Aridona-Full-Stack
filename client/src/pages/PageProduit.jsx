@@ -6,6 +6,7 @@ import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send, ChevronDown, Ch
 import ApparenteProduit from '../composant/ApparenteProduit';
 import { Helmet } from 'react-helmet-async';
 import { trackEvent } from '../utils/tracker';
+import { DEFAULT_SHIPPING_DETAILS, DEFAULT_RETURN_POLICY } from '../utils/productSchema';
 
 const CarteAvis = ({ item }) => (
   <div className="bg-white border border-stone-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md transition-shadow h-full">
@@ -259,8 +260,10 @@ const { slug } = useParams();
   "image": Array.isArray(produitData.image) 
     ? produitData.image.map(img => getImageUrl(img)) 
     : [getImageUrl(produitData.image)],
-  "description": produitData.description || "",
+  "description": (produitData.description && produitData.description.trim())
+    || `${produitData.nom} : bijou en acier inoxydable 316L, waterproof et hypoallergénique. Livraison rapide à Lomé et partout au Togo.`,
   "sku": String(produitData._id || produitData.id || ""),
+  "mpn": String(produitData._id || produitData.id || ""),
   "brand": {
     "@type": "Brand",
     "name": "Aridona Bijoux"
@@ -274,7 +277,9 @@ const { slug } = useParams();
       ? "https://schema.org/InStock" 
       : "https://schema.org/OutOfStock",
     "itemCondition": "https://schema.org/NewCondition",
-    "url": typeof window !== "undefined" ? window.location.href : ""
+    "url": typeof window !== "undefined" ? window.location.href : "",
+    "shippingDetails": DEFAULT_SHIPPING_DETAILS,
+    "hasMerchantReturnPolicy": DEFAULT_RETURN_POLICY
   },
   ...(totalAvis > 0 ? {
     "aggregateRating": {

@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
 import { ShopContext } from '../context/ShopContext';
 import BoutonRetour from '../composant/BoutonRetour';
+import { DEFAULT_SHIPPING_DETAILS, DEFAULT_RETURN_POLICY } from '../utils/productSchema';
 
 const getImageUrl = (image) => {
   const first = Array.isArray(image) ? image[0] : image;
@@ -39,15 +40,26 @@ export default function PackDetail() {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: pack.nom,
-    description: pack.description,
+    description: (pack.description && pack.description.trim())
+      || `${pack.nom} : coffret de bijoux en acier inoxydable 316L, waterproof et hypoallergénique. Livraison à Lomé et partout au Togo.`,
+    sku: String(pack._id || pack.slug || ''),
+    mpn: String(pack._id || pack.slug || ''),
+    brand: {
+      '@type': 'Brand',
+      name: 'Aridona Bijoux',
+    },
     url: `https://aridona.store/pack/${pack.slug}`,
     image: pack.produits?.map(({ produit }) => getImageUrl(produit?.image)).filter(Boolean),
     offers: {
       '@type': 'Offer',
       priceCurrency: 'XOF',
       price: Number(pack.prix),
+      priceValidUntil: '2027-12-31',
       availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
       url: `https://aridona.store/pack/${pack.slug}`,
+      shippingDetails: DEFAULT_SHIPPING_DETAILS,
+      hasMerchantReturnPolicy: DEFAULT_RETURN_POLICY,
     },
   } : null;
 

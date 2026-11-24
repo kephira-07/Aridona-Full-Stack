@@ -1,11 +1,12 @@
 import React, { useContext, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { 
   MessageCircle, Mail, MapPin, ShieldCheck, Droplets, Clock, Send, 
   CheckCircle2, Award, HeartHandshake, Loader2, Gem, 
-  Truck, RefreshCw, ChevronDown, HelpCircle, Compass
+  Truck, RefreshCw, ChevronDown, HelpCircle, Compass, ArrowRight, ShoppingBag
 } from 'lucide-react';
 import BoutonRetour from '../composant/BoutonRetour';
 import { IconInstagram, IconFacebook, IconTikTok, IconX } from '../composant/SocialIcons';
@@ -63,6 +64,14 @@ export default function APropos() {
     {
       q: "Proposez-vous un emballage cadeau ?",
       r: "Chaque commande Aridona est expédiée dans une pochette écrin protectrice signée, prête à être offerte ou à conserver vos parures à l'abri."
+    },
+    {
+      q: "Où commander les bijoux Aridona au Togo ?",
+      r: "Toutes nos collections (bagues, colliers, bracelets, boucles d'oreilles et packs cadeaux) sont disponibles directement en ligne sur aridona.store avec livraison à Lomé et partout au Togo."
+    },
+    {
+      q: "Y a-t-il une réduction sur les commandes ?",
+      r: "Oui, une réduction automatique de 10 % est appliquée sur votre panier dès 25 000 FCFA d'achat, en plus de nos packs de bijoux à prix avantageux."
     }
   ];
 
@@ -107,6 +116,23 @@ export default function APropos() {
           <p className="mt-8 text-stone-600 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed font-light">
             Vous ne devriez jamais avoir à choisir entre la beauté et la tranquillité. Nos bijoux en acier inoxydable 316L traversent votre douche, votre sport, la mer et vos journées les plus chargées — sans jamais ternir, sans jamais irriter votre peau.
           </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/collection"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-stone-900 px-7 py-3.5 text-xs font-semibold uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-amber-900"
+            >
+              <ShoppingBag size={15} />
+              <span>Aller sur la boutique</span>
+              <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+            <Link
+              to="/packs"
+              className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-6 py-3.5 text-xs font-semibold uppercase tracking-widest text-stone-800 transition-colors hover:border-amber-800 hover:text-amber-900"
+            >
+              <span>Voir nos packs</span>
+            </Link>
+          </div>
 
           {/* Grille de statistiques / Chiffres clés */}
           <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-6 w-full max-w-4xl pt-10 border-t border-stone-200/80">
