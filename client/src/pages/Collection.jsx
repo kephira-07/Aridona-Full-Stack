@@ -220,8 +220,10 @@ const Collection = () => {
             <Helmet>
                 <title>{`${currentSeo.title} | ARIDONA Bijoux`}</title>
                 <meta name="description" content={currentSeo.description} />
+                <link rel="canonical" href={categorySlug ? `https://aridona.store/collection/${categorySlug}` : 'https://aridona.store/collection'} />
                 <meta property="og:title" content={currentSeo.title} />
                 <meta property="og:description" content={currentSeo.description} />
+                <meta property="og:url" content={categorySlug ? `https://aridona.store/collection/${categorySlug}` : 'https://aridona.store/collection'} />
                 <meta property="og:type" content="website" />
             </Helmet>
             
