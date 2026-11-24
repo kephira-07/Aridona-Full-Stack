@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import Titre from '../composant/Titre';
-import { Trash, ShoppingBag, ArrowRight, AlertCircle, Gift, ShieldCheck } from 'lucide-react';
+import { Trash, ShoppingBag, MessageCircle, AlertCircle, Gift, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PanierTotal from '../composant/PanierTotal';
 import { toast } from 'react-toastify';
@@ -9,7 +9,7 @@ import BoutonRetour from '../composant/BoutonRetour';
 
 const Panier = () => {
   // 1. Tous les contextes doivent être extraits en haut du composant
-  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier, supprimerDuPanier, estTailleValidePourProduit, panierPacks, updateQuantityPack, packs } = useContext(ShopContext);
+  const { produits, monnaie, panierProduits, updateQuantity, modifierTaillePanier, supprimerDuPanier, estTailleValidePourProduit, panierPacks, updateQuantityPack, packs, commanderPanierSurWhatsapp } = useContext(ShopContext);
   
   const [panierData, setPanierData] = useState([]);
   const navigate = useNavigate();
@@ -91,8 +91,8 @@ const Panier = () => {
         autoClose: 4000,
         theme: "dark"
       });
-    } else {
-      navigate('/commander');
+    } else if (typeof commanderPanierSurWhatsapp === 'function') {
+      commanderPanierSurWhatsapp();
     }
   };
 
@@ -310,15 +310,15 @@ const Panier = () => {
             <PanierTotal />
             <div className='mt-6 space-y-3'>
               <p className='text-xs text-stone-600 bg-white border border-stone-200/80 rounded-xl p-3 leading-relaxed text-center'>
-                <ShieldCheck size={15} className="inline-block text-amber-800 mr-1.5 -mt-0.5" /><strong>Aucune carte bancaire requise.</strong> Vous réglerez à la réception de votre bijou ou par T-Money / Flooz.
+                <ShieldCheck size={15} className="inline-block text-amber-800 mr-1.5 -mt-0.5" /><strong>Aucun formulaire à remplir.</strong> Cliquez ci-dessous pour envoyer votre commande directement sur notre WhatsApp (paiement à la livraison ou Mobile Money).
               </p>
               <button
                 type="button"
                 onClick={verifierTaillesEtProceder}
-                className='w-full bg-amber-900 text-white text-xs font-semibold tracking-widest uppercase py-4 hover:bg-amber-950 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group shadow-md cursor-pointer'
+                className='w-full bg-emerald-700 text-white text-xs font-semibold tracking-widest uppercase py-4 hover:bg-emerald-800 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-md cursor-pointer rounded-xl'
               >
-                Continuer vers la livraison
-                <ArrowRight size={14} className='transform group-hover:translate-x-1 transition-transform' />
+                <MessageCircle size={16} />
+                Commander sur WhatsApp
               </button>
             </div>
           </div>

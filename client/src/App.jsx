@@ -9,6 +9,7 @@ import SidebarPanier from './composant/SidebarPanier';
 import Footer from './composant/Footer';
 import ScrollToTop from './composant/ScrollToTop';
 import ConsentBanner from './composant/ConsentBanner';
+import AssistanteAchat from './composant/AssistanteAchat';
 
 // Page d'accueil chargée directement (évite le CLS et accélère le LCP sur mobile)
 import Home from './pages/Home';
@@ -43,10 +44,10 @@ function App() {
     <div className="min-h-screen flex flex-col font-dmsans bg-white text-stone-800">
       <ScrollToTop />
       <ToastContainer position="top-right" autoClose={3000} />
-      
+
       {/* En-tête fixe */}
       <Navbar />
-      
+
       {/* Tiroir Panier Global */}
       <SidebarPanier />
 
@@ -56,18 +57,18 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
-            
+
             <Route path="/collection" element={<Collection />} />
             <Route path="/collection/:categorySlug" element={<Collection />} />
             <Route path="/produit/:slug" element={<PageProduit />} />
-            
+
             <Route path="/panier" element={<Panier />} />
             <Route path="/commander" element={<PasserCommande />} />
             <Route path="/commande-confirmee" element={<CommandeConfirmee />} />
-            
+
             <Route path="/login" element={<Login />} />
             <Route path="/favoris" element={<PageFavoris />} />
-            
+
             <Route path="/a-propos" element={<Apropos />} />
             <Route path="/conditions-utilisation" element={<ConditionUtilisation />} />
             <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
@@ -76,7 +77,7 @@ function App() {
             <Route path="/blog/:slug" element={<ArticleDetail />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/pack/:slug" element={<PackDetail />} />
-            
+
             {/* Capture des URLs inconnues */}
             <Route path="*" element={<Erreur404 />} />
           </Routes>
@@ -85,6 +86,7 @@ function App() {
 
       {/* Pied de page */}
       <Footer />
+      <AssistanteAchat />
       <ConsentBanner />
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { X, Trash, ShoppingBag, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, Trash, ShoppingBag, MessageCircle, ShieldCheck } from 'lucide-react';
 
 const SidebarPanier = () => {
   const {
@@ -16,7 +16,8 @@ const SidebarPanier = () => {
     panierNecessiteChoixTaille,
     panierPacks,
     updateQuantityPack,
-    packs
+    packs,
+    commanderPanierSurWhatsapp
   } = useContext(ShopContext);
 
   const navigate = useNavigate();
@@ -253,22 +254,23 @@ const SidebarPanier = () => {
               <span>{sousTotal.toLocaleString()} {monnaie || 'FCFA'}</span>
             </div>
             <p className="text-[11px] text-stone-500 bg-white border border-stone-200/80 rounded-lg p-2.5 leading-relaxed text-center">
-              <ShieldCheck size={14} className="inline-block text-amber-800 mr-1 -mt-0.5" /><strong>Aucune carte bancaire requise</strong> — Étape suivante : indiquez votre quartier (paiement à la livraison ou T-Money / Flooz).
+              <ShieldCheck size={14} className="inline-block text-amber-800 mr-1 -mt-0.5" /><strong>Aucun formulaire à remplir</strong> — Cliquez sur WhatsApp pour envoyer votre panier et payer à la livraison ou par Mobile Money.
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-2.5">
               <button
                 type="button"
-                onClick={allerAuPanier}
-                className="w-full border border-stone-900 text-stone-900 text-xs font-semibold uppercase tracking-wider py-3 hover:bg-stone-900 hover:text-white transition-all text-center"
+                onClick={commanderPanierSurWhatsapp}
+                className="w-full bg-emerald-700 text-white text-xs font-semibold uppercase tracking-wider py-3.5 hover:bg-emerald-800 transition-all flex items-center justify-center gap-2 text-center rounded-xl shadow-sm cursor-pointer"
               >
-                Voir Panier
+                <MessageCircle size={16} />
+                <span>Commander sur WhatsApp</span>
               </button>
               <button
                 type="button"
-                onClick={allerACommande}
-                className="w-full bg-amber-900 text-white text-xs font-semibold uppercase tracking-wider py-3 hover:bg-amber-950 transition-all flex items-center justify-center gap-1 text-center"
+                onClick={allerAuPanier}
+                className="w-full border border-stone-300 text-stone-700 text-xs font-semibold uppercase tracking-wider py-2.5 hover:bg-stone-100 transition-all text-center rounded-xl cursor-pointer"
               >
-                Commander <ArrowRight size={12} />
+                Voir le détail du panier
               </button>
             </div>
           </div>

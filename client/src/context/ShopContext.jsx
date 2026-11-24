@@ -1,6 +1,6 @@
 import { createContext, useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import axios from 'axios'; 
+import axios from 'axios';
 import backendUrl from '../config';
 import { trackEvent } from '../utils/tracker';
 
@@ -39,11 +39,11 @@ const ShopContextProvider = (props) => {
   });
   const [categories, setCategories] = useState([]);
   const [packs, setPacks] = useState([]);
-  
+
   const [recherche, setRecherche] = useState('');
   const [montreRecherche, setMontreRecherche] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  
+
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [panierOuvert, setPanierOuvert] = useState(false);
 
@@ -269,9 +269,9 @@ const ShopContextProvider = (props) => {
     setShowSuggestions(recherche.trim().length > 0);
   }, [recherche]);
 
-  
 
-// 1. Ajouter au panier avec validation de la taille et du stock
+
+  // 1. Ajouter au panier avec validation de la taille et du stock
   const ajouterPanier = async (produitId, size = null) => {
     const produitTarget = produits.find(p => String(p._id || p.id) === String(produitId));
 
@@ -330,42 +330,42 @@ const ShopContextProvider = (props) => {
   };
 
   // 🌟 Fonction pour ajouter TOUS les favoris d'un seul coup au panier
-const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
-  if (!listeProduitsFavoris || listeProduitsFavoris.length === 0) return;
+  const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
+    if (!listeProduitsFavoris || listeProduitsFavoris.length === 0) return;
 
-  // 1-3. Clone + fusion + mise à jour en une seule passe, sur le panier le plus récent
-  setPanierProduits((panierActuel) => {
-    const panierData = structuredClone(panierActuel);
-    listeProduitsFavoris.forEach((item) => {
-      const idProduit = item._id || item.id;
-      const tailleClf = 'Unique';
-
-      if (!panierData[idProduit]) {
-        panierData[idProduit] = {};
-      }
-      panierData[idProduit][tailleClf] = (panierData[idProduit][tailleClf] || 0) + 1;
-    });
-    return panierData;
-  });
-  setPanierOuvert(true);
-
-  // 4. Synchroniser avec MongoDB si l'utilisateur est connecté
-  if (token) {
-    try {
-      const requetes = listeProduitsFavoris.map((item) => {
+    // 1-3. Clone + fusion + mise à jour en une seule passe, sur le panier le plus récent
+    setPanierProduits((panierActuel) => {
+      const panierData = structuredClone(panierActuel);
+      listeProduitsFavoris.forEach((item) => {
         const idProduit = item._id || item.id;
-        return axios.post(
-          `${backendUrl}/api/utilisateur/panier/ajouter`,
-          { itemId: idProduit, size: 'Unique' },
-          { headers: { token } }
-        );
+        const tailleClf = 'Unique';
+
+        if (!panierData[idProduit]) {
+          panierData[idProduit] = {};
+        }
+        panierData[idProduit][tailleClf] = (panierData[idProduit][tailleClf] || 0) + 1;
       });
-      await Promise.all(requetes);
-    } catch (error) {
-      console.error("Erreur lors de la synchronisation BDD des favoris :", error);
+      return panierData;
+    });
+    setPanierOuvert(true);
+
+    // 4. Synchroniser avec MongoDB si l'utilisateur est connecté
+    if (token) {
+      try {
+        const requetes = listeProduitsFavoris.map((item) => {
+          const idProduit = item._id || item.id;
+          return axios.post(
+            `${backendUrl}/api/utilisateur/panier/ajouter`,
+            { itemId: idProduit, size: 'Unique' },
+            { headers: { token } }
+          );
+        });
+        await Promise.all(requetes);
+      } catch (error) {
+        console.error("Erreur lors de la synchronisation BDD des favoris :", error);
+      }
     }
-  }
-};
+  };
   // 3. Modifier la taille d'un article déjà dans le panier (Version unique et nettoyée)
   const modifierTaillePanier = async (produitId, ancienneTaille, nouvelleTaille) => {
     if (ancienneTaille === nouvelleTaille) return;
@@ -488,32 +488,32 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     }
   };
   const supprimerDuPanier = async (produitId, size) => {
-  try {
-    setPanierProduits((panierActuel) => {
-      const panierData = structuredClone(panierActuel);
-      if (panierData[produitId] && panierData[produitId][size]) {
-        delete panierData[produitId][size];
-        if (Object.keys(panierData[produitId]).length === 0) {
-          delete panierData[produitId];
+    try {
+      setPanierProduits((panierActuel) => {
+        const panierData = structuredClone(panierActuel);
+        if (panierData[produitId] && panierData[produitId][size]) {
+          delete panierData[produitId][size];
+          if (Object.keys(panierData[produitId]).length === 0) {
+            delete panierData[produitId];
+          }
         }
-      }
-      return panierData;
-    });
-
-    // Synchronisation BDD uniquement pour les utilisateurs connectés (un invité n'a pas de panier serveur)
-    if (token) {
-      await axios.delete(`${backendUrl}/api/utilisateur/panier/supprimer`, {
-        headers: { token },
-        data: { itemId: produitId, size }
+        return panierData;
       });
+
+      // Synchronisation BDD uniquement pour les utilisateurs connectés (un invité n'a pas de panier serveur)
+      if (token) {
+        await axios.delete(`${backendUrl}/api/utilisateur/panier/supprimer`, {
+          headers: { token },
+          data: { itemId: produitId, size }
+        });
+      }
+    } catch (error) {
+      // L'article est déjà retiré localement à ce stade — seule la synchro BDD a échoué,
+      // pas la peine d'alarmer l'utilisateur pour un souci purement serveur.
+      console.error("Erreur suppression panier BDD :", error);
     }
-  } catch (error) {
-    // L'article est déjà retiré localement à ce stade — seule la synchro BDD a échoué,
-    // pas la peine d'alarmer l'utilisateur pour un souci purement serveur.
-    console.error("Erreur suppression panier BDD :", error);
-  }
-};
- // Alias pour la fonction d'ajout au panier depuis les favoris
+  };
+  // Alias pour la fonction d'ajout au panier depuis les favoris
 
 
   // Mettre à jour la quantité d'un article
@@ -541,8 +541,8 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     if (token) {
       try {
         await axios.post(
-          `${backendUrl}/api/utilisateur/panier/update`, 
-          { itemId: produitId, size, quantity }, 
+          `${backendUrl}/api/utilisateur/panier/update`,
+          { itemId: produitId, size, quantity },
           { headers: { token } }
         );
       } catch (error) {
@@ -595,6 +595,141 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     localStorage.removeItem('panierPacks');
   };
 
+  // Commande directe en 1 clic vers WhatsApp (sans formulaire bloquant)
+  const commanderPanierSurWhatsapp = () => {
+    const getImageUrl = (imgData) => {
+      if (!imgData) return '';
+      if (Array.isArray(imgData) && imgData.length > 0) {
+        const first = imgData[0];
+        return typeof first === 'object' && first?.url ? first.url : String(first);
+      }
+      return typeof imgData === 'object' && imgData?.url ? imgData.url : String(imgData);
+    };
+
+    const orderItems = [];
+
+    for (const itemsId in panierProduits) {
+      for (const size in panierProduits[itemsId]) {
+        const qte = Number(panierProduits[itemsId][size]) || 0;
+        if (qte > 0) {
+          const itemInfo = (produits || []).find(
+            (product) => String(product._id || product.id) === String(itemsId)
+          );
+          if (itemInfo) {
+            const mainImg = getImageUrl(itemInfo.image);
+            orderItems.push({
+              _id: String(itemInfo._id || itemInfo.id),
+              type: 'produit',
+              nom: String(itemInfo.nom || itemInfo.name || 'Bijou Aridona'),
+              prix: Number(itemInfo.prix || itemInfo.price || 0),
+              size: String(size || 'Unique'),
+              quantity: qte,
+              image: mainImg ? [mainImg] : [],
+            });
+          }
+        }
+      }
+    }
+
+    for (const packId in panierPacks) {
+      const quantite = Number(panierPacks[packId]) || 0;
+      if (quantite > 0) {
+        const packInfo = (packs || []).find((p) => String(p._id) === String(packId));
+        if (packInfo) {
+          const imgPack = packInfo.produits?.find((c) => c.produit?.image?.[0])?.produit?.image?.[0];
+          const imgUrl = getImageUrl(imgPack);
+          orderItems.push({
+            _id: String(packId),
+            type: 'pack',
+            nom: String(packInfo.nom || 'Pack Aridona'),
+            prix: Number(packInfo.prix || 0),
+            size: 'Coffret',
+            quantity: quantite,
+            image: imgUrl ? [imgUrl] : [],
+          });
+        }
+      }
+    }
+
+    if (orderItems.length === 0) {
+      toast.info('Votre panier est vide.');
+      return;
+    }
+
+    const sousTotal = Number(getPanierMontant()) || 0;
+    const reduction = calculerReduction(sousTotal);
+    const totalFinal = Math.max(0, sousTotal - reduction);
+    const numero = whatsappNum || '22872656485';
+
+    let message = `✨ *NOUVELLE COMMANDE — ARIDONA BIJOUX* ✨\n\n`;
+    message += `Bonjour Aridona Bijoux ! Je souhaite commander :\n\n`;
+    message += `🛍️ *DÉTAILS DU PANIER :*\n`;
+
+    orderItems.forEach((item, index) => {
+      if (item.type === 'pack') {
+        message += `${index + 1}. 🎁 *Pack ${item.nom}* x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString('fr-FR')} ${monnaie}\n`;
+        return;
+      }
+      const tailleFormatee = (!item.size || item.size.trim() === '' || item.size === '""' || item.size.toLowerCase() === 'unique')
+        ? 'Unique'
+        : item.size;
+      message += `${index + 1}. *${item.nom}* (Taille: ${tailleFormatee}) x${item.quantity} -> ${(item.prix * item.quantity).toLocaleString('fr-FR')} ${monnaie}\n`;
+    });
+
+    message += `\n💰 *Sous-total :* ${sousTotal.toLocaleString('fr-FR')} ${monnaie}`;
+    if (reduction > 0) {
+      message += `\n🎁 *Réduction (-${Math.round(tauxReduction * 100)}%) :* -${reduction.toLocaleString('fr-FR')} ${monnaie}`;
+    }
+    message += `\n⭐ *TOTAL À PAYER : ${totalFinal.toLocaleString('fr-FR')} ${monnaie}*\n\n`;
+    message += `📍 Je vous indique mon quartier de livraison et mon mode de règlement (Espèces ou Mobile Money) ici sur WhatsApp.`;
+
+    const whatsappUrl = `https://wa.me/${numero}?text=${encodeURIComponent(message)}`;
+
+    trackEvent('whatsapp_click', {
+      produitNom: `Commande (${orderItems.length} article${orderItems.length > 1 ? 's' : ''})`,
+      pageLabel: 'Commande Directe WhatsApp',
+    });
+
+    // Enregistrement silencieux de la commande côté backend (pour le suivi Admin & stock)
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (token && token !== 'null' && token !== 'undefined') {
+        headers.token = token;
+        headers.Authorization = `Bearer ${token}`;
+      }
+      fetch(`${backendUrl}/api/order/place`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          address: {
+            firstName: 'Client WhatsApp',
+            lastName: '',
+            email: '',
+            street: 'Confirmé sur WhatsApp',
+            city: 'Lomé',
+            zipcode: '00228',
+            phone: '0022800000000',
+          },
+          items: orderItems,
+          amount: totalFinal,
+          paymentMethod: 'À la livraison',
+        }),
+        keepalive: true,
+      }).catch(() => { });
+    } catch {
+      // Silencieux : ne bloque jamais l'ouverture de WhatsApp
+    }
+
+    try { localStorage.setItem('aridona_guide_done', 'true'); } catch {}
+    setPanierOuvert(false);
+    viderPanier();
+
+    const win = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      window.location.href = whatsappUrl;
+    }
+  };
+
   // Montant total du panier (produits + packs)
   const getPanierMontant = () => {
     let totalMontant = 0;
@@ -639,13 +774,14 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     seuilReduction,
     tauxReduction,
     calculerReduction,
-    recherche, 
-    setRecherche, 
-    montreRecherche, 
-    setMontreRecherche, 
-    panierProduits, 
-    ajouterPanier, 
-    ajouterTousLesFavorisAuPanier, 
+    commanderPanierSurWhatsapp,
+    recherche,
+    setRecherche,
+    montreRecherche,
+    setMontreRecherche,
+    panierProduits,
+    ajouterPanier,
+    ajouterTousLesFavorisAuPanier,
     modifierTaillePanier,
     getPanierCount,
     updateQuantity,
@@ -654,15 +790,15 @@ const ajouterTousLesFavorisAuPanier = async (listeProduitsFavoris) => {
     estTailleValidePourProduit,
     viderPanier,
     whatsappNum,
-    showSuggestions, 
+    showSuggestions,
     setShowSuggestions,
-    suggestions, 
-    backendUrl, 
-    token, 
-    setToken, 
-    favoris, 
-    setFavoris, 
-    toggleFavori, 
+    suggestions,
+    backendUrl,
+    token,
+    setToken,
+    favoris,
+    setFavoris,
+    toggleFavori,
     panierOuvert,
     setPanierOuvert,
     supprimerDuPanier,
