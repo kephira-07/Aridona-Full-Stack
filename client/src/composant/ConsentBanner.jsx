@@ -25,6 +25,15 @@ const ConsentBanner = () => {
     setVisible(false);
   };
 
+  const refuser = () => {
+    try {
+      localStorage.setItem('aridona_consent', 'declined');
+    } catch {
+      // Ignorer
+    }
+    setVisible(false);
+  };
+
   if (!visible) return null;
 
   return (
@@ -44,13 +53,22 @@ const ConsentBanner = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={accepter}
-          className="w-full sm:w-auto shrink-0 bg-amber-600 hover:bg-amber-500 text-stone-950 font-semibold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl transition-all cursor-pointer"
-        >
-          J'accepte
-        </button>
+        <div className="flex w-full sm:w-auto items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={refuser}
+            className="flex-1 sm:flex-initial border border-stone-600 hover:border-stone-400 text-stone-300 hover:text-white font-medium text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            Refuser
+          </button>
+          <button
+            type="button"
+            onClick={accepter}
+            className="flex-1 sm:flex-initial bg-amber-600 hover:bg-amber-500 text-stone-950 font-semibold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl transition-all cursor-pointer"
+          >
+            J'accepte
+          </button>
+        </div>
       </div>
     </div>
   );

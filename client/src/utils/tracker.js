@@ -34,9 +34,18 @@ const getSavedIdentity = () => {
   return memoryIdentity;
 };
 
+const isConsentDeclined = () => {
+  try {
+    return localStorage.getItem("aridona_consent") === "declined";
+  } catch {
+    return false;
+  }
+};
+
 // Enregistre l'identité du visiteur (nom, email, téléphone, ville) dès qu'il la saisit sur le site
 export const identifyVisitor = ({ name, email, phone, city } = {}) => {
   try {
+    if (isConsentDeclined()) return;
     const current = getSavedIdentity();
     const updated = {
       name: (name && String(name).trim()) || current.name || "",
@@ -163,15 +172,17 @@ export const getPageLabel = (pathname = "/") => {
 export const trackEvent = (eventType, extra = {}) => {
   try {
     if (typeof window === "undefined") return;
+    const declined = isConsentDeclined();
+    if (declined && eventType === "identify") return;
     const pathname = extra.path || window.location.pathname || "/";
-    const identity = getSavedIdentity();
+    const identity = declined ? {} : getSavedIdentity();
 
     const payload = {
       visitorId: getVisitorId(),
-      visitorName: extra.name || identity.name || "",
-      visitorEmail: extra.email || identity.email || "",
-      visitorPhone: extra.phone || identity.phone || "",
-      visitorCity: extra.city || identity.city || "",
+      visitorName: declined ? "" : (extra.name || identity.name || ""),
+      visitorEmail: declined ? "" : (extra.email || identity.email || ""),
+      visitorPhone: declined ? "" : (extra.phone || identity.phone || ""),
+      visitorCity: declined ? "" : (extra.city || identity.city || ""),
       eventType,
       path: pathname,
       pageLabel: extra.pageLabel || getPageLabel(pathname),

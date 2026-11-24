@@ -16,7 +16,7 @@ const articles = [
         </p>
         <p className="mt-3">
           Aridona Bijoux est responsable du traitement des données personnelles décrites ci-dessous.
-          Pour toute question, notre équipe reste joignable aux coordonnées indiquées à l'article 12.
+          Pour toute question, notre équipe reste joignable aux coordonnées indiquées à l'article 13.
         </p>
       </>
     ),
@@ -33,7 +33,7 @@ const articles = [
           <li><span className="text-amber-800 font-medium">Commande —</span> historique et détail des articles achetés, montant, mode de paiement choisi.</li>
           <li><span className="text-amber-800 font-medium">Compte —</span> identifiants et jetons de session chiffrés, si vous créez un compte client — y compris via la connexion Google (nom, email et photo de profil transmis par Google avec votre accord).</li>
           <li><span className="text-amber-800 font-medium">Avis produits —</span> si vous laissez un avis sur un bijou, votre prénom/nom et votre commentaire sont conservés et peuvent être publiés sur la fiche produit après validation.</li>
-          <li><span className="text-amber-800 font-medium">Navigation —</span> données techniques de connexion (adresse IP, type d'appareil) et cookies, voir article 8.</li>
+          <li><span className="text-amber-800 font-medium">Navigation —</span> données techniques de connexion (adresse IP, type d'appareil) et cookies, voir article 9.</li>
         </ul>
       </>
     ),
