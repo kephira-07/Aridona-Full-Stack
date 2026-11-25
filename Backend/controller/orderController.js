@@ -276,23 +276,37 @@ const allOrders = async (req, res) => {
     }
 };
 
-// 4. Mettre à jour le statut d'une commande (Panel Admin)
+// 4. Mettre à jour le statut logistique et/ou le paiement d'une commande (Panel Admin)
 const updateStatus = async (req, res) => {
     try {
-        const { orderId, status } = req.body;
+        const { orderId, status, payment } = req.body;
         const validStatuses = ["Commande passée", "En cours de préparation", "Expédié", "Livré", "Annulé"];
 
-        if (typeof orderId !== 'string' || !mongoose.isValidObjectId(orderId) || typeof status !== 'string') {
-            return res.status(400).json({ success: false, message: "ID de commande et statut requis." });
+        if (typeof orderId !== 'string' || !mongoose.isValidObjectId(orderId)) {
+            return res.status(400).json({ success: false, message: "ID de commande invalide." });
         }
 
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ success: false, message: "Statut logistique non valide." });
+        const updateFields = {};
+        if (status !== undefined) {
+            if (typeof status !== 'string' || !validStatuses.includes(status)) {
+                return res.status(400).json({ success: false, message: "Statut logistique non valide." });
+            }
+            updateFields.status = status;
+        }
+        if (payment !== undefined) {
+            if (typeof payment !== 'boolean') {
+                return res.status(400).json({ success: false, message: "Statut de paiement non valide." });
+            }
+            updateFields.payment = payment;
+        }
+
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({ success: false, message: "Aucune mise à jour demandée." });
         }
 
         const updatedOrder = await orderModel.findByIdAndUpdate(
-            orderId, 
-            { $set: { status } }, 
+            orderId,
+            { $set: updateFields },
             { new: true }
         );
         

@@ -1,55 +1,59 @@
 import React from 'react';
+import { Menu, ExternalLink, LogOut } from 'lucide-react';
 
-const Navbar = ({ setToken }) => {
-  
+const Navbar = ({ setToken, onToggleMenu }) => {
   const handleLogout = () => {
     setToken('');
-    localStorage.removeItem('token'); // Nettoyage propre de la session
+    localStorage.removeItem('token');
   };
 
   return (
-    <nav className="w-full bg-white border-b border-gray-100 px-6 py-4 md:px-12 flex items-center justify-between sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
-      
-      {/* Côté Gauche : Branding / Logo */}
-      <div className="flex flex-col items-start select-none">
-        <h1 className="text-xl md:text-2xl font-semibold tracking-[0.2em] text-slate-900 font-serif">
-          Aridona
-        </h1>
-        <span className="text-[10px] uppercase tracking-[0.15em] text-amber-600 font-medium mt-0.5">
-          Espace Admin
-        </span>
+    <nav className="w-full bg-white/95 border-b border-slate-200/80 px-4 py-3.5 sm:px-6 md:px-10 flex items-center justify-between sticky top-0 z-40 shadow-2xs backdrop-blur-md">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onToggleMenu}
+          aria-label="Ouvrir le menu"
+          className="md:hidden p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 cursor-pointer"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div className="flex flex-col items-start select-none">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-[0.2em] text-slate-900 font-serif leading-none">
+            Aridona
+          </h1>
+          <span className="text-[10px] uppercase tracking-[0.15em] text-amber-700 font-semibold mt-1">
+            Espace Admin
+          </span>
+        </div>
       </div>
 
-      {/* Côté Droit : Statut & Déconnexion */}
-      <div className="flex items-center gap-4">
-        {/* Badge de statut discret (Optionnel mais très pro) */}
-        <div className="hidden sm:flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="text-xs font-medium text-emerald-700">Serveur Connecté</span>
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="hidden lg:flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200/70">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-medium text-emerald-700">En ligne</span>
         </div>
 
-        {/* Bouton Déconnexion Premium */}
-        <button 
-          onClick={handleLogout}
-          className="relative overflow-hidden group bg-slate-950 text-white text-xs md:text-sm font-medium tracking-wide px-5 py-2.5 rounded-lg transition-all duration-300 hover:bg-slate-800 active:scale-95 shadow-sm"
+        <a
+          href="https://aridona.store"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/50 text-slate-700 hover:text-amber-900 text-xs font-semibold transition-all"
         >
-          <span className="flex items-center gap-2">
-            {/* Icône de déconnexion minimaliste en SVG */}
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              strokeWidth={2} 
-              stroke="currentColor" 
-              className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
-            </svg>
-            Quitter
-          </span>
+          <ExternalLink size={14} />
+          <span className="hidden sm:inline">Voir la boutique</span>
+        </a>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="inline-flex items-center gap-1.5 bg-slate-950 text-white text-xs font-semibold tracking-wide px-3.5 sm:px-4 py-2 rounded-xl transition-all hover:bg-slate-800 active:scale-95 cursor-pointer"
+        >
+          <LogOut size={14} />
+          <span className="hidden sm:inline">Quitter</span>
         </button>
       </div>
-
     </nav>
   );
 };

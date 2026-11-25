@@ -349,7 +349,12 @@ export default function Categories({ token }) {
                       </td>
 
                       <td className="py-3.5">
-                        <div className="font-medium text-xs text-stone-900">{cat.nom}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-xs text-stone-900">{cat.nom}</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 border border-stone-200">
+                            {cat.produitCount ?? 0} bijou{(cat.produitCount ?? 0) > 1 ? 'x' : ''}
+                          </span>
+                        </div>
                         <div className="text-[11px] text-amber-800 font-mono mt-0.5">
                           /{cat.slug || cat.nom.toLowerCase().replace(/\s+/g, '-')}
                         </div>

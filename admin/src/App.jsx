@@ -1,8 +1,10 @@
-import React, { lazy, Suspense, useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
+import { backendUrl } from './config';
 
 const Add = lazy(() => import('./pages/Add'));
 const Orders = lazy(() => import('./pages/Orders'));
@@ -16,10 +18,11 @@ const Articles = lazy(() => import('./pages/Articles'));
 const Packs = lazy(() => import('./pages/Packs'));
 
 const App = () => {
-  // Récupération du token sauvegardé dans le navigateur pour éviter de se reconnecter après un F5
   const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [badges, setBadges] = useState({ commandesEnAttente: 0, rupturesStock: 0 });
+  const location = useLocation();
 
-  // Dès que le token change, on met à jour le localStorage
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
@@ -28,47 +31,63 @@ const App = () => {
     }
   }, [token]);
 
-  // En attente du composant Login complet, voici un écran de connexion temporaire épuré
+  const refreshBadges = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await axios.get(`${backendUrl}/api/produit/stats-dashboard`, {
+        headers: { token, Authorization: `Bearer ${token}` },
+      });
+      if (response.data?.success && response.data.stats) {
+        setBadges({
+          commandesEnAttente: Number(response.data.stats.commandesEnAttente) || 0,
+          rupturesStock: Number(response.data.stats.rupturesStock) || 0,
+        });
+      }
+    } catch {
+      // Silencieux : les badges restent non bloquants
+    }
+  }, [token]);
+
+  useEffect(() => {
+    refreshBadges();
+  }, [refreshBadges, location.pathname]);
+
   if (!token) {
     return <Login setToken={setToken} />;
   }
 
   return (
     <div className="bg-slate-50/50 min-h-screen text-slate-900 font-sans antialiased">
-      {/* Barre supérieure */}
-      <Navbar setToken={setToken} />
-      
-      {/* Structure globale (Sidebar fixe à gauche + Contenu déroulant à droite) */}
+      <Navbar
+        setToken={setToken}
+        onToggleMenu={() => setMobileMenuOpen((prev) => !prev)}
+      />
+
       <div className="flex w-full">
-        
-        {/* Menu latéral gauche */}
-        <Sidebar />
-        
-        {/* Contenu principal de la page courante */}
-        <main className="w-[82%] p-6 md:p-10 max-h-[calc(100vh-80px)] overflow-y-auto">
-          <Suspense fallback={<div className="flex min-h-40 items-center justify-center text-slate-500">Chargement...</div>}>
+        <Sidebar
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          badges={badges}
+        />
+
+        <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8">
+          <Suspense fallback={<div className="flex min-h-40 items-center justify-center text-slate-500 text-sm">Chargement...</div>}>
             <Routes>
-            {/* Redirection automatique de la racine (/) vers la liste des produits */}
-            <Route path="/" element={<Navigate to="/listeProduits" replace />} />
-            <Route path='/dashbord' element={<DashboardStats token={token} />} /> 
-            <Route path="/add" element={<Add token={token} />} />
-           
-            <Route path="/orders" element={<Orders token={token} />} />
-            <Route path="/edit/:id" element={<Edit token={token} />} />
-            <Route path="/categories" element={<Categories token={token} />} />
-            <Route path="/listeProduits" element={<ListeProduits token={token} />} />
-            <Route path="/avis" element={<Avis token={token} />} />
-            <Route path="/articles" element={<Articles token={token} />} />
-            <Route path="/packs" element={<Packs token={token} />} />
-            
-            {/* 🌟 PASSAGE DU TOKEN ET DU BACKENDURL POUR CHARGER LES EMAILS SANS ERREUR */}
-            <Route path="/utilisateurs" element={<Utilisateurs token={token}  />} />
-            
-            <Route path="*" element={<Navigate to="/listeProduits" replace />} />
+              <Route path="/" element={<Navigate to="/dashbord" replace />} />
+              <Route path="/dashbord" element={<DashboardStats token={token} />} />
+              <Route path="/add" element={<Add token={token} />} />
+              <Route path="/orders" element={<Orders token={token} />} />
+              <Route path="/edit/:id" element={<Edit token={token} />} />
+              <Route path="/categories" element={<Categories token={token} />} />
+              <Route path="/listeProduits" element={<ListeProduits token={token} />} />
+              <Route path="/avis" element={<Avis token={token} />} />
+              <Route path="/articles" element={<Articles token={token} />} />
+              <Route path="/packs" element={<Packs token={token} />} />
+              <Route path="/utilisateurs" element={<Utilisateurs token={token} />} />
+              <Route path="*" element={<Navigate to="/dashbord" replace />} />
             </Routes>
           </Suspense>
         </main>
-
       </div>
     </div>
   );

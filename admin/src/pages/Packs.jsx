@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Pencil, Trash2, Package, Plus, X, Wand2, Search, Check } from 'lucide-react';
+import { Pencil, Trash2, Package, Plus, X, Wand2, Search, Check, Eye, EyeOff } from 'lucide-react';
 import { backendUrl } from '../config';
 import { toast } from 'react-toastify';
 
@@ -19,6 +19,7 @@ export default function Packs({ token }) {
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [searchProduct, setSearchProduct] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   const headers = { token, Authorization: `Bearer ${token}` };
   const load = async () => {
@@ -104,9 +105,24 @@ export default function Packs({ token }) {
     try { await axios.delete(`${backendUrl}/api/packs/${id}`, { headers }); toast.success('Pack supprimé.'); load(); } catch { toast.error('Suppression impossible.'); }
   };
 
-  const filteredProducts = produits.filter(
-    (p) => !searchProduct.trim() || p.nom.toLowerCase().includes(searchProduct.trim().toLowerCase())
-  );
+  const toggleActif = async (pack) => {
+    try {
+      const nextActif = pack.actif === false;
+      await axios.put(`${backendUrl}/api/packs/${pack._id}`, { actif: nextActif }, { headers });
+      toast.success(nextActif ? 'Pack activé sur la boutique.' : 'Pack masqué de la boutique.');
+      setPacks((prev) => prev.map((p) => (p._id === pack._id ? { ...p, actif: nextActif } : p)));
+    } catch {
+      toast.error('Impossible de modifier la visibilité du pack.');
+    }
+  };
+
+  const getCategorieNom = (p) => (typeof p?.categorie === 'object' ? (p.categorie?.nom || '') : '');
+  const uniqueCategories = Array.from(new Set(produits.map(getCategorieNom).filter(Boolean))).sort();
+
+  const filteredProducts = produits.filter((p) => {
+    if (categoryFilter !== 'all' && getCategorieNom(p) !== categoryFilter) return false;
+    return !searchProduct.trim() || p.nom.toLowerCase().includes(searchProduct.trim().toLowerCase());
+  });
 
   const valeurSeparee = form.produits.reduce((sum, item) => {
     const prod = produits.find((p) => p._id === item.produit);
@@ -158,15 +174,27 @@ export default function Packs({ token }) {
               <span className="text-xs font-semibold text-stone-700">
                 Étape 1 — Cliquez sur les photos pour ajouter au pack
               </span>
-              <div className="relative w-full sm:w-64">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  value={searchProduct}
-                  onChange={(e) => setSearchProduct(e.target.value)}
-                  placeholder="Rechercher un bijou..."
-                  className="w-full rounded-xl border border-stone-200 bg-stone-50/50 py-2 pl-9 pr-3 text-xs focus:border-amber-700 focus:outline-none"
-                />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="rounded-xl border border-stone-200 bg-stone-50/50 px-3 py-2 text-xs focus:border-amber-700 focus:outline-none cursor-pointer"
+                >
+                  <option value="all">Toutes catégories</option>
+                  {uniqueCategories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <div className="relative w-full sm:w-52">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    value={searchProduct}
+                    onChange={(e) => setSearchProduct(e.target.value)}
+                    placeholder="Rechercher un bijou..."
+                    className="w-full rounded-xl border border-stone-200 bg-stone-50/50 py-2 pl-9 pr-3 text-xs focus:border-amber-700 focus:outline-none"
+                  />
+                </div>
               </div>
             </div>
 
@@ -296,15 +324,30 @@ export default function Packs({ token }) {
                   ))}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-ebgaramond text-xl text-stone-900 truncate">{pack.nom}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-ebgaramond text-xl text-stone-900 truncate">{pack.nom}</h3>
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                      pack.actif !== false ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                    }`}>
+                      {pack.actif !== false ? 'En ligne' : 'Masqué'}
+                    </span>
+                  </div>
                   <p className="mt-1 line-clamp-2 text-xs text-stone-500">{pack.description}</p>
                   <p className="mt-2 text-sm font-semibold text-amber-900">{Number(pack.prix).toLocaleString('fr-FR')} FCFA</p>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <button onClick={() => edit(pack)} aria-label="Modifier le pack" className="rounded-lg p-2 text-stone-500 hover:bg-amber-50 hover:text-amber-800 cursor-pointer">
+                  <button
+                    type="button"
+                    onClick={() => toggleActif(pack)}
+                    title={pack.actif !== false ? 'Masquer ce pack' : 'Afficher ce pack'}
+                    className="rounded-lg p-2 text-stone-500 hover:bg-stone-100 hover:text-stone-800 cursor-pointer"
+                  >
+                    {pack.actif !== false ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                  <button type="button" onClick={() => edit(pack)} aria-label="Modifier le pack" className="rounded-lg p-2 text-stone-500 hover:bg-amber-50 hover:text-amber-800 cursor-pointer">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => remove(pack._id)} aria-label="Supprimer le pack" className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 cursor-pointer">
+                  <button type="button" onClick={() => remove(pack._id)} aria-label="Supprimer le pack" className="rounded-lg p-2 text-stone-400 hover:bg-red-50 hover:text-red-600 cursor-pointer">
                     <Trash2 size={16} />
                   </button>
                 </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { backendUrl } from '../config';
 import {
@@ -22,7 +23,8 @@ import {
   Activity,
   Globe,
   Clock,
-  Download
+  Download,
+  ArrowRight
 } from 'lucide-react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
@@ -91,9 +93,11 @@ const SOURCE_COLORS = [
 ];
 
 export default function DashboardStats({ token }) {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [activityFilter, setActivityFilter] = useState('all');
 
   const downloadCsv = async () => {
     try {
@@ -279,6 +283,37 @@ export default function DashboardStats({ token }) {
         </div>
       </div>
 
+      {/* RÉSUMÉ RAPIDE DU JOUR */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950 text-white p-5 rounded-3xl shadow-sm">
+        <div className="flex items-center justify-between bg-white/10 rounded-2xl px-4 py-3.5">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold">Aujourd'hui • Visiteurs</p>
+            <p className="text-2xl font-bold font-serif mt-0.5">{behavior.visiteursAujourdHui}</p>
+          </div>
+          <Users size={20} className="text-emerald-400" />
+        </div>
+        <div className="flex items-center justify-between bg-white/10 rounded-2xl px-4 py-3.5">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold">Aujourd'hui • Clics WhatsApp</p>
+            <p className="text-2xl font-bold font-serif mt-0.5">{stats.clicsWhatsappAujourdHui || 0}</p>
+          </div>
+          <MessageCircle size={20} className="text-amber-400" />
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate('/orders')}
+          className="flex items-center justify-between bg-amber-600 hover:bg-amber-500 rounded-2xl px-4 py-3.5 text-left transition-colors cursor-pointer"
+        >
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-amber-100 font-semibold">Commandes à traiter</p>
+            <p className="text-2xl font-bold font-serif mt-0.5">{stats.commandesEnAttente || 0}</p>
+          </div>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold bg-white/20 px-3 py-1.5 rounded-xl">
+            Voir <ArrowRight size={14} />
+          </span>
+        </button>
+      </div>
+
       {/* ================= SECTION 1 : COMPORTEMENT DES VISITEURS ================= */}
       <div className="space-y-6">
         <div className="flex items-center gap-2">
@@ -390,27 +425,48 @@ export default function DashboardStats({ token }) {
 
           {/* Journal d'activité en direct */}
           <div className="bg-white border border-slate-200 p-5 rounded-3xl shadow-xs lg:col-span-2 flex flex-col">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-amber-100 text-amber-700">
                   <Clock size={15} />
                 </div>
                 <h3 className="text-xs uppercase font-bold tracking-wider text-slate-800">
-                  Journal d'activité en direct (Dernières actions)
+                  Journal d'activité en direct
                 </h3>
               </div>
-              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                En direct
-              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { id: 'all', label: 'Tout' },
+                  { id: 'whatsapp_click', label: 'WhatsApp' },
+                  { id: 'add_to_cart', label: 'Paniers' },
+                  { id: 'product_view', label: 'Bijoux vus' },
+                  { id: 'page_view', label: 'Pages' },
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setActivityFilter(f.id)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                      activityFilter === f.id
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {behavior.activiteRecente.length === 0 ? (
+            {behavior.activiteRecente.filter((ev) => activityFilter === 'all' || ev.eventType === activityFilter).length === 0 ? (
               <div className="py-12 text-center text-xs text-slate-400">
-                Les actions de vos prochains visiteurs apparaîtront ici automatiquement en direct.
+                Aucune action enregistrée pour ce filtre pour le moment.
               </div>
             ) : (
               <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-                {behavior.activiteRecente.map((ev, index) => {
+                {behavior.activiteRecente
+                  .filter((ev) => activityFilter === 'all' || ev.eventType === activityFilter)
+                  .map((ev, index) => {
                   const badge = getBadgeAction(ev);
                   const identite = [ev.visitorName, ev.visitorEmail, ev.visitorPhone].filter(Boolean).join(' • ');
                   return (
@@ -567,7 +623,11 @@ export default function DashboardStats({ token }) {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-violet-500 to-purple-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => navigate('/listeProduits?filtre=vedette')}
+            className="bg-gradient-to-br from-violet-500 to-purple-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between text-left hover:opacity-95 transition-opacity cursor-pointer"
+          >
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold tracking-widest text-violet-100">Sélection Boutique</span>
               <h3 className="text-2xl font-bold font-serif tracking-tight">
@@ -577,9 +637,13 @@ export default function DashboardStats({ token }) {
             <div className="p-3 bg-white/20 backdrop-blur-xs rounded-2xl">
               <Star size={22} />
             </div>
-          </div>
+          </button>
 
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => navigate('/orders')}
+            className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between text-left hover:opacity-95 transition-opacity cursor-pointer"
+          >
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-100">Commandes Validées</span>
               <h3 className="text-2xl font-bold font-serif tracking-tight">
@@ -589,7 +653,7 @@ export default function DashboardStats({ token }) {
             <div className="p-3 bg-white/20 backdrop-blur-xs rounded-2xl">
               <Package size={22} />
             </div>
-          </div>
+          </button>
 
           <div className="bg-gradient-to-br from-sky-500 to-indigo-600 text-white p-6 rounded-3xl shadow-md flex items-center justify-between">
             <div className="space-y-1 min-w-0">
@@ -607,7 +671,11 @@ export default function DashboardStats({ token }) {
 
         {/* Ligne État du catalogue */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="flex items-center gap-3.5 bg-amber-50/70 border border-amber-200 p-4 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => navigate('/listeProduits')}
+            className="flex items-center gap-3.5 bg-amber-50/70 border border-amber-200 p-4 rounded-2xl text-left hover:border-amber-400 transition-colors cursor-pointer"
+          >
             <div className="p-3 bg-amber-500 text-white rounded-xl shrink-0">
               <Gem size={18} />
             </div>
@@ -615,9 +683,13 @@ export default function DashboardStats({ token }) {
               <p className="text-[10px] uppercase font-bold tracking-widest text-amber-800">Total Produits</p>
               <p className="text-xl font-bold font-serif text-amber-950">{stats.totalProduits}</p>
             </div>
-          </div>
+          </button>
 
-          <div className="flex items-center gap-3.5 bg-indigo-50/70 border border-indigo-200 p-4 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => navigate('/categories')}
+            className="flex items-center gap-3.5 bg-indigo-50/70 border border-indigo-200 p-4 rounded-2xl text-left hover:border-indigo-400 transition-colors cursor-pointer"
+          >
             <div className="p-3 bg-indigo-500 text-white rounded-xl shrink-0">
               <Layers size={18} />
             </div>
@@ -625,11 +697,15 @@ export default function DashboardStats({ token }) {
               <p className="text-[10px] uppercase font-bold tracking-widest text-indigo-800">Total Catégories</p>
               <p className="text-xl font-bold font-serif text-indigo-950">{stats.totalCategories}</p>
             </div>
-          </div>
+          </button>
 
-          <div className={`flex items-center gap-3.5 p-4 rounded-2xl border ${
-            stats.rupturesStock > 0 ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'
-          }`}>
+          <button
+            type="button"
+            onClick={() => navigate('/listeProduits?filtre=rupture')}
+            className={`flex items-center gap-3.5 p-4 rounded-2xl border text-left transition-colors cursor-pointer ${
+              stats.rupturesStock > 0 ? 'bg-rose-50 border-rose-200 hover:border-rose-400' : 'bg-emerald-50/70 border-emerald-200 hover:border-emerald-400'
+            }`}
+          >
             <div className={`p-3 rounded-xl shrink-0 text-white ${stats.rupturesStock > 0 ? 'bg-rose-500' : 'bg-emerald-500'}`}>
               <AlertTriangle size={18} />
             </div>
@@ -637,7 +713,7 @@ export default function DashboardStats({ token }) {
               <p className={`text-[10px] uppercase font-bold tracking-widest ${stats.rupturesStock > 0 ? 'text-rose-700' : 'text-emerald-800'}`}>Ruptures de Stock</p>
               <p className={`text-xl font-bold font-serif ${stats.rupturesStock > 0 ? 'text-rose-950' : 'text-emerald-950'}`}>{stats.rupturesStock}</p>
             </div>
-          </div>
+          </button>
         </div>
 
         {/* BLOCS DE GRAPHIQUES & CLASSEMENTS */}

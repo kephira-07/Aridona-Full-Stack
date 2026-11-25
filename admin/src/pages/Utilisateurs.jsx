@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { Mail, User, Phone, Calendar, ShieldCheck, Download, Copy } from 'lucide-react';
+import { Mail, User, Phone, Calendar, ShieldCheck, Download, Copy, Search } from 'lucide-react';
 import { backendUrl } from '../config';
 
 const Utilisateurs = ({ token: propToken }) => {
   const [utilisateurs, setUtilisateurs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchUtilisateurs = async () => {
     try {
@@ -95,7 +96,18 @@ const Utilisateurs = ({ token: propToken }) => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-56">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Nom, email, téléphone..."
+              className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-slate-900"
+            />
+          </div>
+
           <button
             type="button"
             onClick={copierTousLesEmails}
@@ -145,9 +157,20 @@ const Utilisateurs = ({ token: propToken }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
-                {utilisateurs.map((user) => {
+                {utilisateurs
+                  .filter((user) => {
+                    if (!searchTerm.trim()) return true;
+                    const q = searchTerm.trim().toLowerCase();
+                    return (
+                      String(user.nom || user.name || '').toLowerCase().includes(q) ||
+                      String(user.email || '').toLowerCase().includes(q) ||
+                      String(user.telephone || user.phone || '').toLowerCase().includes(q)
+                    );
+                  })
+                  .map((user) => {
                   const dateInscription = user.createdAt || user.date;
                   const userRole = user.role || 'client';
+                  const isGoogle = Boolean(user.googleId);
 
                   return (
                     <tr key={user._id} className="hover:bg-amber-50/30 transition-colors">
@@ -171,14 +194,23 @@ const Utilisateurs = ({ token: propToken }) => {
 
                       {/* Rôle */}
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
-                          userRole === 'admin' 
-                            ? 'bg-amber-50 text-amber-900 border-amber-200' 
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}>
-                          {userRole === 'admin' && <ShieldCheck size={11} className="text-amber-700" />}
-                          {userRole}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${
+                            userRole === 'admin' 
+                              ? 'bg-amber-50 text-amber-900 border-amber-200' 
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}>
+                            {userRole === 'admin' && <ShieldCheck size={11} className="text-amber-700" />}
+                            {userRole}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            isGoogle
+                              ? 'bg-sky-50 text-sky-700 border-sky-200'
+                              : 'bg-stone-50 text-stone-600 border-stone-200'
+                          }`}>
+                            {isGoogle ? 'Google' : 'Email'}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Téléphone */}

@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../config';
-import { 
-  Upload, 
-  X, 
+import {
+  Upload,
+  X,
   Plus,
   Star,
-  Loader2, 
-  Check, 
-  PackagePlus, 
+  Loader2,
+  Check,
+  PackagePlus,
   Palette,
   Wand2,
-  Share2
+  Share2,
+  ChevronDown
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { availableSizes, availableColors, availableMatieres } from '../constants/produit';
@@ -38,8 +39,8 @@ const Add = ({ token }) => {
   const [description, setDescription] = useState('');
   const [prix, setPrix] = useState('');
   const [stock, setStock] = useState('');
-  
-  const [categorie, setCategorie] = useState(''); 
+
+  const [categorie, setCategorie] = useState('');
   const [categoriesList, setCategoriesList] = useState([]);
 
   const [matiere, setMatiere] = useState('Acier Inoxydable');
@@ -55,6 +56,7 @@ const Add = ({ token }) => {
   const [alts, setAlts] = useState(['', '', '', '']);
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
+  const [showAdvancedSeo, setShowAdvancedSeo] = useState(false);
 
   // Charger la liste des catégories depuis le serveur
   useEffect(() => {
@@ -216,7 +218,7 @@ const Add = ({ token }) => {
 
       if (response.data.success) {
         const data = response.data.product || {};
-        
+
         // Remplissage automatique des champs du formulaire
         if (data.nom) setNom(data.nom);
         if (data.description) setDescription(data.description);
@@ -283,7 +285,7 @@ const Add = ({ token }) => {
       toast.error("Veuillez fournir au moins une photo pour le bijou.");
       return;
     }
-    
+
     setLoading(true);
     try {
       const formData = new FormData();
@@ -291,7 +293,7 @@ const Add = ({ token }) => {
       formData.append("description", description);
       formData.append("prix", prix);
       if (stock !== '') formData.append("stock", stock);
-      formData.append("categorie", categorie); 
+      formData.append("categorie", categorie);
       formData.append("matiere", matiere);
       formData.append("meilleurVente", meilleurVente ? "true" : "false");
       formData.append("publishInstagram", publishInstagram ? "true" : "false");
@@ -309,8 +311,8 @@ const Add = ({ token }) => {
       });
 
       const response = await axios.post(
-        `${backendUrl}/api/produit/add`, 
-        formData, 
+        `${backendUrl}/api/produit/add`,
+        formData,
         { headers: { token, Authorization: `Bearer ${token}` } }
       );
 
@@ -350,7 +352,7 @@ const Add = ({ token }) => {
 
   return (
     <div className="max-w-4xl font-sans text-stone-800">
-      
+
       {/* En-tête */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -389,7 +391,7 @@ const Add = ({ token }) => {
       </div>
 
       <form onSubmit={onSubmitHandler} className="space-y-8 bg-white p-6 sm:p-8 rounded-2xl border border-stone-200/80 shadow-xs">
-        
+
         {/* --- 1. VISUELS DU BIJOU --- */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -444,12 +446,12 @@ const Add = ({ token }) => {
                     <span className="text-[11px] font-medium text-stone-500 group-hover:text-stone-800">
                       {index === 0 ? "Photo principale *" : `Photo ${index + 1}`}
                     </span>
-                    <input 
-                      onChange={(e) => handleImageChange(index, e.target.files[0])} 
-                      type="file" 
-                      id={`image${index + 1}`} 
-                      hidden 
-                      accept="image/*" 
+                    <input
+                      onChange={(e) => handleImageChange(index, e.target.files[0])}
+                      type="file"
+                      id={`image${index + 1}`}
+                      hidden
+                      accept="image/*"
                     />
                   </label>
                 )}
@@ -466,13 +468,13 @@ const Add = ({ token }) => {
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
               Nom de la création *
             </label>
-            <input 
-              onChange={(e) => setNom(e.target.value)} 
-              value={nom} 
-              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all" 
-              type="text" 
-              placeholder="Ex: Collier Pendeloque Aura" 
-              required 
+            <input
+              onChange={(e) => setNom(e.target.value)}
+              value={nom}
+              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+              type="text"
+              placeholder="Ex: Collier Pendeloque Aura"
+              required
             />
           </div>
 
@@ -480,13 +482,13 @@ const Add = ({ token }) => {
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
               Description & Histoire du bijou *
             </label>
-            <textarea 
-              onChange={(e) => setDescription(e.target.value)} 
-              value={description} 
-              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all resize-none" 
-              placeholder="Détails du maillage, pierres serties, conseils d'entretien..." 
-              rows={4} 
-              required 
+            <textarea
+              onChange={(e) => setDescription(e.target.value)}
+              value={description}
+              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all resize-none"
+              placeholder="Détails du maillage, pierres serties, conseils d'entretien..."
+              rows={4}
+              required
             />
           </div>
 
@@ -511,27 +513,27 @@ const Add = ({ token }) => {
                 Prix (FCFA) *
               </label>
               <div className="relative">
-                <input 
-                  onChange={(e) => setPrix(e.target.value)} 
-                  value={prix} 
-                  className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all pr-12" 
-                  type="number" 
-                  placeholder="25000" 
-                  required 
+                <input
+                  onChange={(e) => setPrix(e.target.value)}
+                  value={prix}
+                  className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all pr-12"
+                  type="number"
+                  placeholder="25000"
+                  required
                 />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-stone-400">
                   FCFA
                 </span>
               </div>
             </div>
-            
+
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
                 Catégorie *
               </label>
-              <select 
-                onChange={(e) => setCategorie(e.target.value)} 
-                value={categorie} 
+              <select
+                onChange={(e) => setCategorie(e.target.value)}
+                value={categorie}
                 className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all cursor-pointer"
               >
                 {categoriesList.length === 0 ? (
@@ -552,12 +554,12 @@ const Add = ({ token }) => {
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
               Tags / Mots-clés SEO <span className="text-stone-400 font-normal">(séparés par des virgules)</span>
             </label>
-            <input 
-              value={tagsInput} 
-              onChange={(e) => setTagsInput(e.target.value)} 
-              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all" 
-              type="text" 
-              placeholder="ex: collier, double rang, fermoir T, choker, doré" 
+            <input
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+              type="text"
+              placeholder="ex: collier, double rang, fermoir T, choker, doré"
             />
             {tagsInput && (
               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -574,9 +576,9 @@ const Add = ({ token }) => {
             <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
               Matière Principale
             </label>
-            <select 
-              onChange={(e) => setMatiere(e.target.value)} 
-              value={matiere} 
+            <select
+              onChange={(e) => setMatiere(e.target.value)}
+              value={matiere}
               className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all cursor-pointer"
             >
               {availableMatieres.map((mat) => (
@@ -585,36 +587,48 @@ const Add = ({ token }) => {
             </select>
           </div>
 
-          {/* Surcharges SEO */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Titre SEO <span className="text-stone-400 font-normal normal-case">(optionnel)</span>
-              </label>
-              <input
-                onChange={(e) => setMetaTitle(e.target.value)}
-                value={metaTitle}
-                maxLength={70}
-                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
-                type="text"
-                placeholder="Ex: Collier Pendeloque Aura | Aridona"
-              />
-              <span className="text-[10px] text-stone-400">{metaTitle.length}/70</span>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Meta Description <span className="text-stone-400 font-normal normal-case">(optionnel)</span>
-              </label>
-              <input
-                onChange={(e) => setMetaDescription(e.target.value)}
-                value={metaDescription}
-                maxLength={160}
-                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
-                type="text"
-                placeholder="Résumé accrocheur pour Google"
-              />
-              <span className="text-[10px] text-stone-400">{metaDescription.length}/160</span>
-            </div>
+          {/* Options SEO avancées (repliées par défaut, l'IA les remplit automatiquement) */}
+          <div className="rounded-xl border border-stone-200/80 bg-stone-50/40 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedSeo((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 text-xs font-semibold text-stone-700 hover:bg-stone-100/60 transition-colors cursor-pointer"
+            >
+              <span>Options SEO avancées (optionnel — remplies automatiquement)</span>
+              <ChevronDown size={15} className={`text-stone-400 transition-transform ${showAdvancedSeo ? 'rotate-180' : ''}`} />
+            </button>
+            {showAdvancedSeo && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-t border-stone-200/70 bg-white">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                    Titre SEO
+                  </label>
+                  <input
+                    onChange={(e) => setMetaTitle(e.target.value)}
+                    value={metaTitle}
+                    maxLength={70}
+                    className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                    type="text"
+                    placeholder="Ex: Collier Pendeloque Aura | Aridona"
+                  />
+                  <span className="text-[10px] text-stone-400">{metaTitle.length}/70</span>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                    Meta Description
+                  </label>
+                  <input
+                    onChange={(e) => setMetaDescription(e.target.value)}
+                    value={metaDescription}
+                    maxLength={160}
+                    className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                    type="text"
+                    placeholder="Résumé accrocheur pour Google"
+                  />
+                  <span className="text-[10px] text-stone-400">{metaDescription.length}/160</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -631,15 +645,14 @@ const Add = ({ token }) => {
               {availableColors.map((color) => {
                 const isSelected = couleurs.includes(color);
                 return (
-                  <button 
-                    key={color} 
+                  <button
+                    key={color}
                     type="button"
                     onClick={() => handleColorToggle(color)}
-                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-2 cursor-pointer ${
-                      isSelected 
-                        ? 'bg-amber-900 text-white border-amber-900 shadow-xs' 
-                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
-                    }`}
+                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-2 cursor-pointer ${isSelected
+                      ? 'bg-amber-900 text-white border-amber-900 shadow-xs'
+                      : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                      }`}
                   >
                     {isSelected && <Check size={12} className="text-amber-300" />}
                     <span>{color}</span>
@@ -657,15 +670,14 @@ const Add = ({ token }) => {
               {availableSizes.map((size) => {
                 const isSelected = sizes.includes(size);
                 return (
-                  <button 
-                    key={size} 
+                  <button
+                    key={size}
                     type="button"
                     onClick={() => handleSizeToggle(size)}
-                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${
-                      isSelected 
-                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs' 
-                        : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
-                    }`}
+                    className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer ${isSelected
+                      ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                      : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'
+                      }`}
                   >
                     {isSelected && <Check size={12} className="text-amber-400" />}
                     <span>{size}</span>
@@ -689,13 +701,13 @@ const Add = ({ token }) => {
                 </p>
               </div>
             </div>
-            
-            <input 
-              onChange={() => setMeilleurVente(prev => !prev)} 
-              checked={meilleurVente} 
-              type="checkbox" 
-              id="meilleurVente" 
-              className="w-4 h-4 accent-amber-900 rounded cursor-pointer" 
+
+            <input
+              onChange={() => setMeilleurVente(prev => !prev)}
+              checked={meilleurVente}
+              type="checkbox"
+              id="meilleurVente"
+              className="w-4 h-4 accent-amber-900 rounded cursor-pointer"
             />
           </div>
 
@@ -712,11 +724,10 @@ const Add = ({ token }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <label
                 htmlFor="publishInstagram"
-                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
-                  publishInstagram
-                    ? 'bg-amber-900/10 border-amber-800 text-stone-900'
-                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
-                }`}
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${publishInstagram
+                  ? 'bg-amber-900/10 border-amber-800 text-stone-900'
+                  : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`p-2 rounded-lg ${publishInstagram ? 'bg-amber-900 text-white' : 'bg-stone-100 text-stone-600'}`}>
@@ -738,11 +749,10 @@ const Add = ({ token }) => {
 
               <label
                 htmlFor="publishX"
-                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${
-                  publishX
-                    ? 'bg-stone-900/10 border-stone-900 text-stone-900'
-                    : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
-                }`}
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer ${publishX
+                  ? 'bg-stone-900/10 border-stone-900 text-stone-900'
+                  : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div className={`p-2 rounded-lg ${publishX ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600'}`}>
@@ -767,9 +777,9 @@ const Add = ({ token }) => {
 
         {/* --- 4. ACTION --- */}
         <div className="pt-2">
-          <button 
-            type="submit" 
-            disabled={loading} 
+          <button
+            type="submit"
+            disabled={loading}
             className="w-full sm:w-auto px-8 py-3.5 bg-stone-900 hover:bg-stone-950 text-white font-medium text-xs uppercase tracking-widest rounded-xl transition-all shadow-md active:scale-[0.99] disabled:bg-stone-400 flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (

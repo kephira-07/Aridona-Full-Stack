@@ -10,7 +10,8 @@ import {
   Check,
   Image as ImageIcon,
   Eye,
-  EyeOff
+  EyeOff,
+  Search
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -19,6 +20,8 @@ export default function Articles({ token }) {
   const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [filtreStatut, setFiltreStatut] = useState('tous'); // 'tous' | 'publies' | 'brouillons'
+  const [searchArticle, setSearchArticle] = useState('');
 
   const [titre, setTitre] = useState('');
   const [extrait, setExtrait] = useState('');
@@ -398,15 +401,49 @@ export default function Articles({ token }) {
 
         {/* --- LISTE --- */}
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-stone-200/80 shadow-xs">
-          <div className="flex items-center justify-between mb-6 pb-3 border-b border-stone-100">
-            <h2 className="text-sm font-semibold tracking-wide text-stone-900 uppercase">Articles</h2>
-            <span className="px-2.5 py-1 bg-stone-100 text-stone-600 rounded-full text-xs font-semibold">
-              {articles.length} au total
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-stone-100">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[
+                { id: 'tous', label: `Tous (${articles.length})` },
+                { id: 'publies', label: `Publiés (${articles.filter((a) => a.publie).length})` },
+                { id: 'brouillons', label: `Brouillons (${articles.filter((a) => !a.publie).length})` },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFiltreStatut(f.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                    filtreStatut === f.id
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative w-full sm:w-56">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+              <input
+                type="text"
+                value={searchArticle}
+                onChange={(e) => setSearchArticle(e.target.value)}
+                placeholder="Rechercher un article..."
+                className="w-full pl-9 pr-3 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl outline-none focus:bg-white focus:border-stone-900"
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
-            {articles.map((article) => (
+            {articles
+              .filter((a) => {
+                if (filtreStatut === 'publies' && !a.publie) return false;
+                if (filtreStatut === 'brouillons' && a.publie) return false;
+                if (!searchArticle.trim()) return true;
+                return String(a.titre || '').toLowerCase().includes(searchArticle.trim().toLowerCase());
+              })
+              .map((article) => (
               <div
                 key={article._id}
                 className={`flex items-center gap-4 p-3 rounded-xl border transition-colors ${

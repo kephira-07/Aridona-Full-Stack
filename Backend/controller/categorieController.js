@@ -71,11 +71,23 @@ export const addCategorie = async (req, res) => {
     }
 };
 
-// 2. RÉCUPÉRER TOUTES LES CATÉGORIES
+// 2. RÉCUPÉRER TOUTES LES CATÉGORIES (avec le nombre de bijoux par catégorie)
 export const getCategories = async (req, res) => {
     try {
-        const categories = await categorieModel.find({}).sort({ nom: 1 });
-        return res.status(200).json({ success: true, data: categories });
+        const [categories, comptages] = await Promise.all([
+            categorieModel.find({}).sort({ nom: 1 }).lean(),
+            produitModel.aggregate([
+                { $group: { _id: "$categorie", count: { $sum: 1 } } },
+            ]),
+        ]);
+
+        const countByCat = new Map(comptages.map((c) => [String(c._id), c.count]));
+        const data = categories.map((cat) => ({
+            ...cat,
+            produitCount: countByCat.get(String(cat._id)) || 0,
+        }));
+
+        return res.status(200).json({ success: true, data });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Erreur de récupération" });
     }

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Loader2, Plus, Search, Star } from 'lucide-react';
 import { backendUrl } from '../config';
 
 const IconInstagram = ({ size = 14 }) => (
@@ -21,13 +21,23 @@ const IconX = ({ size = 13 }) => (
 
 const ListeProduits = ({ token }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
   const [sharingState, setSharingState] = useState(null); // { id, platform }
-  
-  // State pour la barre de recherche
   const [searchTerm, setSearchTerm] = useState('');
+  const [categorieFilter, setCategorieFilter] = useState('all');
+  const filtreActif = searchParams.get('filtre') || 'tous';
+
+  const setFiltre = (val) => {
+    if (val === 'tous') {
+      searchParams.delete('filtre');
+      setSearchParams(searchParams);
+    } else {
+      setSearchParams({ filtre: val });
+    }
+  };
 
   // Helper pour extraire l'URL de l'image (compatible string ou objet Cloudinary)
   const getImageUrl = (imgData) => {
@@ -158,13 +168,30 @@ const ListeProduits = ({ token }) => {
     fetchList();
   }, []);
 
-  // 🔎 Filtrage dynamique des produits selon le terme recherché (par nom ou catégorie)
+  // 🔎 Filtrage dynamique par onglet, catégorie et texte
+  const uniqueCategories = Array.from(
+    new Set(list.map((item) => getCategorieNom(item.categorie)).filter(Boolean))
+  ).sort();
+
+  const counts = {
+    tous: list.length,
+    stock: list.filter((i) => i.enStock !== false && i.stock !== 0).length,
+    rupture: list.filter((i) => i.enStock === false || i.stock === 0).length,
+    vedette: list.filter((i) => Boolean(i.meilleurVente)).length,
+  };
+
   const filteredList = list.filter((item) => {
+    const estRupture = item.enStock === false || item.stock === 0;
+    if (filtreActif === 'stock' && estRupture) return false;
+    if (filtreActif === 'rupture' && !estRupture) return false;
+    if (filtreActif === 'vedette' && !item.meilleurVente) return false;
+
+    const nomCat = getCategorieNom(item.categorie);
+    if (categorieFilter !== 'all' && nomCat !== categorieFilter) return false;
+
+    if (!searchTerm.trim()) return true;
     const term = searchTerm.toLowerCase();
-    const nomMatch = item.nom?.toLowerCase().includes(term);
-    const catNom = getCategorieNom(item.categorie).toLowerCase();
-    const catMatch = catNom.includes(term);
-    return nomMatch || catMatch;
+    return String(item.nom || '').toLowerCase().includes(term) || nomCat.toLowerCase().includes(term);
   });
 
   if (loading) {
@@ -176,91 +203,163 @@ const ListeProduits = ({ token }) => {
   }
 
   return (
-    <div className='flex flex-col gap-4 p-4 max-w-6xl mx-auto'>
-      {/* En-tête + Barre de recherche */}
-      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2'>
-        <p className='font-bold text-lg text-stone-800'>Catalogue des Bijoux</p>
-        
-        {/* Input Recherche */}
-        <div className='relative w-full sm:w-72'>
-          <input
-            type="text"
-            placeholder="Rechercher par bijou ou catégorie..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className='w-full pl-9 pr-4 py-2 text-sm bg-white border border-stone-200 rounded-xl outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all shadow-sm'
-          />
-          <svg 
-            className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
+    <div className='flex flex-col gap-4 max-w-6xl mx-auto'>
+      {/* En-tête + Bouton Ajouter */}
+      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
+        <div>
+          <p className='font-bold text-xl text-stone-900'>Catalogue des Bijoux</p>
+          <p className='text-xs text-stone-500'>Filtrez par stock ou catégorie, ajustez la disponibilité et partagez en 1 clic.</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate('/add')}
+          className='inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider rounded-xl shadow-xs transition-all cursor-pointer self-start sm:self-auto'
+        >
+          <Plus size={15} />
+          <span>Ajouter un bijou</span>
+        </button>
+      </div>
+
+      {/* Filtres rapides + Recherche + Catégorie */}
+      <div className='flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-stone-200/80 shadow-2xs'>
+        <div className='flex flex-wrap gap-1.5'>
+          {[
+            { id: 'tous', label: 'Tous', count: counts.tous },
+            { id: 'stock', label: 'En stock', count: counts.stock },
+            { id: 'rupture', label: 'Ruptures', count: counts.rupture },
+            { id: 'vedette', label: 'Vedettes', count: counts.vedette },
+          ].map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFiltre(f.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                filtreActif === f.id
+                  ? 'bg-slate-950 text-white'
+                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              }`}
+            >
+              <span>{f.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                filtreActif === f.id ? 'bg-white/20 text-white' : 'bg-white text-stone-700'
+              }`}>
+                {f.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className='flex flex-col sm:flex-row gap-2'>
+          <select
+            value={categorieFilter}
+            onChange={(e) => setCategorieFilter(e.target.value)}
+            className='px-3 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl outline-none focus:border-stone-900 cursor-pointer'
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+            <option value="all">Toutes catégories</option>
+            {uniqueCategories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+
+          <div className='relative w-full sm:w-60'>
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+            <input
+              type="text"
+              placeholder="Rechercher un bijou..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='w-full pl-9 pr-3 py-2 text-xs bg-stone-50 border border-stone-200 rounded-xl outline-none focus:bg-white focus:border-stone-900 transition-all'
+            />
+          </div>
         </div>
       </div>
 
       {/* En-tête du tableau (Bureau) */}
-      <div className='hidden md:grid grid-cols-[1fr_2.2fr_1fr_1fr_1.1fr_1.9fr] items-center py-2.5 px-4 border bg-stone-100 text-sm font-semibold text-stone-600 rounded-lg'>
+      <div className='hidden md:grid grid-cols-[0.7fr_2.2fr_1fr_1fr_1.3fr_1.9fr] items-center py-2.5 px-4 border border-stone-200 bg-stone-100 text-xs font-semibold uppercase tracking-wider text-stone-600 rounded-xl'>
         <span>Image</span>
         <span>Nom</span>
         <span>Catégorie</span>
         <span>Prix</span>
-        <span className='text-center'>Statut Stock</span>
+        <span className='text-center'>Stock</span>
         <span className='text-center'>Actions & Partage</span>
       </div>
 
       {/* Liste des produits filtrés */}
       {filteredList.length === 0 ? (
-        <p className='text-stone-500 py-8 text-center bg-white rounded-xl border border-stone-200'>
-          {searchTerm ? "Aucun bijou ne correspond à votre recherche." : "Aucun produit trouvé."}
+        <p className='text-stone-500 py-10 text-center bg-white rounded-2xl border border-stone-200 text-sm'>
+          Aucun bijou ne correspond à ce filtre.
         </p>
       ) : (
         filteredList.map((item) => {
           const isSharingX = sharingState?.id === item._id && sharingState?.platform === 'x';
           const isSharingIg = sharingState?.id === item._id && sharingState?.platform === 'instagram';
+          const estEnStock = item.enStock !== false && item.stock !== 0;
+          const stockNum = item.stock;
 
           return (
             <div 
               key={item._id} 
-              className='grid grid-cols-[1fr_2fr_1.2fr] md:grid-cols-[1fr_2.2fr_1fr_1fr_1.1fr_1.9fr] items-center gap-2 py-3 px-4 border border-stone-200 bg-white text-sm rounded-xl hover:bg-stone-50/50 transition-colors shadow-sm'
+              className='flex flex-col md:grid md:grid-cols-[0.7fr_2.2fr_1fr_1fr_1.3fr_1.9fr] md:items-center gap-3 py-3.5 px-4 border border-stone-200 bg-white text-sm rounded-2xl hover:bg-stone-50/40 transition-colors shadow-2xs'
             >
-              {/* Image */}
-              <img
-                className='w-12 h-12 object-cover rounded-md border border-stone-200'
-                src={getImageUrl(item.image)}
-                alt={getImageAlt(item.image, item.nom)}
-              />
-              
-              {/* Nom */}
-              <p className='font-medium text-stone-800 truncate'>{item.nom}</p>
-              
-              {/* Catégorie sécurisée */}
-              <p className='hidden md:block text-stone-500 truncate'>
+              <div className='flex items-center gap-3 md:contents'>
+                {/* Image */}
+                <img
+                  className='w-14 h-14 md:w-12 md:h-12 object-cover rounded-xl border border-stone-200 shrink-0'
+                  src={getImageUrl(item.image)}
+                  alt={getImageAlt(item.image, item.nom)}
+                />
+
+                {/* Nom + infos mobiles */}
+                <div className='min-w-0 flex-1'>
+                  <p className='font-semibold text-stone-900 truncate flex items-center gap-1.5'>
+                    <span className='truncate'>{item.nom}</span>
+                    {item.meilleurVente && (
+                      <Star size={12} className='text-amber-600 fill-amber-500 shrink-0' title="Produit Vedette" />
+                    )}
+                  </p>
+                  <p className='md:hidden text-xs text-stone-500 mt-0.5'>
+                    {getCategorieNom(item.categorie)} • <strong className='text-amber-900'>{item.prix?.toLocaleString()} FCFA</strong>
+                  </p>
+                </div>
+              </div>
+
+              {/* Catégorie bureau */}
+              <p className='hidden md:block text-xs text-stone-500 truncate'>
                 {getCategorieNom(item.categorie)}
               </p>
-              
-              {/* Prix */}
-              <p className='hidden md:block font-semibold text-amber-900'>
+
+              {/* Prix bureau */}
+              <p className='hidden md:block text-xs font-bold text-amber-900'>
                 {item.prix?.toLocaleString()} FCFA
               </p>
 
-              {/* TOGGLE STOCK */}
-              <div className='flex items-center justify-center'>
+              {/* TOGGLE STOCK + QUANTITÉ EXACTE */}
+              <div className='flex items-center md:justify-center gap-2'>
                 <button
                   type="button"
                   disabled={updatingId === item._id}
                   onClick={() => toggleStock(item._id, item.enStock !== false)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all duration-200 flex items-center gap-1.5 border cursor-pointer
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 border cursor-pointer
                     ${updatingId === item._id ? 'opacity-50 cursor-not-allowed' : ''}
-                    ${item.enStock !== false
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                    ${estEnStock
+                      ? (stockNum !== null && stockNum !== undefined && stockNum <= 3
+                          ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100')
                       : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
                     }`}
+                  title="Cliquer pour basculer En stock / Rupture"
                 >
-                  <span className={`w-2 h-2 rounded-full ${item.enStock !== false ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                  <span className="hidden sm:inline">{item.enStock !== false ? 'En Stock' : 'Rupture'}</span>
+                  <span className={`w-2 h-2 rounded-full ${
+                    estEnStock
+                      ? (stockNum !== null && stockNum !== undefined && stockNum <= 3 ? 'bg-amber-500' : 'bg-emerald-500')
+                      : 'bg-rose-500'
+                  }`} />
+                  <span>
+                    {!estEnStock
+                      ? 'Rupture'
+                      : (stockNum !== null && stockNum !== undefined ? `${stockNum} en stock` : 'En Stock')}
+                  </span>
                 </button>
               </div>
 

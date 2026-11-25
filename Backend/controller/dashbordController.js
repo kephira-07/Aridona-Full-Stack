@@ -120,6 +120,9 @@ export const getDashboardStats = async (req, res) => {
       appareilsRepartition,
       sourcesTrafic,
       activiteRecente,
+      commandesEnAttente,
+      commandesAujourdHui,
+      clicsWhatsappAujourdHui,
     ] = await Promise.all([
       produitModel.countDocuments({}),
       categorieModel.countDocuments({}),
@@ -251,6 +254,10 @@ export const getDashboardStats = async (req, res) => {
         .limit(30)
         .select("visitorId visitorName visitorEmail visitorPhone visitorCity eventType path pageLabel produitNom device osBrowser country source createdAt")
         .lean(),
+
+      orderModel.countDocuments({ status: { $in: ["Commande passée", "En cours de préparation"] } }),
+      orderModel.countDocuments({ status: { $ne: "Annulé" }, createdAt: { $gte: startOfToday } }),
+      analyticsEventModel.countDocuments({ eventType: "whatsapp_click", createdAt: { $gte: startOfToday } }),
     ]);
 
     const chiffreAffairesTotal = commandesStats.length > 0 ? commandesStats[0].totalCA : 0;
@@ -368,6 +375,9 @@ export const getDashboardStats = async (req, res) => {
         totalProduits,
         totalCategories,
         rupturesStock,
+        commandesEnAttente,
+        commandesAujourdHui,
+        clicsWhatsappAujourdHui,
         behavior,
       },
     });

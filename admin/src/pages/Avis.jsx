@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { backendUrl } from '../config';
-import { Star, Check, Trash2, MessageSquareText, Clock } from 'lucide-react';
+import { Star, Check, Trash2, MessageSquareText, Clock, Search } from 'lucide-react';
 
 const Avis = ({ token }) => {
   const [avisListe, setAvisListe] = useState([]);
@@ -11,6 +11,7 @@ const Avis = ({ token }) => {
   // 'tous' par défaut : les avis sont publiés immédiatement, la file "en attente" ne sert
   // plus que de filtre secondaire (cas résiduel où approuve serait remis à false à la main).
   const [filtre, setFiltre] = useState('tous'); // 'attente' | 'tous'
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchAvis = async () => {
     try {
@@ -73,7 +74,20 @@ const Avis = ({ token }) => {
     }
   };
 
-  const avisFiltres = filtre === 'attente' ? avisListe.filter(a => !a.approuve) : avisListe;
+  const moyenneGlobale = avisListe.length > 0
+    ? (avisListe.reduce((sum, a) => sum + Number(a.note || 0), 0) / avisListe.length).toFixed(1)
+    : '0.0';
+
+  const avisFiltres = avisListe.filter((a) => {
+    if (filtre === 'attente' && a.approuve) return false;
+    if (!searchTerm.trim()) return true;
+    const q = searchTerm.trim().toLowerCase();
+    return (
+      String(a.nom || '').toLowerCase().includes(q) ||
+      String(a.produit?.nom || '').toLowerCase().includes(q) ||
+      String(a.commentaire || '').toLowerCase().includes(q)
+    );
+  });
   const nombreEnAttente = avisListe.filter(a => !a.approuve).length;
 
   if (loading) {
@@ -87,44 +101,65 @@ const Avis = ({ token }) => {
   return (
     <div className="max-w-5xl font-sans text-stone-800">
 
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold uppercase tracking-widest mb-1">
-          <MessageSquareText className="w-4 h-4" />
-          <span>Atelier & Réputation</span>
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-amber-800 text-xs font-semibold uppercase tracking-widest mb-1">
+            <MessageSquareText className="w-4 h-4" />
+            <span>Atelier & Réputation</span>
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
+            Avis Clients
+          </h1>
+          <p className="text-xs text-stone-500 mt-1">
+            Les avis sont publiés immédiatement sur la fiche produit. Supprimez ici ceux qui sont inappropriés.
+          </p>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
-          Avis Clients
-        </h1>
-        <p className="text-xs text-stone-500 mt-1">
-          Les avis sont publiés immédiatement sur la fiche produit. Supprimez ici ceux qui sont inappropriés.
-        </p>
+
+        <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200/80 px-4 py-2 rounded-2xl self-start sm:self-auto">
+          <Star size={16} className="text-amber-500 fill-amber-500" />
+          <span className="text-sm font-bold text-amber-950">{moyenneGlobale}/5</span>
+          <span className="text-xs text-amber-800">({avisListe.length} avis)</span>
+        </div>
       </div>
 
-      {/* Filtres */}
-      <div className="flex items-center gap-2 mb-6">
-        <button
-          type="button"
-          onClick={() => setFiltre('attente')}
-          className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all cursor-pointer flex items-center gap-1.5 ${
-            filtre === 'attente'
-              ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-              : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
-          }`}
-        >
-          <Clock size={13} />
-          <span>En attente {nombreEnAttente > 0 && `(${nombreEnAttente})`}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setFiltre('tous')}
-          className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
-            filtre === 'tous'
-              ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-              : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
-          }`}
-        >
-          Tous ({avisListe.length})
-        </button>
+      {/* Filtres & Recherche */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setFiltre('attente')}
+            className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all cursor-pointer flex items-center gap-1.5 ${
+              filtre === 'attente'
+                ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+            }`}
+          >
+            <Clock size={13} />
+            <span>En attente {nombreEnAttente > 0 && `(${nombreEnAttente})`}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFiltre('tous')}
+            className={`px-4 py-2 rounded-xl text-xs font-medium border transition-all cursor-pointer ${
+              filtre === 'tous'
+                ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
+            }`}
+          >
+            Tous ({avisListe.length})
+          </button>
+        </div>
+
+        <div className="relative w-full sm:w-64">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Rechercher par bijou ou client..."
+            className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-stone-200 rounded-xl outline-none focus:border-stone-900"
+          />
+        </div>
       </div>
 
       {avisFiltres.length === 0 ? (

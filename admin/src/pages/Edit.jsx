@@ -11,7 +11,8 @@ import {
   Check, 
   Pencil, 
   Palette,
-  ArrowLeft
+  ArrowLeft,
+  ChevronDown
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { availableSizes, availableColors, availableMatieres } from '../constants/produit';
@@ -44,6 +45,7 @@ const Edit = ({ token }) => {
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
   const [tagsInput, setTagsInput] = useState('');
+  const [showAdvancedSeo, setShowAdvancedSeo] = useState(false);
 
 
   // 1. Charger les catégories et les détails du produit
@@ -550,36 +552,48 @@ const Edit = ({ token }) => {
             )}
           </div>
 
-          {/* Surcharges SEO (optionnelles) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Titre SEO <span className="text-stone-400 font-normal normal-case">(optionnel, sinon le nom est utilisé)</span>
-              </label>
-              <input
-                onChange={(e) => setMetaTitle(e.target.value)}
-                value={metaTitle}
-                maxLength={70}
-                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
-                type="text"
-                placeholder="Ex: Collier Pendeloque Aura | Aridona"
-              />
-              <span className="text-[10px] text-stone-400">{metaTitle.length}/70</span>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
-                Meta Description <span className="text-stone-400 font-normal normal-case">(optionnel, sinon la description est tronquée)</span>
-              </label>
-              <input
-                onChange={(e) => setMetaDescription(e.target.value)}
-                value={metaDescription}
-                maxLength={160}
-                className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
-                type="text"
-                placeholder="Résumé accrocheur affiché dans les résultats Google"
-              />
-              <span className="text-[10px] text-stone-400">{metaDescription.length}/160</span>
-            </div>
+          {/* Options SEO avancées (repliées par défaut) */}
+          <div className="rounded-xl border border-stone-200/80 bg-stone-50/40 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedSeo((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 text-xs font-semibold text-stone-700 hover:bg-stone-100/60 transition-colors cursor-pointer"
+            >
+              <span>Options SEO avancées (optionnel — remplies automatiquement)</span>
+              <ChevronDown size={15} className={`text-stone-400 transition-transform ${showAdvancedSeo ? 'rotate-180' : ''}`} />
+            </button>
+            {showAdvancedSeo && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-t border-stone-200/70 bg-white">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                    Titre SEO
+                  </label>
+                  <input
+                    onChange={(e) => setMetaTitle(e.target.value)}
+                    value={metaTitle}
+                    maxLength={70}
+                    className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                    type="text"
+                    placeholder="Ex: Collier Pendeloque Aura | Aridona"
+                  />
+                  <span className="text-[10px] text-stone-400">{metaTitle.length}/70</span>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 mb-1.5">
+                    Meta Description
+                  </label>
+                  <input
+                    onChange={(e) => setMetaDescription(e.target.value)}
+                    value={metaDescription}
+                    maxLength={160}
+                    className="w-full border border-stone-200 bg-stone-50/30 rounded-xl p-3 text-xs outline-none focus:bg-white focus:border-stone-900 transition-all"
+                    type="text"
+                    placeholder="Résumé accrocheur affiché dans les résultats Google"
+                  />
+                  <span className="text-[10px] text-stone-400">{metaDescription.length}/160</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
