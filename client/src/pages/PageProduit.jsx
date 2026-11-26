@@ -1,8 +1,9 @@
-import React, { useContext, useCallback, useEffect, useState } from 'react';
+import React, { useContext, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { ShopContext } from '../context/ShopContext';
-import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send, ChevronDown, ChevronUp, ShieldCheck, Truck } from 'lucide-react';
+import { X, ShoppingBag, MessageCircle, Star, CheckCircle, Send, ChevronDown, ChevronUp, ShieldCheck, Truck, Share2, Copy, Check } from 'lucide-react';
+import { toast } from 'react-toastify';
 import ApparenteProduit from '../composant/ApparenteProduit';
 import { Helmet } from 'react-helmet-async';
 import { trackEvent } from '../utils/tracker';
@@ -63,6 +64,11 @@ const PageProduit = () => {
   const [estAjoute, setEstAjoute] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [descriptionOuverte, setDescriptionOuverte] = useState(true);
+  const [partageSlug, setPartageSlug] = useState(null);
+  const [lienCopieSlug, setLienCopieSlug] = useState(null);
+  const partageRef = useRef(null);
+  const partageMenuOuvert = partageSlug === slug;
+  const lienCopie = lienCopieSlug === slug;
 
   // --- ÉTAT DU FORMULAIRE D'AVIS DÉROULANT ---
   const [showFormAvis, setShowFormAvis] = useState(false);
@@ -251,6 +257,75 @@ const PageProduit = () => {
     const prixFormate = Number(produitData.prix || 0).toLocaleString('fr-FR');
     const message = `Bonjour Aridona Bijoux !\n\nJe souhaite commander : ${produitData.nom}\nTaille : ${taille}\nPrix : ${prixFormate} XOF\nLien : ${window.location.href}\n\nMerci de me confirmer la disponibilité et la livraison.`;
     window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  useEffect(() => {
+    if (!partageMenuOuvert) return;
+    const handleOutside = (e) => {
+      if (partageRef.current && !partageRef.current.contains(e.target)) {
+        setPartageSlug(null);
+      }
+    };
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setPartageSlug(null);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [partageMenuOuvert]);
+
+  const copierLienProduit = async () => {
+    const url = window.location.href;
+    const activeSlug = slug;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+      }
+      setLienCopieSlug(activeSlug);
+      toast.success('Lien du bijou copié !');
+      setTimeout(() => setLienCopieSlug((prev) => (prev === activeSlug ? null : prev)), 2500);
+    } catch {
+      toast.error('Impossible de copier le lien.');
+    }
+    setPartageSlug(null);
+  };
+
+  const partagerSurWhatsApp = () => {
+    if (!produitData) return;
+    const prixFormate = Number(produitData.prix || 0).toLocaleString('fr-FR');
+    const texte = `Découvre ce bijou sur Aridona Bijoux : ${produitData.nom} (${prixFormate} ${monnaie || 'FCFA'})\n${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(texte)}`, '_blank', 'noopener,noreferrer');
+    setPartageSlug(null);
+  };
+
+  const handlePartager = async () => {
+    if (!produitData) return;
+    const prixFormate = Number(produitData.prix || 0).toLocaleString('fr-FR');
+    const textePartage = `Découvre ${produitData.nom} (${prixFormate} ${monnaie || 'FCFA'}) sur Aridona Bijoux`;
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: produitData.nom,
+          text: textePartage,
+          url: window.location.href,
+        });
+        return;
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+    setPartageSlug((prev) => (prev === slug ? null : slug));
   };
 
   const schemaData = produitData && produitData.prix ? {
@@ -470,22 +545,67 @@ const PageProduit = () => {
             </div>
           )}
 
-          <div className="flex items-center gap-4 mt-4">
-            <p className='text-3xl font-light text-amber-900'>
-              {produitData.prix ? Number(produitData.prix).toLocaleString() : 0} {monnaie || 'FCFA'}
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-4 mt-4 md:w-11/12">
+            <div className="flex items-center gap-4">
+              <p className='text-3xl font-light text-amber-900'>
+                {produitData.prix ? Number(produitData.prix).toLocaleString() : 0} {monnaie || 'FCFA'}
+              </p>
 
-            {produitData.enStock === false ? (
-              <span className="px-3 py-1 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-full uppercase tracking-wider">
-                Rupture de stock
-              </span>
-            ) : produitData.stock !== null && produitData.stock !== undefined && produitData.stock <= 5 ? (
-              <span className="px-3 py-1 bg-amber-50 border border-amber-300 text-amber-800 text-xs font-semibold rounded-full uppercase tracking-wider animate-pulse">
-                Plus que {produitData.stock} en stock
-              </span>
-            ) : (
-              <span className="text-sm text-emerald-700">En stock</span>
-            )}
+              {produitData.enStock === false ? (
+                <span className="px-3 py-1 bg-red-50 border border-red-200 text-red-600 text-xs font-semibold rounded-full uppercase tracking-wider">
+                  Rupture de stock
+                </span>
+              ) : produitData.stock !== null && produitData.stock !== undefined && produitData.stock <= 5 ? (
+                <span className="px-3 py-1 bg-amber-50 border border-amber-300 text-amber-800 text-xs font-semibold rounded-full uppercase tracking-wider animate-pulse">
+                  Plus que {produitData.stock} en stock
+                </span>
+              ) : (
+                <span className="text-sm text-emerald-700">En stock</span>
+              )}
+            </div>
+
+            <div className="relative" ref={partageRef}>
+              <button
+                type="button"
+                onClick={handlePartager}
+                aria-label="Partager ce bijou"
+                aria-expanded={partageMenuOuvert}
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-stone-200 bg-white text-stone-700 hover:border-amber-800 hover:text-amber-900 hover:bg-amber-50/40 transition-colors text-xs font-semibold tracking-wide cursor-pointer"
+              >
+                {lienCopie ? (
+                  <>
+                    <Check size={15} className="text-emerald-700" />
+                    <span className="text-emerald-700">Lien copié</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 size={15} />
+                    <span>Partager</span>
+                  </>
+                )}
+              </button>
+
+              {partageMenuOuvert && (
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-stone-200 bg-white shadow-lg py-1.5 z-30">
+                  <button
+                    type="button"
+                    onClick={partagerSurWhatsApp}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-medium text-stone-700 hover:bg-emerald-50 hover:text-emerald-800 transition-colors cursor-pointer"
+                  >
+                    <MessageCircle size={15} className="text-emerald-700 shrink-0" />
+                    <span>Partager sur WhatsApp</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={copierLienProduit}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left text-xs font-medium text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-colors cursor-pointer"
+                  >
+                    <Copy size={15} className="text-stone-500 shrink-0" />
+                    <span>Copier le lien</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className='mt-6 md:w-11/12 border-y border-stone-200'>
